@@ -94,6 +94,16 @@ class _TournamentSettingsSheetState extends State<TournamentSettingsSheet> {
           ),
           const Divider(),
           SettingRow(
+            title: 'תוספת זמן (overtime)',
+            subtitle: 'נספרת אחרי שזמן הסיבוב נגמר',
+            child: Stepper2(
+                value: t.overtimeMinutes,
+                max: 30,
+                format: (v) => '$v′',
+                onChanged: (v) => _set(() => t.overtimeMinutes = v)),
+          ),
+          const Divider(),
+          SettingRow(
             title: 'רצפה ל-OMW%',
             subtitle: 'אחוז הנצחונות המינימלי שנספר ליריב חלש בחישוב שובר השוויון. ברירת מחדל 33%.',
             child: Stepper2(
@@ -106,7 +116,7 @@ class _TournamentSettingsSheetState extends State<TournamentSettingsSheet> {
           ),
           const SizedBox(height: 14),
           const Text(
-            'שוברי שוויון לפי סדר: נקודות ← OMW% (ממוצע אחוזי הנצחון של היריבים) ← OOMW% (ממוצע ה-OMW של היריבים) ← הגרלה. נצחון 3, תיקו 1, הפסד והפסד כפול 0, BYE נחשב נצחון.',
+            'שוברי שוויון לפי סדר: נקודות ← OMW% (ממוצע אחוזי הנצחון של היריבים) ← OOMW% (ממוצע ה-OMW של היריבים) ← הגרלה. נצחון 3, תיקו (כולל 0-0) 1, הפסד 0, BYE נחשב נצחון.',
             style: TextStyle(color: Z.muted, fontSize: 12.5, height: 1.5),
           ),
         ]),

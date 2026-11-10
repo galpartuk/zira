@@ -6,6 +6,7 @@ import 'coin_screen.dart';
 import 'dice_screen.dart';
 import 'memory_screen.dart';
 import 'rps_screen.dart';
+import 'rules_screen.dart';
 import 'tool_icons.dart';
 
 class ToolsScreen extends StatelessWidget {
@@ -72,6 +73,15 @@ class ToolsScreen extends StatelessWidget {
               ),
             ),
           ]),
+          const SizedBox(height: 12),
+          _ToolTile(
+            title: 'חוקי דיג׳ימון',
+            body: 'חוברת החוקים, Comprehensive Rules, מילון מונחים ורשימת הקלפים האסורים.',
+            icon: const Icon(Icons.menu_book_rounded, size: 40, color: Z.blue),
+            color: Z.blue,
+            tall: true,
+            onTap: () => open(const RulesScreen()),
+          ),
         ],
       ),
     );

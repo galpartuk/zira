@@ -26,6 +26,9 @@ void main() {
     final t = app.tournaments.single;
     expect(t.players.length, 5);
     expect(t.swissRounds, 3);
+    expect(t.topCut, 0);
+    expect(t.swissBestOf, 3);
+    expect(t.roundMinutes, 45);
 
     await tester.tap(find.text('התחלת הטורניר · סיבוב 1'));
     await tester.pumpAndSettle();
@@ -36,9 +39,10 @@ void main() {
     for (final m in t.rounds.first.matches.where((m) => !m.isBye)) {
       await tester.tap(find.text(t.nameOf(m.p1)).first);
       await tester.pumpAndSettle();
-      await tester.tap(find.text('${t.nameOf(m.p1)} ניצח'));
+      await tester.tap(find.text('2-0')); // default is best-of-3
       await tester.pumpAndSettle();
       expect(m.result?.outcome, Outcome.p1);
+      expect(m.result?.g1, 2);
     }
 
     await tester.tap(find.text('זיווג סיבוב 2'));

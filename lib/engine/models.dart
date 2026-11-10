@@ -14,8 +14,8 @@ enum TFormat { swiss, roundRobin }
 
 enum Stage { swiss, top }
 
-/// How a match ended. [doubleLoss] is the Bandai time-out rule for Swiss:
-/// an unfinished game when time is called is a loss for both players.
+/// How a match ended. [doubleLoss] is no longer offered in the UI (time-outs
+/// are reported as a 0-0 draw) but stays so old saved results still load.
 enum Outcome { p1, p2, draw, doubleLoss }
 
 class Player {
@@ -151,7 +151,7 @@ class Round {
 
 /// Settings for the prize table.
 class PrizeConfig {
-  String unit; // e.g. ₪ or "בוסטרים"
+  String unit; // ₪ or packs ("חבילות")
   double entryFee;
   double extra; // sponsor / store-added amount
   double houseCut; // percent kept by the organiser
@@ -159,9 +159,10 @@ class PrizeConfig {
   bool splitTies; // average shares inside top-cut groups (3-4, 5-8, ...)
   List<double> percents; // per place, index 0 = 1st
 
+  /// Default: prizes in booster packs, each player puts in one pack.
   PrizeConfig({
-    this.unit = '₪',
-    this.entryFee = 0,
+    this.unit = 'חבילות',
+    this.entryFee = 1,
     this.extra = 0,
     this.houseCut = 0,
     this.step = 1,
@@ -202,6 +203,7 @@ class Tournament {
   bool thirdPlace;
   double omwFloor; // e.g. 0.33; 0 to disable
   int roundMinutes;
+  int overtimeMinutes; // counted down after the round clock hits zero
   final List<Player> players;
   final List<Round> rounds;
   bool finished;
@@ -222,11 +224,12 @@ class Tournament {
     this.format = TFormat.swiss,
     this.swissRounds = 3,
     this.topCut = 0,
-    this.swissBestOf = 1,
+    this.swissBestOf = 3,
     this.topBestOf = 3,
     this.thirdPlace = false,
     this.omwFloor = 0.33,
-    this.roundMinutes = 30,
+    this.roundMinutes = 45,
+    this.overtimeMinutes = 5,
     List<Player>? players,
     List<Round>? rounds,
     this.finished = false,
@@ -274,6 +277,7 @@ class Tournament {
         'third': thirdPlace,
         'omwFloor': omwFloor,
         'minutes': roundMinutes,
+        'ot': overtimeMinutes,
         'players': players.map((p) => p.toJson()).toList(),
         'rounds': rounds.map((r) => r.toJson()).toList(),
         'finished': finished,
@@ -294,7 +298,8 @@ class Tournament {
         topBestOf: j['topBo'] as int? ?? 3,
         thirdPlace: j['third'] as bool? ?? false,
         omwFloor: (j['omwFloor'] as num?)?.toDouble() ?? 0.33,
-        roundMinutes: j['minutes'] as int? ?? 30,
+        roundMinutes: j['minutes'] as int? ?? 45,
+        overtimeMinutes: j['ot'] as int? ?? 5,
         players: (j['players'] as List).map((e) => Player.fromJson(e as Map<String, dynamic>)).toList(),
         rounds: (j['rounds'] as List).map((e) => Round.fromJson(e as Map<String, dynamic>)).toList(),
         finished: j['finished'] as bool? ?? false,

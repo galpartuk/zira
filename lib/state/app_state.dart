@@ -145,7 +145,8 @@ class AppState extends ChangeNotifier {
 
   void pauseTimer(Tournament t) {
     if (t.timerEndMs == null) return;
-    t.timerPausedMs = (t.timerEndMs! - DateTime.now().millisecondsSinceEpoch).clamp(0, 1 << 31);
+    // May be negative: pausing during overtime keeps the overtime position.
+    t.timerPausedMs = t.timerEndMs! - DateTime.now().millisecondsSinceEpoch;
     t.timerEndMs = null;
     changed();
   }
@@ -161,7 +162,7 @@ class AppState extends ChangeNotifier {
     if (t.timerEndMs != null) {
       t.timerEndMs = t.timerEndMs! + d;
     } else {
-      t.timerPausedMs = ((t.timerPausedMs ?? t.roundMinutes * 60000) + d).clamp(0, 1 << 31);
+      t.timerPausedMs = (t.timerPausedMs ?? t.roundMinutes * 60000) + d;
     }
     changed();
   }

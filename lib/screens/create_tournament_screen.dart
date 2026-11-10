@@ -20,12 +20,12 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
   TFormat _format = TFormat.swiss;
   int _rounds = 3;
   bool _roundsTouched = false;
-  int _top = 0;
-  bool _topTouched = false;
-  int _swissBo = 1;
+  int _top = 0; // default: no top cut
+  int _swissBo = 3;
   int _topBo = 3;
   bool _third = false;
-  int _minutes = 30;
+  int _minutes = 45;
+  int _overtime = 5;
 
   @override
   void initState() {
@@ -42,7 +42,6 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
     final n = _names.length;
     setState(() {
       if (!_roundsTouched) _rounds = recommendedSwissRounds(n);
-      if (!_topTouched) _top = recommendedTopCut(n);
     });
   }
 
@@ -114,7 +113,9 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
                 const Divider(),
                 SettingRow(
                   title: 'טופ קאט',
-                  subtitle: 'נוקאאוט בין המובילים אחרי הסיבובים',
+                  subtitle: recommendedTopCut(n) > 0
+                      ? 'נוקאאוט בין המובילים. מקובל ל-$n שחקנים: טופ ${recommendedTopCut(n)}'
+                      : 'נוקאאוט בין המובילים אחרי הסיבובים',
                   child: DropdownButton<int>(
                     value: _top,
                     underline: const SizedBox(),
@@ -122,10 +123,7 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
                     items: [0, 2, 4, 8, 16, 32]
                         .map((v) => DropdownMenuItem(value: v, child: Text(v == 0 ? 'בלי' : 'טופ $v')))
                         .toList(),
-                    onChanged: (v) => setState(() {
-                      _top = v!;
-                      _topTouched = true;
-                    }),
+                    onChanged: (v) => setState(() => _top = v!),
                   ),
                 ),
                 const Divider(),
@@ -145,13 +143,22 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
                 const Divider(),
                 SettingRow(
                   title: 'זמן סיבוב',
-                  subtitle: 'בטורנירי דיג׳ימון: 30 דקות',
                   child: Stepper2(
                       value: _minutes,
                       min: 5,
                       max: 120,
                       format: (v) => '$v′',
                       onChanged: (v) => setState(() => _minutes = v)),
+                ),
+                const Divider(),
+                SettingRow(
+                  title: 'תוספת זמן (overtime)',
+                  subtitle: 'נספרת אחרי שזמן הסיבוב נגמר',
+                  child: Stepper2(
+                      value: _overtime,
+                      max: 30,
+                      format: (v) => '$v′',
+                      onChanged: (v) => setState(() => _overtime = v)),
                 ),
               ]),
             ),
@@ -191,6 +198,7 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
       topBestOf: _topBo,
       thirdPlace: _third,
       roundMinutes: _minutes,
+      overtimeMinutes: _overtime,
     );
     final seen = <String>{};
     for (final name in _names) {

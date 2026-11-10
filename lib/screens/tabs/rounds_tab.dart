@@ -118,6 +118,9 @@ class _RoundsTabState extends State<RoundsTab> {
                 round: round,
                 standings: standings,
                 onTap: (!editable || m.isBye) ? null : () => _report(round, m),
+                // Drops apply from the next pairing, so only offer them while
+                // more Swiss rounds can still follow.
+                onDrop: (isCurrent && !t.finished && round.stage == Stage.swiss) ? () => _drop(m) : null,
               ),
           ],
         ),
@@ -139,6 +142,42 @@ class _RoundsTabState extends State<RoundsTab> {
     );
     if (r == null || !mounted) return;
     context.read<AppState>().setResult(t, m, identical(r, ResultSheet.clear) ? null : r);
+  }
+
+  Future<void> _drop(Match m) async {
+    final ids = [m.p1, if (m.p2 != null) m.p2!];
+    await showModalBottomSheet<void>(
+      context: context,
+      builder: (c) => StatefulBuilder(
+        builder: (c, setSheet) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              const Text('פרישה לפני הסיבוב הבא',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 4),
+              const Text('השחקן מסיים את הסיבוב הנוכחי (התוצאה נשמרת) ולא יזווג יותר.',
+                  style: TextStyle(color: Z.muted, fontSize: 13)),
+              const SizedBox(height: 10),
+              for (final id in ids)
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(t.nameOf(id), style: const TextStyle(fontWeight: FontWeight.w700)),
+                  subtitle: Text(t.player(id)!.dropped ? 'פרש — לא יזווג בסיבוב הבא' : 'ממשיך בטורניר'),
+                  value: t.player(id)!.dropped,
+                  activeThumbColor: Z.ink,
+                  activeTrackColor: Z.danger,
+                  onChanged: (v) {
+                    t.player(id)!.dropped = v;
+                    context.read<AppState>().changed();
+                    setSheet(() {});
+                  },
+                ),
+            ]),
+          ),
+        ),
+      ),
+    );
   }
 
   String _pairingsText(Round round, Map<String, Standing> st) {
@@ -194,8 +233,10 @@ class _MatchCard extends StatelessWidget {
   final Round round;
   final Map<String, Standing> standings;
   final VoidCallback? onTap;
+  final VoidCallback? onDrop;
 
-  const _MatchCard({required this.t, required this.m, required this.round, required this.standings, this.onTap});
+  const _MatchCard(
+      {required this.t, required this.m, required this.round, required this.standings, this.onTap, this.onDrop});
 
   @override
   Widget build(BuildContext context) {
@@ -225,6 +266,8 @@ class _MatchCard extends StatelessWidget {
             if (st != null && round.stage == Stage.swiss)
               Text('${st.points} נק׳ · ${st.record}',
                   style: const TextStyle(fontSize: 12, color: Z.muted, fontFeatures: Z.tabular)),
+            if (t.player(id)?.dropped ?? false)
+              const Padding(padding: EdgeInsets.only(top: 3), child: Pill('פרש', color: Z.danger)),
           ],
         ),
       );
@@ -240,7 +283,7 @@ class _MatchCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+            padding: EdgeInsetsDirectional.fromSTEB(12, 12, onDrop != null ? 4 : 12, 12),
             child: Row(children: [
               Container(
                 width: 38,
@@ -273,6 +316,19 @@ class _MatchCard extends StatelessWidget {
                 ),
                 side(m.p2, Z.coral, TextAlign.end),
               ],
+              if (onDrop != null)
+                SizedBox(
+                  width: 34,
+                  child: IconButton(
+                    tooltip: 'פרישה',
+                    padding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                    iconSize: 20,
+                    color: Z.muted,
+                    onPressed: onDrop,
+                    icon: const Icon(Icons.person_remove_outlined),
+                  ),
+                ),
             ]),
           ),
         ),

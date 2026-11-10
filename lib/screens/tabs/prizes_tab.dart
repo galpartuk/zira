@@ -26,7 +26,7 @@ class _PrizesTabState extends State<PrizesTab> {
   @override
   void initState() {
     super.initState();
-    c = widget.t?.prizes ?? PrizeConfig(entryFee: 30, percents: [50, 30, 20]);
+    c = widget.t?.prizes ?? PrizeConfig();
   }
 
   void _changed() {
@@ -63,12 +63,14 @@ class _PrizesTabState extends State<PrizesTab> {
                   style: const ButtonStyle(visualDensity: VisualDensity.compact),
                   segments: const [
                     ButtonSegment(value: '₪', label: Text('כסף ₪')),
-                    ButtonSegment(value: 'בוסטרים', label: Text('בוסטרים')),
+                    ButtonSegment(value: 'חבילות', label: Text('חבילות')),
                   ],
-                  selected: {c.unit == '₪' ? '₪' : 'בוסטרים'},
+                  selected: {c.unit == '₪' ? '₪' : 'חבילות'},
                   onSelectionChanged: (s) {
                     c.unit = s.first;
-                    if (c.unit != '₪') c.step = 1;
+                    c.step = 1;
+                    if (c.unit == '₪' && c.entryFee <= 1) c.entryFee = 30;
+                    if (c.unit != '₪' && c.entryFee > 5) c.entryFee = 1;
                     _changed();
                   },
                 ),
@@ -77,7 +79,8 @@ class _PrizesTabState extends State<PrizesTab> {
               Row(children: [
                 Expanded(
                   child: _NumField(
-                    label: c.unit == '₪' ? 'דמי השתתפות' : 'בוסטרים לשחקן',
+                    key: ValueKey('fee-${c.unit}'),
+                    label: c.unit == '₪' ? 'דמי השתתפות' : 'חבילות לשחקן',
                     value: c.entryFee,
                     onChanged: (v) {
                       c.entryFee = v;
@@ -339,7 +342,7 @@ class _NumField extends StatefulWidget {
   final String label;
   final double value;
   final ValueChanged<double> onChanged;
-  const _NumField({required this.label, required this.value, required this.onChanged});
+  const _NumField({super.key, required this.label, required this.value, required this.onChanged});
 
   @override
   State<_NumField> createState() => _NumFieldState();

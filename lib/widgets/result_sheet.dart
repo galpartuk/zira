@@ -102,12 +102,12 @@ class ResultSheet extends StatelessWidget {
           if (!elimination) ...[
             const SizedBox(height: 6),
             Row(children: [
-              winBtn(bo3 ? 'תיקו 1-1' : 'תיקו', Z.muted, MatchResult(Outcome.draw, bo3 ? 1 : 0, bo3 ? 1 : 0)),
-              winBtn('הפסד כפול (זמן)', Z.danger, const MatchResult(Outcome.doubleLoss)),
+              if (bo3) winBtn('תיקו 1-1', Z.muted, const MatchResult(Outcome.draw, 1, 1)),
+              winBtn('תיקו 0-0', Z.muted, const MatchResult(Outcome.draw, 0, 0)),
             ]),
             const Padding(
               padding: EdgeInsets.fromLTRB(6, 6, 6, 0),
-              child: Text('בדיג׳ימון: משחק שלא הוכרע כשהזמן נגמר — הפסד לשניהם.',
+              child: Text('תיקו = נקודה לכל שחקן. 0-0 כשנגמר הזמן ואף משחק לא הוכרע.',
                   style: TextStyle(color: Z.muted, fontSize: 12.5)),
             ),
           ] else
