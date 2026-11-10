@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../engine/models.dart';
 import '../../engine/pairing.dart';
 import '../../engine/standings.dart';
+import '../../l10n.dart';
 import '../../state/app_state.dart';
 import '../../theme.dart';
 import '../../widgets/common.dart';
@@ -24,8 +25,7 @@ class BracketTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final size = effectiveTopCut(t);
     if (size == 0) {
-      return const EmptyState(
-          icon: Icons.account_tree_outlined, title: 'אין טופ קאט', body: 'אפשר להפעיל טופ קאט בהגדרות (סמל המחוונים למעלה).');
+      return EmptyState(icon: Icons.account_tree_outlined, title: S.t.noTopCut, body: S.t.noTopCutBody);
     }
     final tops = t.topRoundsList;
     final preview = tops.isEmpty;
@@ -66,7 +66,7 @@ class BracketTab extends StatelessWidget {
     }
     final champion = topCutFinished(t) ? tops.last.matches.firstWhere((m) => !m.thirdPlace).winner : null;
     final height = (size / 2) * (_cardH + _gap);
-    final names = [for (var i = 0; i < columns.length; i++) _colName(size >> i)];
+    final names = [for (var i = 0; i < columns.length; i++) S.t.topRoundName(size >> i)];
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(0, 12, 0, 24),
@@ -84,16 +84,15 @@ class BracketTab extends StatelessWidget {
               const Icon(Icons.emoji_events, color: Z.gold, size: 38),
               const SizedBox(width: 12),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                const Text('אלוף הטורניר', style: TextStyle(color: Z.muted, fontWeight: FontWeight.w700)),
+                Text(S.t.tournamentChampion, style: const TextStyle(color: Z.muted, fontWeight: FontWeight.w700)),
                 Text(t.nameOf(champion), style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: Z.gold)),
               ]),
             ]),
           ),
         if (preview)
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 0, 16, 10),
-            child: Text('תצוגה מקדימה לפי הדירוג הנוכחי. הזיווג ייקבע כשתתחילו את הטופ קאט.',
-                style: TextStyle(color: Z.muted, fontSize: 13)),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+            child: Text(S.t.bracketPreview, style: const TextStyle(color: Z.muted, fontSize: 13)),
           ),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
@@ -139,7 +138,7 @@ class BracketTab extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 18, 16, 0),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('משחק על המקום השלישי', style: TextStyle(fontWeight: FontWeight.w800, color: Z.muted)),
+              Text(S.t.thirdPlaceMatch, style: const TextStyle(fontWeight: FontWeight.w800, color: Z.muted)),
               const SizedBox(height: 8),
               SizedBox(
                 width: _colW,
@@ -157,13 +156,6 @@ class BracketTab extends StatelessWidget {
       ],
     );
   }
-
-  static String _colName(int players) => switch (players) {
-        2 => 'גמר',
-        4 => 'חצי גמר',
-        8 => 'רבע גמר',
-        _ => 'טופ $players',
-      };
 }
 
 class _BracketMatch extends StatelessWidget {
@@ -221,7 +213,7 @@ class _BracketMatch extends StatelessWidget {
       height: height,
       child: Material(
         color: Z.surface,
-        borderRadius: BorderRadius.circular(12),
+        // Material asserts when given both a borderRadius and a shape.
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(color: editable && m != null && !m.done ? Z.gold.withValues(alpha: .6) : Z.line),

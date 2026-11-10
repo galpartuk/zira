@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../engine/models.dart';
 import '../../engine/pairing.dart';
 import '../../engine/standings.dart';
+import '../../l10n.dart';
 import '../../theme.dart';
 import '../../widgets/common.dart';
 
@@ -13,7 +14,7 @@ class StandingsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (t.players.isEmpty) {
-      return const EmptyState(icon: Icons.leaderboard_outlined, title: 'אין דירוג עדיין', body: 'הוסיפו שחקנים והתחילו סיבוב.');
+      return EmptyState(icon: Icons.leaderboard_outlined, title: S.t.noStandings, body: S.t.noStandingsBody);
     }
     final list = computeStandings(t);
     final cut = t.topRoundsList.isEmpty ? effectiveTopCut(t) : 0;
@@ -29,31 +30,31 @@ class StandingsTab extends StatelessWidget {
         Row(children: [
           Expanded(
             child: Text(
-              rounds == 0 ? 'לפני סיבוב 1' : 'אחרי ${list.isEmpty ? 0 : rounds} סיבובים${t.swissDone ? ' (סופי)' : ''}',
+              rounds == 0 ? S.t.beforeRound1 : S.t.afterRounds(rounds, t.swissDone),
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
             ),
           ),
           IconButton(
-            tooltip: 'העתקת דירוג',
+            tooltip: S.t.copyStandings,
             icon: const Icon(Icons.copy_rounded),
-            onPressed: () => copyText(context, _text(list), 'הדירוג'),
+            onPressed: () => copyText(context, _text(list), S.t.standingsWhat),
           ),
         ]),
         if (cut > 0 && rounds > 0)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: Text('מסומנים בצהוב: עולים לטופ $cut אם הטורניר היה נגמר עכשיו',
+            child: Text(S.t.cutMarked(cut),
                 style: const TextStyle(fontSize: 12.5, color: Z.muted)),
           ),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          child: const Row(children: [
-            SizedBox(width: 30, child: Text('#', style: head)),
-            Expanded(child: Text('שחקן', style: head)),
-            SizedBox(width: 38, child: Text('נק׳', style: head, textAlign: TextAlign.center)),
-            SizedBox(width: 52, child: Text('מאזן', style: head, textAlign: TextAlign.center)),
-            SizedBox(width: 56, child: Text('OMW', style: head, textAlign: TextAlign.center)),
-            SizedBox(width: 56, child: Text('OOMW', style: head, textAlign: TextAlign.center)),
+          child: Row(children: [
+            const SizedBox(width: 30, child: Text('#', style: head)),
+            Expanded(child: Text(S.t.colPlayer, style: head)),
+            SizedBox(width: 38, child: Text(S.t.colPts, style: head, textAlign: TextAlign.center)),
+            SizedBox(width: 52, child: Text(S.t.colRecord, style: head, textAlign: TextAlign.center)),
+            const SizedBox(width: 56, child: Text('OMW', style: head, textAlign: TextAlign.center)),
+            const SizedBox(width: 56, child: Text('OOMW', style: head, textAlign: TextAlign.center)),
           ]),
         ),
         for (final s in list)
@@ -85,7 +86,7 @@ class StandingsTab extends StatelessWidget {
                       style: TextStyle(fontWeight: FontWeight.w700, color: s.player.dropped ? Z.muted : Z.text),
                     ),
                   ),
-                  if (s.player.dropped) ...[const SizedBox(width: 6), const Pill('פרש', color: Z.danger)],
+                  if (s.player.dropped) ...[const SizedBox(width: 6), Pill(S.t.dropped, color: Z.danger)],
                 ]),
               ),
               SizedBox(
@@ -105,18 +106,18 @@ class StandingsTab extends StatelessWidget {
             ]),
           ),
         const SizedBox(height: 12),
-        const Text(
-          'סדר הדירוג: נקודות ← OMW% ← OOMW% ← הגרלה קבועה. נצחון 3 · תיקו 1 · הפסד 0 · BYE = נצחון.',
-          style: TextStyle(color: Z.muted, fontSize: 12.5, height: 1.5),
+        Text(
+          S.t.standingsLegend,
+          style: const TextStyle(color: Z.muted, fontSize: 12.5, height: 1.5),
         ),
       ],
     );
   }
 
   String _text(List<Standing> list) {
-    final b = StringBuffer('${t.name} — דירוג\n');
+    final b = StringBuffer('${S.t.standingsHeader(t.name)}\n');
     for (final s in list) {
-      b.writeln('${s.rank}. ${s.player.name} — ${s.points} נק׳ (${s.record})${s.player.dropped ? ' [פרש]' : ''}');
+      b.writeln('${s.rank}. ${s.player.name} — ${S.t.pts(s.points)} (${s.record})${s.player.dropped ? ' ${S.t.droppedTag}' : ''}');
     }
     return b.toString();
   }

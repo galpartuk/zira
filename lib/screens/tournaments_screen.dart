@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../engine/models.dart';
 import '../engine/pairing.dart';
+import '../l10n.dart';
 import '../state/app_state.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
@@ -18,14 +19,15 @@ class TournamentsScreen extends StatelessWidget {
     final app = context.watch<AppState>();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('זירה'),
+        title: Text(S.t.appName),
         actions: [
+          const LangButton(),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
             onSelected: (v) => _menu(context, app, v),
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'export', child: Text('העתקת גיבוי של כל הטורנירים')),
-              PopupMenuItem(value: 'import', child: Text('שחזור גיבוי מהלוח')),
+            itemBuilder: (_) => [
+              PopupMenuItem(value: 'export', child: Text(S.t.copyBackup)),
+              PopupMenuItem(value: 'import', child: Text(S.t.restoreBackup)),
             ],
           ),
         ],
@@ -33,17 +35,17 @@ class TournamentsScreen extends StatelessWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _create(context),
         icon: const Icon(Icons.add),
-        label: const Text('טורניר חדש', style: TextStyle(fontWeight: FontWeight.w800)),
+        label: Text(S.t.newTournament, style: const TextStyle(fontWeight: FontWeight.w800)),
       ),
       body: !app.loaded
           ? const Center(child: CircularProgressIndicator())
           : app.tournaments.isEmpty
               ? EmptyState(
                   icon: Icons.emoji_events_outlined,
-                  title: 'עוד אין טורנירים',
-                  body: 'פתחו טורניר, הוסיפו שחקנים, והאפליקציה תזווג, תדרג ותחשב פרסים.',
+                  title: S.t.noTournaments,
+                  body: S.t.noTournamentsBody,
                   action: FilledButton.icon(
-                      onPressed: () => _create(context), icon: const Icon(Icons.add), label: const Text('טורניר חדש')),
+                      onPressed: () => _create(context), icon: const Icon(Icons.add), label: Text(S.t.newTournament)),
                 )
               : ListView.separated(
                   padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
@@ -64,15 +66,15 @@ class TournamentsScreen extends StatelessWidget {
 
   void _menu(BuildContext context, AppState app, String v) async {
     if (v == 'export') {
-      await copyText(context, app.exportAll(), 'הגיבוי');
+      await copyText(context, app.exportAll(), S.t.backupWhat);
     } else if (v == 'import') {
       final data = await Clipboard.getData('text/plain');
       if (!context.mounted) return;
       try {
         final n = app.importAll(data?.text ?? '');
-        toast(context, 'שוחזרו $n טורנירים');
+        toast(context, S.t.restored(n));
       } catch (_) {
-        toast(context, 'בלוח אין גיבוי תקין. העתיקו קודם גיבוי מהאפליקציה.');
+        toast(context, S.t.badBackup);
       }
     }
   }
@@ -91,8 +93,7 @@ class _TournamentCard extends StatelessWidget {
       child: InkWell(
         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TournamentScreen(id: t.id))),
         onLongPress: () async {
-          final ok = await confirm(context, 'למחוק את "${t.name}"?', 'כל הסיבובים והתוצאות יימחקו. אי אפשר לבטל.',
-              ok: 'מחיקה', danger: true);
+          final ok = await confirm(context, S.t.deleteTitle(t.name), S.t.deleteBody, ok: S.t.delete, danger: true);
           if (ok && context.mounted) context.read<AppState>().remove(t);
         },
         child: Padding(
@@ -109,7 +110,7 @@ class _TournamentCard extends StatelessWidget {
                 Text(t.name, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 4),
                 Text(
-                  '${d.day}.${d.month}.${d.year}  ·  ${t.players.length} שחקנים  ·  ${t.format == TFormat.swiss ? 'סוויס' : 'ראונד רובין'}${t.topCut > 0 ? ' + טופ ${t.topCut}' : ''}',
+                  '${d.day}.${d.month}.${d.year}  ·  ${S.t.players(t.players.length)}  ·  ${t.format == TFormat.swiss ? S.t.swiss : S.t.roundRobin}${t.topCut > 0 ? ' + ${S.t.top(t.topCut)}' : ''}',
                   style: const TextStyle(color: Z.muted, fontSize: 13),
                 ),
               ]),
@@ -124,9 +125,9 @@ class _TournamentCard extends StatelessWidget {
 
 /// Short status text + colour for a tournament.
 (String, Color) statusOf(Tournament t) {
-  if (t.finished) return ('הסתיים', Z.win);
-  if (!t.started) return ('הרשמה', Z.muted);
+  if (t.finished) return (S.t.statusFinished, Z.win);
+  if (!t.started) return (S.t.statusRegistration, Z.muted);
   final r = t.currentRound!;
-  if (r.stage == Stage.top) return (topRoundName(r), Z.coral);
-  return ('סיבוב ${r.number}/${t.plannedSwissRounds}', Z.gold);
+  if (r.stage == Stage.top) return (S.t.topRoundName(topRoundSize(r)), Z.coral);
+  return (S.t.roundOf(r.number, t.plannedSwissRounds), Z.gold);
 }

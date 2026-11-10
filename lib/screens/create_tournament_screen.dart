@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../engine/models.dart';
+import '../l10n.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 
@@ -31,7 +32,7 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
   void initState() {
     super.initState();
     final d = DateTime.now();
-    _name = TextEditingController(text: 'טורניר ${d.day}.${d.month}');
+    _name = TextEditingController(text: S.t.defaultTournamentName(d.day, d.month));
     _players.addListener(_sync);
     _name.addListener(() => setState(() {}));
   }
@@ -58,21 +59,21 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
     final n = _names.length;
     final rr = _format == TFormat.roundRobin;
     return Scaffold(
-      appBar: AppBar(title: const Text('טורניר חדש')),
+      appBar: AppBar(title: Text(S.t.newTournament)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 120),
         children: [
           TextField(
             controller: _name,
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-            decoration: const InputDecoration(labelText: 'שם הטורניר'),
+            decoration: InputDecoration(labelText: S.t.tournamentName),
           ),
-          const SectionTitle('שיטה'),
+          SectionTitle(S.t.format),
           SegmentedButton<TFormat>(
             showSelectedIcon: false,
-            segments: const [
-              ButtonSegment(value: TFormat.swiss, label: Text('סוויס')),
-              ButtonSegment(value: TFormat.roundRobin, label: Text('ראונד רובין')),
+            segments: [
+              ButtonSegment(value: TFormat.swiss, label: Text(S.t.swiss)),
+              ButtonSegment(value: TFormat.roundRobin, label: Text(S.t.roundRobin)),
             ],
             selected: {_format},
             onSelectionChanged: (s) => setState(() => _format = s.first),
@@ -80,28 +81,26 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
             child: Text(
-              rr
-                  ? 'כל שחקן משחק נגד כל השאר פעם אחת. מתאים לקבוצות קטנות (עד ~10).'
-                  : 'בכל סיבוב משחקים מול שחקנים עם אותו ניקוד, בלי משחק חוזר. השיטה של טורנירי Bandai.',
+              rr ? S.t.rrExplain : S.t.swissExplain,
               style: const TextStyle(color: Z.muted, fontSize: 13, height: 1.4),
             ),
           ),
-          SectionTitle('שחקנים', trailing: Pill('$n', color: n >= 2 ? Z.gold : Z.muted)),
+          SectionTitle(S.t.playersTitle, trailing: Pill('$n', color: n >= 2 ? Z.gold : Z.muted)),
           TextField(
             controller: _players,
             minLines: 5,
             maxLines: 12,
-            decoration: const InputDecoration(hintText: 'שם בכל שורה (אפשר להדביק רשימה)\nאפשר להוסיף שחקנים גם אחר כך'),
+            decoration: InputDecoration(hintText: S.t.playersHint),
           ),
-          const SectionTitle('הגדרות'),
+          SectionTitle(S.t.settings),
           Card(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               child: Column(children: [
                 if (!rr)
                   SettingRow(
-                    title: 'סיבובי סוויס',
-                    subtitle: 'מומלץ ל-$n שחקנים: ${recommendedSwissRounds(n)}',
+                    title: S.t.swissRounds,
+                    subtitle: S.t.recommendedFor(n, recommendedSwissRounds(n)),
                     child: Stepper2(
                         value: _rounds,
                         min: 1,
@@ -113,44 +112,42 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
                   )
                 else
                   SettingRow(
-                    title: 'סיבובים',
-                    subtitle: 'נקבע לפי מספר השחקנים',
+                    title: S.t.rounds,
+                    subtitle: S.t.setByPlayers,
                     child: Text('${rrRoundCount(n)}',
                         style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, fontFeatures: Z.tabular)),
                   ),
                 const Divider(),
                 SettingRow(
-                  title: 'טופ קאט',
-                  subtitle: recommendedTopCut(n) > 0
-                      ? 'נוקאאוט בין המובילים. מקובל ל-$n שחקנים: טופ ${recommendedTopCut(n)}'
-                      : 'נוקאאוט בין המובילים אחרי הסיבובים',
+                  title: S.t.topCut,
+                  subtitle: recommendedTopCut(n) > 0 ? S.t.topCutUsual(n, recommendedTopCut(n)) : S.t.topCutExplain,
                   child: DropdownButton<int>(
                     value: _top,
                     underline: const SizedBox(),
                     borderRadius: BorderRadius.circular(12),
                     items: [0, 2, 4, 8, 16, 32]
-                        .map((v) => DropdownMenuItem(value: v, child: Text(v == 0 ? 'בלי' : 'טופ $v')))
+                        .map((v) => DropdownMenuItem(value: v, child: Text(v == 0 ? S.t.none : S.t.top(v))))
                         .toList(),
                     onChanged: (v) => setState(() => _top = v!),
                   ),
                 ),
                 const Divider(),
                 SettingRow(
-                  title: 'משחקים בסיבוב',
+                  title: S.t.gamesPerRound,
                   child: _boPicker(_swissBo, (v) => setState(() => _swissBo = v)),
                 ),
                 if (_top > 0) ...[
                   const Divider(),
-                  SettingRow(title: 'משחקים בטופ קאט', child: _boPicker(_topBo, (v) => setState(() => _topBo = v))),
+                  SettingRow(title: S.t.gamesPerTop, child: _boPicker(_topBo, (v) => setState(() => _topBo = v))),
                   const Divider(),
                   SettingRow(
-                    title: 'משחק על המקום השלישי',
+                    title: S.t.thirdPlaceMatch,
                     child: Switch(value: _third, onChanged: (v) => setState(() => _third = v)),
                   ),
                 ],
                 const Divider(),
                 SettingRow(
-                  title: 'זמן סיבוב',
+                  title: S.t.roundTime,
                   child: Stepper2(
                       value: _minutes,
                       min: 5,
@@ -160,8 +157,8 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
                 ),
                 const Divider(),
                 SettingRow(
-                  title: 'תוספת זמן (overtime)',
-                  subtitle: 'נספרת אחרי שזמן הסיבוב נגמר',
+                  title: S.t.overtime,
+                  subtitle: S.t.overtimeExplain,
                   child: Stepper2(
                       value: _overtime,
                       max: 30,
@@ -178,7 +175,7 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
           child: FilledButton(
             onPressed: _name.text.trim().isEmpty ? null : _create,
-            child: Text(n < 2 ? 'יצירה (שחקנים אפשר להוסיף אחר כך)' : 'יצירת טורניר עם $n שחקנים'),
+            child: Text(n < 2 ? S.t.createNoPlayers : S.t.createWith(n)),
           ),
         ),
       ),

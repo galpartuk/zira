@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../l10n.dart';
 import '../theme.dart';
 
 /// Small rounded status label.
@@ -136,21 +137,21 @@ void toast(BuildContext context, String msg) {
 
 Future<void> copyText(BuildContext context, String text, String what) async {
   await Clipboard.setData(ClipboardData(text: text));
-  if (context.mounted) toast(context, '$what הועתק — אפשר להדביק בוואטסאפ');
+  if (context.mounted) toast(context, S.t.copied(what));
 }
 
-Future<bool> confirm(BuildContext context, String title, String body, {String ok = 'אישור', bool danger = false}) async {
+Future<bool> confirm(BuildContext context, String title, String body, {String? ok, bool danger = false}) async {
   final r = await showDialog<bool>(
     context: context,
     builder: (c) => AlertDialog(
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
       content: Text(body, style: const TextStyle(height: 1.45)),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('ביטול')),
+        TextButton(onPressed: () => Navigator.pop(c, false), child: Text(S.t.cancel)),
         FilledButton(
           style: danger ? FilledButton.styleFrom(backgroundColor: Z.danger, foregroundColor: Colors.white) : null,
           onPressed: () => Navigator.pop(c, true),
-          child: Text(ok),
+          child: Text(ok ?? S.t.ok),
         ),
       ],
     ),
@@ -171,9 +172,26 @@ Future<String?> promptText(BuildContext context, String title, {String initial =
         onSubmitted: (v) => Navigator.pop(c, v.trim()),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(c), child: const Text('ביטול')),
-        FilledButton(onPressed: () => Navigator.pop(c, ctrl.text.trim()), child: const Text('שמירה')),
+        TextButton(onPressed: () => Navigator.pop(c), child: Text(S.t.cancel)),
+        FilledButton(onPressed: () => Navigator.pop(c, ctrl.text.trim()), child: Text(S.t.save)),
       ],
     ),
   );
+}
+
+/// Small "עב" / "EN" button for the app bar of the main screens.
+class LangButton extends StatelessWidget {
+  const LangButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: S.t.langTooltip,
+      child: TextButton(
+        key: const ValueKey('lang-toggle'),
+        onPressed: Lang.instance.toggle,
+        child: Text(S.t.langButton, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+      ),
+    );
+  }
 }

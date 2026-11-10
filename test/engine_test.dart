@@ -321,7 +321,7 @@ void main() {
     });
 
     test('packs: whole numbers that add up exactly', () {
-      final c = PrizeConfig(unit: 'בוסטרים', entryFee: 0, extra: 24, step: 1, splitTies: false, percents: [40, 25, 17.5, 17.5]);
+      final c = PrizeConfig(unit: PrizeConfig.packs, entryFee: 0, extra: 24, step: 1, splitTies: false, percents: [40, 25, 17.5, 17.5]);
       final r = computePrizes(c, 10);
       expect(r.lines.every((l) => l.amount == l.amount.roundToDouble()), isTrue);
       expect(r.distributed, 24);
@@ -396,5 +396,23 @@ void main() {
     t.prizes.percents = [60, 40];
     final back = Tournament.fromJson(jsonDecode(jsonEncode(t.toJson())) as Map<String, dynamic>);
     expect(jsonEncode(back.toJson()), jsonEncode(t.toJson()));
+  });
+
+  test('prize unit: old Hebrew / symbol values load as language-neutral codes', () {
+    PrizeConfig load(Object? unit) => PrizeConfig.fromJson({if (unit != null) 'unit': unit, 'fee': 1});
+    expect(load('חבילות').unit, PrizeConfig.packs);
+    expect(load('בוסטרים').unit, PrizeConfig.packs);
+    expect(load('₪').unit, PrizeConfig.ils);
+    expect(load(null).unit, PrizeConfig.ils); // the very first saves had money only
+    expect(load('packs').unit, PrizeConfig.packs);
+    expect(load('ILS').unit, PrizeConfig.ils);
+    expect(load('₪').isMoney, isTrue);
+    // Saved back as the code.
+    expect(load('חבילות').toJson()['unit'], 'packs');
+  });
+
+  test('old double-loss results still load and give no points', () {
+    final r = MatchResult.fromJson({'o': 3, 'g1': 0, 'g2': 0});
+    expect(r.outcome, Outcome.doubleLoss);
   });
 }

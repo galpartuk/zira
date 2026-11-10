@@ -3,11 +3,12 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../l10n.dart';
 import '../theme.dart';
 
 final _rng = Random.secure();
 
-/// Coin flip with a 3D spin. Heads = עץ, tails = פלי.
+/// Coin flip with a 3D spin. Heads (עץ) or tails (פלי).
 class CoinScreen extends StatefulWidget {
   const CoinScreen({super.key});
 
@@ -57,7 +58,7 @@ class _CoinScreenState extends State<CoinScreen> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     final heads = _history.where((h) => h).length;
     return Scaffold(
-      appBar: AppBar(title: const Text('מטבע')),
+      appBar: AppBar(title: Text(S.t.coin)),
       body: Column(children: [
         Expanded(
           child: GestureDetector(
@@ -80,7 +81,7 @@ class _CoinScreenState extends State<CoinScreen> with SingleTickerProviderStateM
                         ..setEntry(3, 2, .0015)
                         ..rotateX(angle),
                       // The back face is seen through a half turn: flip it
-                      // so "פלי" reads correctly.
+                      // so "tails" reads correctly.
                       child: showHeads
                           ? const _CoinFace(heads: true)
                           : Transform(
@@ -98,12 +99,12 @@ class _CoinScreenState extends State<CoinScreen> with SingleTickerProviderStateM
         AnimatedOpacity(
           opacity: _shown ? 1 : 0,
           duration: const Duration(milliseconds: 200),
-          child: Text(_heads ? 'עץ' : 'פלי',
+          child: Text(_heads ? S.t.heads : S.t.tails,
               style: const TextStyle(fontSize: 40, fontWeight: FontWeight.w800, color: Z.gold)),
         ),
         const SizedBox(height: 14),
         if (_history.isNotEmpty) ...[
-          Text('עץ $heads · פלי ${_history.length - heads}  (${_history.length} אחרונות)',
+          Text(S.t.coinTally(heads, _history.length - heads, _history.length),
               style: const TextStyle(color: Z.muted, fontFeatures: Z.tabular)),
           const SizedBox(height: 8),
           Wrap(spacing: 5, runSpacing: 5, alignment: WrapAlignment.center, children: [
@@ -114,7 +115,7 @@ class _CoinScreenState extends State<CoinScreen> with SingleTickerProviderStateM
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                     shape: BoxShape.circle, color: h ? Z.gold.withValues(alpha: .85) : const Color(0xFFB9C3CE)),
-                child: Text(h ? 'ע' : 'פ', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Z.ink)),
+                child: Text(h ? S.t.headsLetter : S.t.tailsLetter, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Z.ink)),
               ),
           ]),
         ],
@@ -124,7 +125,7 @@ class _CoinScreenState extends State<CoinScreen> with SingleTickerProviderStateM
             padding: const EdgeInsets.fromLTRB(16, 18, 16, 12),
             child: SizedBox(
               width: double.infinity,
-              child: FilledButton.icon(onPressed: _flip, icon: const Icon(Icons.flip), label: const Text('הטלת מטבע')),
+              child: FilledButton.icon(onPressed: _flip, icon: const Icon(Icons.flip), label: Text(S.t.flip)),
             ),
           ),
         ),
@@ -158,11 +159,11 @@ class _CoinFace extends StatelessWidget {
         child: heads
             ? Column(mainAxisSize: MainAxisSize.min, children: [
                 Icon(Icons.park_rounded, size: 76, color: ink),
-                Text('עץ', style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800, color: ink)),
+                Text(S.t.heads, style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800, color: ink)),
               ])
             : Column(mainAxisSize: MainAxisSize.min, children: [
                 Text('1', style: TextStyle(fontSize: 84, height: 1, fontWeight: FontWeight.w800, color: ink)),
-                Text('פלי', style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800, color: ink)),
+                Text(S.t.tails, style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800, color: ink)),
               ]),
       ),
     );

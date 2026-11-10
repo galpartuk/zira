@@ -221,20 +221,9 @@ bool topCutFinished(Tournament t) {
   return last.complete && last.matches.where((m) => !m.thirdPlace).length == 1;
 }
 
-/// Name of a bracket round by how many players are left in it.
-String topRoundName(Round r) {
-  final n = r.matches.where((m) => !m.thirdPlace).length * 2;
-  switch (n) {
-    case 2:
-      return 'גמר';
-    case 4:
-      return 'חצי גמר';
-    case 8:
-      return 'רבע גמר';
-    default:
-      return 'טופ $n';
-  }
-}
+/// How many players a bracket round started with (2 = final, 4 = semis...).
+/// The UI turns this into a localized name.
+int topRoundSize(Round r) => r.matches.where((m) => !m.thirdPlace).length * 2;
 
 // ---------------------------------------------------------------- placements
 

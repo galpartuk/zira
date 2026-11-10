@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../engine/models.dart';
+import '../l10n.dart';
 import '../theme.dart';
 
 /// Bottom sheet for reporting a match. Returns the chosen result, or
@@ -70,9 +71,9 @@ class ResultSheet extends StatelessWidget {
                 child: Text(p1,
                     textAlign: TextAlign.center,
                     style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: Z.blue))),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8),
-              child: Text('נגד', style: TextStyle(color: Z.muted)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text(S.t.vs, style: const TextStyle(color: Z.muted)),
             ),
             Expanded(
                 child: Text(p2,
@@ -82,8 +83,8 @@ class ResultSheet extends StatelessWidget {
           const SizedBox(height: 14),
           if (!bo3)
             Row(children: [
-              winBtn('$p1 ניצח', Z.blue, const MatchResult(Outcome.p1, 1, 0), big: true),
-              winBtn('$p2 ניצח', Z.coral, const MatchResult(Outcome.p2, 0, 1), big: true),
+              winBtn(S.t.won(p1), Z.blue, const MatchResult(Outcome.p1, 1, 0), big: true),
+              winBtn(S.t.won(p2), Z.coral, const MatchResult(Outcome.p2, 0, 1), big: true),
             ])
           else ...[
             Row(children: [
@@ -102,20 +103,19 @@ class ResultSheet extends StatelessWidget {
           if (!elimination) ...[
             const SizedBox(height: 6),
             Row(children: [
-              if (bo3) winBtn('תיקו 1-1', Z.muted, const MatchResult(Outcome.draw, 1, 1)),
-              winBtn('תיקו 0-0', Z.muted, const MatchResult(Outcome.draw, 0, 0)),
+              if (bo3) winBtn(S.t.drawScore('1-1'), Z.muted, const MatchResult(Outcome.draw, 1, 1)),
+              winBtn(S.t.drawScore('0-0'), Z.muted, const MatchResult(Outcome.draw, 0, 0)),
             ]),
-            const Padding(
-              padding: EdgeInsets.fromLTRB(6, 6, 6, 0),
-              child: Text('תיקו = נקודה לכל שחקן. 0-0 כשנגמר הזמן ואף משחק לא הוכרע.',
-                  style: TextStyle(color: Z.muted, fontSize: 12.5)),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(6, 6, 6, 0),
+              child: Text(S.t.drawNote, style: const TextStyle(color: Z.muted, fontSize: 12.5)),
             ),
           ] else
-            const Padding(
-              padding: EdgeInsets.fromLTRB(6, 8, 6, 0),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(6, 8, 6, 0),
               child: Text(
-                'טופ קאט: כשהזמן נגמר — תור 0 ועוד תור (אם בתור הראשון) או שניים (אם בתור השני). אחר כך מכריעים לפי: יותר קלפי סקיוריטי ← יותר קלפים בחפיסה ← יותר דיג׳ימונים בשטח ← יותר קלפים ביד ← הגרלה.',
-                style: TextStyle(color: Z.muted, fontSize: 12.5, height: 1.45),
+                S.t.topTimeoutRule,
+                style: const TextStyle(color: Z.muted, fontSize: 12.5, height: 1.45),
               ),
             ),
           if (current != null) ...[
@@ -123,7 +123,7 @@ class ResultSheet extends StatelessWidget {
             TextButton.icon(
               onPressed: () => pick(clear),
               icon: const Icon(Icons.undo, size: 18),
-              label: const Text('מחיקת התוצאה'),
+              label: Text(S.t.clearResult),
             ),
           ],
         ]),

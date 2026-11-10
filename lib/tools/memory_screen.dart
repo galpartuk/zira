@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../engine/memory.dart';
+import '../l10n.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/round_timer.dart' show KeepAwake;
@@ -27,8 +28,11 @@ class _MemoryScreenState extends State<MemoryScreen> {
 
   MemoryState _m = const MemoryState();
   final List<MemoryState> _undo = [];
-  String _bottomName = 'שחקן כחול';
-  String _topName = 'שחקן כתום';
+  // Null = the default name, shown in the current language.
+  String? _bottomCustom;
+  String? _topCustom;
+  String get _bottomName => _bottomCustom ?? S.t.bluePlayer;
+  String get _topName => _topCustom ?? S.t.orangePlayer;
   int _bottomWins = 0, _topWins = 0;
 
   String? _banner;
@@ -59,13 +63,16 @@ class _MemoryScreenState extends State<MemoryScreen> {
       final j = jsonDecode(raw) as Map<String, dynamic>;
       setState(() {
         _m = MemoryState.fromJson(j['m'] as Map<String, dynamic>);
-        _bottomName = j['bn'] as String? ?? _bottomName;
-        _topName = j['tn'] as String? ?? _topName;
+        _bottomCustom = _custom(j['bn']);
+        _topCustom = _custom(j['tn']);
         _bottomWins = j['bw'] as int? ?? 0;
         _topWins = j['tw'] as int? ?? 0;
       });
     } catch (_) {}
   }
+
+  /// Older saves stored the Hebrew default names; treat any default as unset.
+  static String? _custom(Object? v) => v is String && v.isNotEmpty && !S.defaultNames.contains(v) ? v : null;
 
   Future<void> _save() async {
     final p = await SharedPreferences.getInstance();
@@ -73,8 +80,8 @@ class _MemoryScreenState extends State<MemoryScreen> {
         _prefsKey,
         jsonEncode({
           'm': _m.toJson(),
-          'bn': _bottomName,
-          'tn': _topName,
+          'bn': _bottomCustom,
+          'tn': _topCustom,
           'bw': _bottomWins,
           'tw': _topWins,
         }));
@@ -91,7 +98,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
     setState(() => _m = next);
     if (passed) {
       HapticFeedback.heavyImpact();
-      _showBanner('התור של ${_name(next.turn)}', next.turn);
+      _showBanner(S.t.turnOf(_name(next.turn)), next.turn);
     } else {
       HapticFeedback.selectionClick();
     }
@@ -121,7 +128,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
       _undo.clear();
       _m = MemoryState(turn: first ?? Side.bottom);
     });
-    _showBanner('${_name(_m.turn)} מתחיל', _m.turn);
+    _showBanner(S.t.goesFirst(_name(_m.turn)), _m.turn);
     _save();
   }
 
@@ -132,23 +139,23 @@ class _MemoryScreenState extends State<MemoryScreen> {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           ListTile(
               leading: const Icon(Icons.casino),
-              title: const Text('משחק חדש — הגרלה מי מתחיל'),
+              title: Text(S.t.newGameRoll),
               onTap: () => Navigator.pop(c, 'roll')),
           ListTile(
               leading: const Icon(Icons.south, color: Z.blue),
-              title: Text('משחק חדש — $_bottomName מתחיל'),
+              title: Text(S.t.newGameFirst(_bottomName)),
               onTap: () => Navigator.pop(c, 'bottom')),
           ListTile(
               leading: const Icon(Icons.north, color: Z.coral),
-              title: Text('משחק חדש — $_topName מתחיל'),
+              title: Text(S.t.newGameFirst(_topName)),
               onTap: () => Navigator.pop(c, 'top')),
           ListTile(
               leading: const Icon(Icons.swap_vert),
-              title: const Text('העברת התור ידנית'),
+              title: Text(S.t.passManually),
               onTap: () => Navigator.pop(c, 'swap')),
           ListTile(
               leading: const Icon(Icons.exposure_zero),
-              title: const Text('איפוס ניצחונות'),
+              title: Text(S.t.resetWins),
               onTap: () => Navigator.pop(c, 'wins')),
         ]),
       ),
@@ -176,19 +183,18 @@ class _MemoryScreenState extends State<MemoryScreen> {
       b = r.nextInt(6) + 1;
     } while (a == b);
     _newGame(first: a > b ? Side.bottom : Side.top);
-    _showBanner('🎲 $a מול $b — ${_name(_m.turn)} מתחיל', _m.turn);
+    _showBanner(S.t.rolled(a, b, _name(_m.turn)), _m.turn);
   }
 
   Future<void> _rename(Side s) async {
-    final v = await promptText(context, 'שם השחקן', initial: _name(s));
+    final v = await promptText(context, S.t.playerName, initial: _name(s));
     if (v == null || v.isEmpty) return;
-    setState(() => s == Side.bottom ? _bottomName = v : _topName = v);
+    setState(() => s == Side.bottom ? _bottomCustom = _custom(v) : _topCustom = _custom(v));
     _save();
   }
 
   Future<void> _gameWon(Side s) async {
-    final ok = await confirm(context, '${_name(s)} ניצח במשחק?', 'יתווסף ניצחון ויתחיל משחק חדש. המפסיד מתחיל במשחק הבא.',
-        ok: 'כן, משחק חדש');
+    final ok = await confirm(context, S.t.gameWonTitle(_name(s)), S.t.gameWonBody, ok: S.t.yesNewGame);
     if (!ok) return;
     setState(() => s == Side.bottom ? _bottomWins++ : _topWins++);
     _newGame(first: s.other);
@@ -252,14 +258,14 @@ class _MemoryScreenState extends State<MemoryScreen> {
     return SizedBox(
       width: 52,
       child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        b(Icons.close, 'יציאה', () => Navigator.pop(context)),
+        b(Icons.close, S.t.exit, () => Navigator.pop(context)),
         const SizedBox(height: 12),
-        b(Icons.undo, 'ביטול פעולה', _undo.isEmpty ? null : _doUndo),
-        b(Icons.casino_outlined, 'משחק חדש', _menu),
+        b(Icons.undo, S.t.undo, _undo.isEmpty ? null : _doUndo),
+        b(Icons.casino_outlined, S.t.newGame, _menu),
         const SizedBox(height: 12),
         RotatedBox(
           quarterTurns: 3,
-          child: Text('תור ${_m.turnNumber}',
+          child: Text(S.t.turnNumber(_m.turnNumber),
               style: const TextStyle(color: Z.muted, fontWeight: FontWeight.w700, fontFeatures: Z.tabular)),
         ),
       ]),
@@ -374,7 +380,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: color)),
-                Text(mine ? 'התור שלך' : 'ממתין',
+                Text(mine ? S.t.yourTurn : S.t.waiting,
                     style: TextStyle(fontSize: 12.5, color: mine ? Z.text : Z.muted, fontWeight: FontWeight.w600)),
               ]),
             ),
@@ -382,7 +388,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
           GestureDetector(
             onLongPress: () => _gameWon(s),
             child: Tooltip(
-              message: 'לחיצה ארוכה: ניצחון במשחק',
+              message: S.t.longPressWin,
               child: Row(children: [
                 for (var i = 0; i < 2; i++)
                   Container(
@@ -408,7 +414,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
                     fontWeight: FontWeight.w800,
                     color: mem >= 0 ? Z.text : Z.muted,
                     fontFeatures: Z.tabular)),
-            const Text('זיכרון', style: TextStyle(fontSize: 11, color: Z.muted)),
+            Text(S.t.memory, style: const TextStyle(fontSize: 11, color: Z.muted)),
           ]),
         ]),
         const SizedBox(height: 10),
@@ -417,7 +423,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
           btn('−1', () => _apply(_m.adjust(s, -1))),
           btn('+1', () => _apply(_m.adjust(s, 1))),
           if (mine)
-            btn('סיום תור', () => _apply(_m.pass()), primary: true)
+            btn(S.t.endTurn, () => _apply(_m.pass()), primary: true)
           else
             btn('+2', () => _apply(_m.adjust(s, 2))),
         ]),

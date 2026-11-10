@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../engine/models.dart';
+import '../l10n.dart';
 import '../state/app_state.dart';
 import '../theme.dart';
 
@@ -137,12 +138,12 @@ class _RoundTimerState extends State<RoundTimer> {
     final c = clockOf(t);
     final (label, color, bg) = switch (c.phase) {
       ClockPhase.main => (
-          c.running ? 'זמן שנותר' : 'שעון סיבוב · ${t.roundMinutes}′ + ${t.overtimeMinutes}′',
+          c.running ? S.t.timeLeft : S.t.roundClock(t.roundMinutes, t.overtimeMinutes),
           c.running && c.shownMs < 5 * 60000 ? Z.gold : Z.text,
           Z.surface
         ),
-      ClockPhase.overtime => ('תוספת זמן (overtime)', Z.coral, const Color(0xFF3A2620)),
-      ClockPhase.over => ('הזמן נגמר', Z.danger, const Color(0xFF3A1A1A)),
+      ClockPhase.overtime => (S.t.overtimeLabel, Z.coral, const Color(0xFF3A2620)),
+      ClockPhase.over => (S.t.timeUp, Z.danger, const Color(0xFF3A1A1A)),
     };
 
     return Card(
@@ -161,9 +162,9 @@ class _RoundTimerState extends State<RoundTimer> {
               ]),
             ),
           ),
-          IconButton(tooltip: 'מסך מלא', onPressed: _openBig, icon: const Icon(Icons.fullscreen)),
-          IconButton(tooltip: 'דקה נוספת', onPressed: () => app.addTimerMinutes(t, 1), icon: const Icon(Icons.more_time)),
-          IconButton(tooltip: 'איפוס', onPressed: () => app.resetTimer(t), icon: const Icon(Icons.replay)),
+          IconButton(tooltip: S.t.fullScreen, onPressed: _openBig, icon: const Icon(Icons.fullscreen)),
+          IconButton(tooltip: S.t.addMinute, onPressed: () => app.addTimerMinutes(t, 1), icon: const Icon(Icons.more_time)),
+          IconButton(tooltip: S.t.reset, onPressed: () => app.resetTimer(t), icon: const Icon(Icons.replay)),
           const SizedBox(width: 4),
           IconButton.filled(
             iconSize: 30,
@@ -214,9 +215,9 @@ class _BigTimerState extends State<_BigTimer> {
     final c = clockOf(t);
     final r = t.currentRound;
     final (bg, color, caption) = switch (c.phase) {
-      ClockPhase.main => (Z.ink, Z.text, c.running ? 'הקישו כדי לעצור' : 'הקישו כדי להפעיל'),
-      ClockPhase.overtime => (const Color(0xFF3A2620), Z.coral, 'OVERTIME — ${t.overtimeMinutes} דקות תוספת'),
-      ClockPhase.over => (const Color(0xFF3A1414), Z.danger, 'הזמן נגמר — מסיימים את הפעולה הנוכחית'),
+      ClockPhase.main => (Z.ink, Z.text, c.running ? S.t.tapToPause : S.t.tapToStart),
+      ClockPhase.overtime => (const Color(0xFF3A2620), Z.coral, S.t.overtimeCaption(t.overtimeMinutes)),
+      ClockPhase.over => (const Color(0xFF3A1414), Z.danger, S.t.timeUpCaption),
     };
     return Scaffold(
       backgroundColor: bg,
@@ -227,7 +228,7 @@ class _BigTimerState extends State<_BigTimer> {
         child: Center(
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             if (r != null)
-              Text(r.stage == Stage.swiss ? 'סיבוב ${r.number}' : 'טופ קאט',
+              Text(r.stage == Stage.swiss ? S.t.round(r.number) : S.t.topCut,
                   style: const TextStyle(fontSize: 26, color: Z.muted, fontWeight: FontWeight.w700)),
             FittedBox(
               child: Padding(

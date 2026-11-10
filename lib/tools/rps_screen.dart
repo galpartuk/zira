@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../l10n.dart';
 import '../theme.dart';
 
 final _rng = Random.secure();
@@ -12,7 +13,7 @@ enum Hand { rock, paper, scissors }
 
 extension HandX on Hand {
   String get emoji => const ['✊', '✋', '✌️'][index];
-  String get label => const ['אבן', 'נייר', 'מספריים'][index];
+  String get label => S.t.hands[index];
   bool beats(Hand o) => (index - o.index + 3) % 3 == 1;
 }
 
@@ -41,8 +42,8 @@ class _RpsScreenState extends State<RpsScreen> {
     super.dispose();
   }
 
-  String get _nameA => _vsPhone ? 'אתם' : 'כחול';
-  String get _nameB => _vsPhone ? 'הטלפון' : 'כתום';
+  String get _nameA => _vsPhone ? S.t.you : S.t.blue;
+  String get _nameB => _vsPhone ? S.t.phone : S.t.orange;
 
   void _reset() {
     _timer?.cancel();
@@ -98,11 +99,11 @@ class _RpsScreenState extends State<RpsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('אבן נייר ומספריים'),
+        title: Text(S.t.rps),
         actions: [
           if (_scoreA + _scoreB + _draws > 0)
             IconButton(
-              tooltip: 'איפוס ניקוד',
+              tooltip: S.t.resetScore,
               onPressed: () => setState(() => _scoreA = _scoreB = _draws = 0),
               icon: const Icon(Icons.restart_alt),
             ),
@@ -113,9 +114,9 @@ class _RpsScreenState extends State<RpsScreen> {
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
           child: SegmentedButton<bool>(
             showSelectedIcon: false,
-            segments: const [
-              ButtonSegment(value: false, label: Text('שני שחקנים')),
-              ButtonSegment(value: true, label: Text('נגד הטלפון')),
+            segments: [
+              ButtonSegment(value: false, label: Text(S.t.twoPlayers)),
+              ButtonSegment(value: true, label: Text(S.t.vsPhone)),
             ],
             selected: {_vsPhone},
             onSelectionChanged: (s) {
@@ -131,7 +132,7 @@ class _RpsScreenState extends State<RpsScreen> {
             _score(_nameA, _scoreA, Z.blue),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 18),
-              child: Text('תיקו $_draws', style: const TextStyle(color: Z.muted, fontFeatures: Z.tabular)),
+              child: Text(S.t.draws(_draws), style: const TextStyle(color: Z.muted, fontFeatures: Z.tabular)),
             ),
             _score(_nameB, _scoreB, Z.coral),
           ]),
@@ -153,7 +154,8 @@ class _RpsScreenState extends State<RpsScreen> {
         final a = _phase == _Phase.pickA;
         final color = a ? Z.blue : Z.coral;
         return Column(key: ValueKey(_phase), children: [
-          Text(_vsPhone ? 'בחרו יד' : 'תור ${a ? _nameA : _nameB} לבחור — בלי שהשני יראה',
+          Text(_vsPhone ? S.t.pickHand : S.t.pickSecret(a ? _nameA : _nameB),
+              textAlign: TextAlign.center,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: color)),
           const SizedBox(height: 18),
           Expanded(
@@ -192,20 +194,20 @@ class _RpsScreenState extends State<RpsScreen> {
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             const Icon(Icons.lock_outline, size: 54, color: Z.blue),
             const SizedBox(height: 12),
-            Text('$_nameA בחר. מעבירים את הטלפון ל$_nameB.',
+            Text(S.t.passPhone(_nameA, _nameB),
                 textAlign: TextAlign.center, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
             const SizedBox(height: 24),
             FilledButton(
               style: FilledButton.styleFrom(backgroundColor: Z.coral, foregroundColor: Z.ink),
               onPressed: () => setState(() => _phase = _Phase.pickB),
-              child: Text('אני $_nameB — להמשיך'),
+              child: Text(S.t.iAm(_nameB)),
             ),
           ]),
         );
       case _Phase.countdown:
         return Center(
           key: ValueKey('c$_count'),
-          child: Text(['אבן...', 'נייר...', 'מספריים!'][_count],
+          child: Text(S.t.countdown[_count],
               style: const TextStyle(fontSize: 46, fontWeight: FontWeight.w800, color: Z.gold)),
         );
       case _Phase.reveal:
@@ -213,25 +215,25 @@ class _RpsScreenState extends State<RpsScreen> {
         final String verdict;
         final Color vc;
         if (a == b) {
-          verdict = 'תיקו!';
+          verdict = S.t.drawBang;
           vc = Z.gold;
         } else if (a.beats(b)) {
-          verdict = _vsPhone ? 'ניצחתם!' : '$_nameA ניצח!';
+          verdict = _vsPhone ? S.t.youWin : S.t.wins(_nameA);
           vc = Z.blue;
         } else {
-          verdict = '$_nameB ניצח!';
+          verdict = S.t.wins(_nameB);
           vc = Z.coral;
         }
         return Column(key: const ValueKey('reveal'), mainAxisAlignment: MainAxisAlignment.center, children: [
           Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
             _revealHand(a, _nameA, Z.blue, a != b && a.beats(b)),
-            const Text('נגד', style: TextStyle(color: Z.muted, fontSize: 16)),
+            Text(S.t.vs, style: const TextStyle(color: Z.muted, fontSize: 16)),
             _revealHand(b, _nameB, Z.coral, a != b && b.beats(a)),
           ]),
           const SizedBox(height: 28),
           Text(verdict, style: TextStyle(fontSize: 34, fontWeight: FontWeight.w800, color: vc)),
           const SizedBox(height: 28),
-          FilledButton.icon(onPressed: _reset, icon: const Icon(Icons.replay), label: const Text('עוד סיבוב')),
+          FilledButton.icon(onPressed: _reset, icon: const Icon(Icons.replay), label: Text(S.t.playAgain)),
         ]);
     }
   }

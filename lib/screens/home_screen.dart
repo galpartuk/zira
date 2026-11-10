@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n.dart';
 import '../tools/tools_screen.dart';
 import 'tournaments_screen.dart';
 
@@ -11,7 +12,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _tab = 0;
+  // Static so switching language (which rebuilds the home screen) keeps the tab.
+  static int _lastTab = 0;
+  int _tab = _lastTab;
 
   @override
   Widget build(BuildContext context) {
@@ -19,10 +22,11 @@ class _HomeScreenState extends State<HomeScreen> {
       body: IndexedStack(index: _tab, children: const [TournamentsScreen(), ToolsScreen()]),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tab,
-        onDestinationSelected: (i) => setState(() => _tab = i),
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.emoji_events_outlined), selectedIcon: Icon(Icons.emoji_events), label: 'טורנירים'),
-          NavigationDestination(icon: Icon(Icons.casino_outlined), selectedIcon: Icon(Icons.casino), label: 'כלי משחק'),
+        onDestinationSelected: (i) => setState(() => _tab = _lastTab = i),
+        destinations: [
+          NavigationDestination(
+              icon: const Icon(Icons.emoji_events_outlined), selectedIcon: const Icon(Icons.emoji_events), label: S.t.tournaments),
+          NavigationDestination(icon: const Icon(Icons.casino_outlined), selectedIcon: const Icon(Icons.casino), label: S.t.gameTools),
         ],
       ),
     );

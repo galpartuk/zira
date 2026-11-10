@@ -1,6 +1,6 @@
 # זירה (Zira) — tournament manager
 
-Flutter Android app (Hebrew, RTL, dark). Local-only: all data in SharedPreferences
+Flutter Android app (English by default, Hebrew/RTL optional; dark). Local-only: all data in SharedPreferences
 (`zira.tournaments.v1`, memory gauge in `zira.memory.v1`). No server, no accounts.
 
 ## Layout
@@ -12,8 +12,18 @@ Flutter Android app (Hebrew, RTL, dark). Local-only: all data in SharedPreferenc
 - `lib/tools/` — dice, coin, rock-paper-scissors, Digimon memory gauge.
 - `tool/seed.dart` — demo tournaments JSON for screenshots; `tool/make_icons.py` — icons.
 
+## Language
+- `lib/l10n.dart`: `Lang` (ChangeNotifier, prefs key `zira.lang`, default `en`) + `S.t.xxx` strings,
+  English and Hebrew side by side (same pattern as Judgemon). Hebrew flips the app to RTL.
+  Toggle: the "עב"/"EN" button (`LangButton`) in the app bar of the tournaments and tools screens.
+- The engine is language-free: it returns data (`topRoundSize`, `MatchResult`, preset percent lists);
+  `S` formats it. Never put user-visible text in `lib/engine/`.
+- `PrizeConfig.unit` is a code (`packs` / `ILS`); `unitFromJson` maps old saves ("₪", "חבילות", "בוסטרים").
+- Widget tests that check overflow load the real Heebo font (`loadHeebo` in `test/l10n_test.dart`).
+
 ## Rules implemented (researched from Bandai Digimon event rules)
-- Points: win 3, draw 1, loss 0. Swiss time-out with no winner = **double loss** (0 each).
+- Points: win 3, draw 1, loss 0. Swiss time-out with no winner is reported as a **0-0 draw** (1 each);
+  old saved double-loss results still load and count 0 each.
 - Tiebreakers: points → OMW% → OOMW% → random (fixed `tieRand` per player). OMW floor 33% (configurable).
 - Bye → lowest-ranked player without a bye, counts as a win, not an opponent.
 - Swiss rounds by attendance table in `recommendedSwissRounds`. Top cut seeded 1v8, 4v5, 2v7, 3v6.

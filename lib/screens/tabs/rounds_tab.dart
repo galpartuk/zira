@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../engine/models.dart';
-import '../../engine/pairing.dart';
 import '../../engine/standings.dart';
+import '../../l10n.dart';
 import '../../state/app_state.dart';
 import '../../theme.dart';
 import '../../widgets/common.dart';
@@ -24,15 +24,15 @@ class _RoundsTabState extends State<RoundsTab> {
 
   Tournament get t => widget.t;
 
-  String roundLabel(Round r) => r.stage == Stage.swiss ? 'סיבוב ${r.number}' : topRoundName(r);
+  String roundLabel(Round r) => S.t.roundLabel(r);
 
   @override
   Widget build(BuildContext context) {
     if (!t.started) {
-      return const EmptyState(
+      return EmptyState(
         icon: Icons.shuffle_rounded,
-        title: 'הטורניר עוד לא התחיל',
-        body: 'כשכל השחקנים רשומים, לחצו על "התחלת הטורניר" למטה והזיווג של סיבוב 1 יופיע כאן.',
+        title: S.t.notStarted,
+        body: S.t.notStartedBody,
       );
     }
     // Jump to the newest round whenever one is added.
@@ -84,12 +84,12 @@ class _RoundsTabState extends State<RoundsTab> {
             Row(children: [
               Text(roundLabel(round), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
               const SizedBox(width: 10),
-              round.complete ? const Pill('הושלם', color: Z.win) : Pill('${round.pending} פתוחים', color: Z.gold),
+              round.complete ? Pill(S.t.complete, color: Z.win) : Pill(S.t.openMatches(round.pending), color: Z.gold),
               const Spacer(),
               IconButton(
-                tooltip: 'העתקת זיווגים',
+                tooltip: S.t.copyPairings,
                 icon: const Icon(Icons.copy_rounded),
-                onPressed: () => copyText(context, _pairingsText(round, standings), 'הזיווג'),
+                onPressed: () => copyText(context, _pairingsText(round, standings), S.t.pairingsWhat),
               ),
               if (isCurrent && !round.anyResult && !t.finished)
                 PopupMenuButton<String>(
@@ -97,16 +97,16 @@ class _RoundsTabState extends State<RoundsTab> {
                     final app = context.read<AppState>();
                     if (v == 'repair') {
                       app.repair(t);
-                      if (context.mounted) toast(context, 'הסיבוב זווג מחדש');
+                      if (context.mounted) toast(context, S.t.repaired);
                     } else if (v == 'undo') {
-                      final ok = await confirm(context, 'לבטל את ${roundLabel(round)}?', 'הזיווג יימחק ותוכלו ליצור אותו שוב.');
+                      final ok = await confirm(context, S.t.undoTitle(roundLabel(round)), S.t.undoBody);
                       if (ok) app.undoRound(t);
                     }
                   },
                   itemBuilder: (_) => [
                     if (round.stage == Stage.swiss && t.format == TFormat.swiss)
-                      const PopupMenuItem(value: 'repair', child: Text('זיווג מחדש')),
-                    const PopupMenuItem(value: 'undo', child: Text('ביטול הסיבוב')),
+                      PopupMenuItem(value: 'repair', child: Text(S.t.repair)),
+                    PopupMenuItem(value: 'undo', child: Text(S.t.undoRound)),
                   ],
                 ),
             ]),
@@ -153,17 +153,15 @@ class _RoundsTabState extends State<RoundsTab> {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              const Text('פרישה לפני הסיבוב הבא',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              Text(S.t.dropTitle, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
               const SizedBox(height: 4),
-              const Text('השחקן מסיים את הסיבוב הנוכחי (התוצאה נשמרת) ולא יזווג יותר.',
-                  style: TextStyle(color: Z.muted, fontSize: 13)),
+              Text(S.t.dropBody, style: const TextStyle(color: Z.muted, fontSize: 13)),
               const SizedBox(height: 10),
               for (final id in ids)
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   title: Text(t.nameOf(id), style: const TextStyle(fontWeight: FontWeight.w700)),
-                  subtitle: Text(t.player(id)!.dropped ? 'פרש — לא יזווג בסיבוב הבא' : 'ממשיך בטורניר'),
+                  subtitle: Text(t.player(id)!.dropped ? S.t.droppedNotPaired : S.t.stillPlaying),
                   value: t.player(id)!.dropped,
                   activeThumbColor: Z.ink,
                   activeTrackColor: Z.danger,
@@ -186,9 +184,9 @@ class _RoundsTabState extends State<RoundsTab> {
       if (m.isBye) {
         b.writeln('BYE: ${t.nameOf(m.p1)}');
       } else {
-        final tag = m.thirdPlace ? 'מקום 3' : 'שולחן ${m.table}';
-        b.writeln('$tag: ${t.nameOf(m.p1)} (${st[m.p1]?.points ?? 0}) נגד ${t.nameOf(m.p2)} (${st[m.p2]?.points ?? 0})'
-            '${m.result != null ? '  ✓ ${m.result!.scoreText(bestOf: t.bestOfFor(round.stage))}' : ''}');
+        final tag = m.thirdPlace ? S.t.thirdPlaceTag : S.t.table(m.table);
+        b.writeln('$tag: ${t.nameOf(m.p1)} (${st[m.p1]?.points ?? 0}) ${S.t.vs} ${t.nameOf(m.p2)} (${st[m.p2]?.points ?? 0})'
+            '${m.result != null ? '  ✓ ${S.t.scoreText(m.result!, bestOf: t.bestOfFor(round.stage))}' : ''}');
       }
     }
     return b.toString();
@@ -196,7 +194,8 @@ class _RoundsTabState extends State<RoundsTab> {
 }
 
 /// Score with each number on its own player's side (a Row follows the text
-/// direction, so player 1 — on the right in Hebrew — gets the first number).
+/// direction, so player 1 — on the start side: left in English, right in
+/// Hebrew — gets the first number).
 class _Score extends StatelessWidget {
   final MatchResult res;
   final int bo;
@@ -205,12 +204,12 @@ class _Score extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (res.outcome == Outcome.doubleLoss) {
-      return const Text('הפסד\nכפול',
+      return Text(S.t.doubleLossShort,
           textAlign: TextAlign.center,
-          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, height: 1.15, color: Z.danger));
+          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12, height: 1.15, color: Z.danger));
     }
     if (res.outcome == Outcome.draw && bo == 1) {
-      return const Text('תיקו', style: TextStyle(fontWeight: FontWeight.w800, color: Z.muted));
+      return Text(S.t.draw, style: const TextStyle(fontWeight: FontWeight.w800, color: Z.muted));
     }
     final a = bo > 1 ? res.g1 : (res.outcome == Outcome.p1 ? 1 : 0);
     final b = bo > 1 ? res.g2 : (res.outcome == Outcome.p2 ? 1 : 0);
@@ -264,10 +263,10 @@ class _MatchCard extends StatelessWidget {
               ),
             ),
             if (st != null && round.stage == Stage.swiss)
-              Text('${st.points} נק׳ · ${st.record}',
+              Text('${S.t.pts(st.points)} · ${st.record}',
                   style: const TextStyle(fontSize: 12, color: Z.muted, fontFeatures: Z.tabular)),
             if (t.player(id)?.dropped ?? false)
-              const Padding(padding: EdgeInsets.only(top: 3), child: Pill('פרש', color: Z.danger)),
+              Padding(padding: const EdgeInsets.only(top: 3), child: Pill(S.t.dropped, color: Z.danger)),
           ],
         ),
       );
@@ -303,14 +302,14 @@ class _MatchCard extends StatelessWidget {
               const SizedBox(width: 12),
               if (m.isBye) ...[
                 side(m.p1, Z.blue, TextAlign.start),
-                const Text('נצחון אוטומטי', style: TextStyle(color: Z.muted, fontSize: 13)),
+                Text(S.t.autoWin, style: const TextStyle(color: Z.muted, fontSize: 13)),
               ] else ...[
                 side(m.p1, Z.blue, TextAlign.start),
                 SizedBox(
                   width: 74,
                   child: Center(
                     child: res == null
-                        ? const Text('נגד', style: TextStyle(color: Z.muted, fontWeight: FontWeight.w600))
+                        ? Text(S.t.vs, style: const TextStyle(color: Z.muted, fontWeight: FontWeight.w600))
                         : _Score(res: res, bo: bo),
                   ),
                 ),
@@ -320,7 +319,7 @@ class _MatchCard extends StatelessWidget {
                 SizedBox(
                   width: 34,
                   child: IconButton(
-                    tooltip: 'פרישה',
+                    tooltip: S.t.drop,
                     padding: EdgeInsets.zero,
                     visualDensity: VisualDensity.compact,
                     iconSize: 20,

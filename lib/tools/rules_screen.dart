@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../l10n.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 
@@ -14,43 +15,38 @@ class RuleLink {
   const RuleLink(this.title, this.body, this.url, this.icon);
 }
 
-const digimonRuleLinks = [
-  RuleLink('Rule Manual — חוברת החוקים', 'החוקים הבסיסיים בצורה פשוטה, עם דוגמאות. מתאים למתחילים.',
-      'https://en.digimoncard.com/rule/pdf/manual.pdf', Icons.menu_book_rounded),
-  RuleLink('Comprehensive Rules', 'החוקים המלאים והמדויקים לכל מצב — לשופטים ולמחלוקות.',
-      'https://en.digimoncard.com/rule/pdf/general_rule.pdf', Icons.gavel_rounded),
-  RuleLink('Glossary — מילון מונחים', 'הסבר על מונחים ומילות מפתח של אפקטים (Keyword effects).',
-      'https://en.digimoncard.com/rule/pdf/glossary.pdf', Icons.translate_rounded),
-  RuleLink('קלפים אסורים ומוגבלים', 'רשימת ה-Banned / Restricted העדכנית.',
-      'https://en.digimoncard.com/rule/restriction_card/', Icons.block_rounded),
-  RuleLink('שינויי חוקים', 'הודעות רשמיות על שינויי פסיקה וחוקים.',
-      'https://en.digimoncard.com/rule/rule_change/', Icons.update_rounded),
-  RuleLink('Floor Rules', 'כללי התנהגות ונהלים בטורנירים רשמיים.', 'https://dcd.sc/bcg10', Icons.groups_rounded),
-  RuleLink('כל עמוד החוקים הרשמי', 'כולל Q&A ומסמכים נוספים.', 'https://en.digimoncard.com/rule/', Icons.public_rounded),
-];
+List<RuleLink> get digimonRuleLinks => [
+      RuleLink(S.t.ruleManual, S.t.ruleManualBody, 'https://en.digimoncard.com/rule/pdf/manual.pdf', Icons.menu_book_rounded),
+      RuleLink(S.t.comprehensive, S.t.comprehensiveBody, 'https://en.digimoncard.com/rule/pdf/general_rule.pdf',
+          Icons.gavel_rounded),
+      RuleLink(S.t.glossary, S.t.glossaryBody, 'https://en.digimoncard.com/rule/pdf/glossary.pdf', Icons.translate_rounded),
+      RuleLink(S.t.banned, S.t.bannedBody, 'https://en.digimoncard.com/rule/restriction_card/', Icons.block_rounded),
+      RuleLink(S.t.ruleChanges, S.t.ruleChangesBody, 'https://en.digimoncard.com/rule/rule_change/', Icons.update_rounded),
+      RuleLink(S.t.floorRules, S.t.floorRulesBody, 'https://dcd.sc/bcg10', Icons.groups_rounded),
+      RuleLink(S.t.allRules, S.t.allRulesBody, 'https://en.digimoncard.com/rule/', Icons.public_rounded),
+    ];
 
 class RulesScreen extends StatelessWidget {
   const RulesScreen({super.key});
 
   Future<void> _open(BuildContext context, String url) async {
     final ok = await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-    if (!ok && context.mounted) toast(context, 'לא הצלחנו לפתוח את הקישור');
+    if (!ok && context.mounted) toast(context, S.t.cantOpenLink);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('חוקי דיג׳ימון')),
+      appBar: AppBar(title: Text(S.t.digimonRules)),
       body: ListView.separated(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
         itemCount: digimonRuleLinks.length + 1,
         separatorBuilder: (_, _) => const SizedBox(height: 8),
         itemBuilder: (c, i) {
           if (i == digimonRuleLinks.length) {
-            return const Padding(
-              padding: EdgeInsets.fromLTRB(4, 8, 4, 0),
-              child: Text('המסמכים באנגלית, מהאתר הרשמי של Bandai. הקישורים פותחים תמיד את הגרסה העדכנית.',
-                  style: TextStyle(color: Z.muted, fontSize: 12.5, height: 1.45)),
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
+              child: Text(S.t.rulesFooter, style: const TextStyle(color: Z.muted, fontSize: 12.5, height: 1.45)),
             );
           }
           final l = digimonRuleLinks[i];

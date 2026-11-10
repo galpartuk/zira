@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../engine/models.dart';
 import '../engine/pairing.dart';
+import '../l10n.dart';
 import '../state/app_state.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
@@ -56,12 +57,12 @@ class _TournamentScreenState extends State<TournamentScreen> with TickerProvider
     _ensureTabs(t);
     final (status, color) = statusOf(t);
 
-    const labels = {
-      'players': 'שחקנים',
-      'rounds': 'סיבובים',
-      'standings': 'דירוג',
-      'bracket': 'טופ קאט',
-      'prizes': 'פרסים',
+    final labels = {
+      'players': S.t.tabPlayers,
+      'rounds': S.t.tabRounds,
+      'standings': S.t.tabStandings,
+      'bracket': S.t.tabBracket,
+      'prizes': S.t.tabPrizes,
     };
 
     return Scaffold(
@@ -73,13 +74,13 @@ class _TournamentScreenState extends State<TournamentScreen> with TickerProvider
           Row(children: [
             Pill(status, color: color),
             const SizedBox(width: 8),
-            Text('${t.activePlayers.length} פעילים', style: const TextStyle(fontSize: 12.5, color: Z.muted)),
+            Text(S.t.active(t.activePlayers.length), style: const TextStyle(fontSize: 12.5, color: Z.muted)),
           ]),
         ]),
         toolbarHeight: 68,
         actions: [
           IconButton(
-            tooltip: 'הגדרות',
+            tooltip: S.t.settings,
             icon: const Icon(Icons.tune),
             onPressed: () => showModalBottomSheet(
                 context: context, isScrollControlled: true, builder: (_) => TournamentSettingsSheet(t: t)),
@@ -123,13 +124,13 @@ class _NextStepBar extends StatelessWidget {
     final open = t.firstIncompleteRound;
     if (t.finished) {
       final winner = finalPlacements(t).firstOrNull;
-      label = 'הטורניר הסתיים';
-      hint = winner == null ? null : 'אלוף: ${t.nameOf(winner.playerId)}';
+      label = S.t.tournamentOver;
+      hint = winner == null ? null : S.t.champion(t.nameOf(winner.playerId));
       icon = Icons.emoji_events;
       action = () => goTo('prizes');
     } else if (!t.started) {
       final n = t.activePlayers.length;
-      label = n < 2 ? 'צריך לפחות 2 שחקנים' : 'התחלת הטורניר · סיבוב 1';
+      label = n < 2 ? S.t.needTwoPlayers : S.t.startTournament;
       if (n >= 2) {
         action = () {
           app.start(t);
@@ -137,12 +138,14 @@ class _NextStepBar extends StatelessWidget {
         };
       }
     } else if (open != null) {
-      label = open.pending == 1 ? 'חסרה תוצאה אחת' : 'חסרות ${open.pending} תוצאות';
-      hint = open.stage == Stage.top ? topRoundName(open) : 'סיבוב ${open.number} מתוך ${t.plannedSwissRounds}';
+      label = S.t.missingResults(open.pending);
+      hint = open.stage == Stage.top
+          ? S.t.topRoundName(topRoundSize(open))
+          : S.t.roundOutOf(open.number, t.plannedSwissRounds);
       icon = Icons.hourglass_top_rounded;
       action = () => goTo('rounds');
     } else if (!t.swissDone) {
-      label = 'זיווג סיבוב ${t.swissRoundsList.length + 1}';
+      label = S.t.pairRound(t.swissRoundsList.length + 1);
       icon = Icons.shuffle_rounded;
       action = () {
         app.advance(t);
@@ -150,14 +153,16 @@ class _NextStepBar extends StatelessWidget {
       };
     } else if (effectiveTopCut(t) > 0 && !topCutFinished(t)) {
       final next = nextTopRound(t);
-      label = t.topRoundsList.isEmpty ? 'התחלת טופ ${effectiveTopCut(t)}' : 'יצירת ${next == null ? '' : topRoundName(next)}';
+      label = t.topRoundsList.isEmpty
+          ? S.t.startTop(effectiveTopCut(t))
+          : S.t.create(next == null ? '' : S.t.topRoundName(topRoundSize(next)));
       icon = Icons.account_tree_rounded;
       action = () {
         app.advance(t);
         goTo('bracket');
       };
     } else {
-      label = 'סיום הטורניר ודירוג סופי';
+      label = S.t.finishTournament;
       icon = Icons.flag_rounded;
       action = () {
         app.advance(t);

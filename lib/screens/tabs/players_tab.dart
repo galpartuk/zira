@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../engine/models.dart';
 import '../../engine/standings.dart';
+import '../../l10n.dart';
 import '../../state/app_state.dart';
 import '../../theme.dart';
 import '../../widgets/common.dart';
@@ -46,7 +47,7 @@ class _PlayersTabState extends State<PlayersTab> {
     _ctrl.clear();
     context.read<AppState>().changed();
     _focus.requestFocus();
-    if (t.started) toast(context, 'נוסף באיחור — ישתתף מהסיבוב הבא עם 0 נקודות');
+    if (t.started) toast(context, S.t.lateEntry);
   }
 
   @override
@@ -68,19 +69,16 @@ class _PlayersTabState extends State<PlayersTab> {
                 focusNode: _focus,
                 textInputAction: TextInputAction.done,
                 onSubmitted: (_) => _add(),
-                decoration: const InputDecoration(hintText: 'שם שחקן', prefixIcon: Icon(Icons.person_add_alt_1)),
+                decoration: InputDecoration(hintText: S.t.playerName, prefixIcon: const Icon(Icons.person_add_alt_1)),
               ),
             ),
             const SizedBox(width: 10),
-            FilledButton(onPressed: _add, child: const Text('הוספה')),
+            FilledButton(onPressed: _add, child: Text(S.t.add)),
           ]),
         if (t.players.isEmpty)
-          const Padding(
-            padding: EdgeInsets.only(top: 40),
-            child: EmptyState(
-                icon: Icons.groups_outlined,
-                title: 'אין עדיין שחקנים',
-                body: 'הקלידו שם ולחצו הוספה. אפשר גם להדביק רשימה, שם בכל שורה.'),
+          Padding(
+            padding: const EdgeInsets.only(top: 40),
+            child: EmptyState(icon: Icons.groups_outlined, title: S.t.noPlayers, body: S.t.noPlayersBody),
           ),
         const SizedBox(height: 8),
         for (var i = 0; i < players.length; i++) _row(players[i], i + 1, standings[players[i].id]!),
@@ -109,17 +107,17 @@ class _PlayersTabState extends State<PlayersTab> {
                 decoration: p.dropped ? TextDecoration.lineThrough : null,
               )),
           subtitle: t.started
-              ? Text('${s.points} נק׳  ·  ${s.record}', style: const TextStyle(color: Z.muted, fontFeatures: Z.tabular))
+              ? Text('${S.t.pts(s.points)}  ·  ${s.record}', style: const TextStyle(color: Z.muted, fontFeatures: Z.tabular))
               : null,
           trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-            if (p.dropped) const Pill('פרש', color: Z.danger),
+            if (p.dropped) Pill(S.t.dropped, color: Z.danger),
             PopupMenuButton<String>(
               onSelected: (v) => _action(p, v),
               itemBuilder: (_) => [
-                const PopupMenuItem(value: 'rename', child: Text('שינוי שם')),
+                PopupMenuItem(value: 'rename', child: Text(S.t.rename)),
                 if (t.started && !t.finished)
-                  PopupMenuItem(value: 'drop', child: Text(p.dropped ? 'החזרה לטורניר' : 'פרישה מהטורניר')),
-                if (!t.started) const PopupMenuItem(value: 'delete', child: Text('הסרה')),
+                  PopupMenuItem(value: 'drop', child: Text(p.dropped ? S.t.undrop : S.t.dropFromTournament)),
+                if (!t.started) PopupMenuItem(value: 'delete', child: Text(S.t.remove)),
               ],
             ),
           ]),
@@ -132,16 +130,14 @@ class _PlayersTabState extends State<PlayersTab> {
     final app = context.read<AppState>();
     switch (v) {
       case 'rename':
-        final name = await promptText(context, 'שינוי שם', initial: p.name);
+        final name = await promptText(context, S.t.rename, initial: p.name);
         if (name != null && name.isNotEmpty) {
           p.name = name;
           app.changed();
         }
       case 'drop':
         if (!p.dropped) {
-          final ok = await confirm(context, 'פרישה של ${p.name}',
-              'השחקן לא יזווג בסיבובים הבאים. התוצאות שכבר נרשמו נשארות ונספרות לשוברי השוויון של היריבים.',
-              ok: 'פרישה');
+          final ok = await confirm(context, S.t.dropPlayerTitle(p.name), S.t.dropPlayerBody, ok: S.t.drop);
           if (!ok) return;
         }
         p.dropped = !p.dropped;

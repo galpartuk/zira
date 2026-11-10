@@ -12,7 +12,7 @@ void main() {
     expect(t.swissBestOf, 3);
     expect(t.roundMinutes, 45);
     expect(t.overtimeMinutes, 5);
-    expect(t.prizes.unit, 'חבילות');
+    expect(t.prizes.unit, PrizeConfig.packs);
     expect(t.prizes.entryFee, 1);
     // 12 players → 12 packs to hand out.
     expect(computePrizes(t.prizes, 12).net, 12);

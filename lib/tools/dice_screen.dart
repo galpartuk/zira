@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../l10n.dart';
 import '../theme.dart';
 import 'tool_icons.dart';
 
@@ -63,9 +64,9 @@ class _DiceScreenState extends State<DiceScreen> {
           _rolling = false;
           if (_firstMode) {
             if (_a == _b) {
-              _verdict = 'שוויון — מטילים שוב';
+              _verdict = S.t.tieRollAgain;
             } else {
-              _verdict = _a > _b ? 'שחקן כחול מתחיל' : 'שחקן כתום מתחיל';
+              _verdict = _a > _b ? S.t.blueFirst : S.t.orangeFirst;
             }
           }
         });
@@ -87,15 +88,15 @@ class _DiceScreenState extends State<DiceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('קוביות')),
+      appBar: AppBar(title: Text(S.t.dice)),
       body: Column(children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
           child: SegmentedButton<bool>(
             showSelectedIcon: false,
-            segments: const [
-              ButtonSegment(value: true, label: Text('מי מתחיל?')),
-              ButtonSegment(value: false, label: Text('הטלה חופשית')),
+            segments: [
+              ButtonSegment(value: true, label: Text(S.t.whoFirst)),
+              ButtonSegment(value: false, label: Text(S.t.freeRoll)),
             ],
             selected: {_firstMode},
             onSelectionChanged: (s) => setState(() {
@@ -109,7 +110,7 @@ class _DiceScreenState extends State<DiceScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
             child: Row(children: [
-              const Text('כמה:', style: TextStyle(color: Z.muted)),
+              Text(S.t.howMany, style: const TextStyle(color: Z.muted)),
               const SizedBox(width: 8),
               for (final n in [1, 2, 3, 4])
                 Padding(
@@ -154,7 +155,7 @@ class _DiceScreenState extends State<DiceScreen> {
               child: FilledButton.icon(
                 onPressed: _rolling ? null : _roll,
                 icon: const Icon(Icons.casino),
-                label: const Text('הטלה'),
+                label: Text(S.t.roll),
               ),
             ),
           ),
@@ -175,10 +176,10 @@ class _DiceScreenState extends State<DiceScreen> {
       ),
       const SizedBox(height: 28),
       if (_count > 1)
-        Text('סה״כ $total',
+        Text(S.t.total('$total'),
             style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, fontFeatures: Z.tabular)),
       const SizedBox(height: 6),
-      const Text('הקישו בכל מקום להטלה', style: TextStyle(color: Z.muted)),
+      Text(S.t.tapToRoll, style: const TextStyle(color: Z.muted)),
     ]);
   }
 
@@ -198,14 +199,14 @@ class _DiceScreenState extends State<DiceScreen> {
     final done = _verdict != null && _a != _b;
     return Column(mainAxisSize: MainAxisSize.min, children: [
       Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-        side('כחול', _a, Z.blue, done && _a > _b),
-        side('כתום', _b, Z.coral, done && _b > _a),
+        side(S.t.blue, _a, Z.blue, done && _a > _b),
+        side(S.t.orange, _b, Z.coral, done && _b > _a),
       ]),
       const SizedBox(height: 36),
       AnimatedSwitcher(
         duration: const Duration(milliseconds: 250),
         child: Text(
-          _verdict ?? (_a == 0 ? 'כל שחקן מקבל קובייה. הגבוהה מתחילה.' : '...'),
+          _verdict ?? (_a == 0 ? S.t.firstRollHelp : '...'),
           key: ValueKey(_verdict),
           style: TextStyle(
             fontSize: _verdict == null ? 15 : 26,

@@ -115,18 +115,13 @@ PrizeResult computePrizes(PrizeConfig c, int players, {List<Placement>? placemen
   return PrizeResult(gross, house, net, distributed, double.parse((net - distributed).toStringAsFixed(2)), pctSum, lines);
 }
 
-class PrizePreset {
-  final String name;
-  final List<double> percents;
-  const PrizePreset(this.name, this.percents);
-}
-
-const prizePresets = [
-  PrizePreset('מנצח לוקח הכל', [100]),
-  PrizePreset('טופ 2 · 65/35', [65, 35]),
-  PrizePreset('טופ 3 · 50/30/20', [50, 30, 20]),
-  PrizePreset('טופ 4 · 40/25/17.5/17.5', [40, 25, 17.5, 17.5]),
-  PrizePreset('טופ 8', [30, 20, 12.5, 12.5, 6.25, 6.25, 6.25, 6.25]),
+/// Ready-made percentage tables. The UI names them (e.g. "Top 2 · 65/35").
+const prizePresets = <List<double>>[
+  [100],
+  [65, 35],
+  [50, 30, 20],
+  [40, 25, 17.5, 17.5],
+  [30, 20, 12.5, 12.5, 6.25, 6.25, 6.25, 6.25],
 ];
 
 /// Even split across [places].

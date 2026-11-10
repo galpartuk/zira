@@ -52,19 +52,6 @@ class MatchResult {
 
   factory MatchResult.fromJson(Map<String, dynamic> j) =>
       MatchResult(Outcome.values[j['o'] as int], j['g1'] as int? ?? 0, j['g2'] as int? ?? 0);
-
-  /// Text like "2-1" or "תיקו" from player 1's point of view.
-  String scoreText({required int bestOf}) {
-    switch (outcome) {
-      case Outcome.doubleLoss:
-        return 'הפסד כפול';
-      case Outcome.draw:
-        return bestOf > 1 ? '$g1-$g2 תיקו' : 'תיקו';
-      case Outcome.p1:
-      case Outcome.p2:
-        return bestOf > 1 ? '$g1-$g2' : (outcome == Outcome.p1 ? '1-0' : '0-1');
-    }
-  }
 }
 
 class Match {
@@ -151,7 +138,11 @@ class Round {
 
 /// Settings for the prize table.
 class PrizeConfig {
-  String unit; // ₪ or packs ("חבילות")
+  /// Language-neutral unit codes. Shown localized in the UI.
+  static const packs = 'packs';
+  static const ils = 'ILS';
+
+  String unit; // [packs] or [ils]
   double entryFee;
   double extra; // sponsor / store-added amount
   double houseCut; // percent kept by the organiser
@@ -159,9 +150,11 @@ class PrizeConfig {
   bool splitTies; // average shares inside top-cut groups (3-4, 5-8, ...)
   List<double> percents; // per place, index 0 = 1st
 
+  bool get isMoney => unit == ils;
+
   /// Default: prizes in booster packs, each player puts in one pack.
   PrizeConfig({
-    this.unit = 'חבילות',
+    this.unit = packs,
     this.entryFee = 1,
     this.extra = 0,
     this.houseCut = 0,
@@ -169,6 +162,13 @@ class PrizeConfig {
     this.splitTies = true,
     List<double>? percents,
   }) : percents = percents ?? [50, 30, 20];
+
+  /// Older saves stored the unit as display text: "₪" for money, or the
+  /// Hebrew "חבילות" / "בוסטרים" for packs. A missing unit was money.
+  static String unitFromJson(Object? raw) {
+    if (raw == null || raw == ils || raw == '₪') return ils;
+    return packs;
+  }
 
   Map<String, dynamic> toJson() => {
         'unit': unit,
@@ -181,7 +181,7 @@ class PrizeConfig {
       };
 
   factory PrizeConfig.fromJson(Map<String, dynamic> j) => PrizeConfig(
-        unit: j['unit'] as String? ?? '₪',
+        unit: unitFromJson(j['unit']),
         entryFee: (j['fee'] as num?)?.toDouble() ?? 0,
         extra: (j['extra'] as num?)?.toDouble() ?? 0,
         houseCut: (j['cut'] as num?)?.toDouble() ?? 0,
