@@ -4,8 +4,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../theme.dart';
 import 'rule_section_screen.dart';
 import 'rules_data.dart';
+import 'smart_search.dart';
 
-/// Bookmarked rule ids, persisted.
+/// Bookmarks for rules ("16-5-2") and Q&A ("q:r127", "q:c5574"), persisted.
 class RuleBookmarks extends ChangeNotifier {
   RuleBookmarks._();
   static final instance = RuleBookmarks._();
@@ -30,13 +31,36 @@ class RuleBookmarks extends ChangeNotifier {
   }
 }
 
+class BookmarkButton extends StatelessWidget {
+  final String id;
+  const BookmarkButton({super.key, required this.id});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: RuleBookmarks.instance,
+      builder: (context, _) {
+        final on = RuleBookmarks.instance.ids.contains(id);
+        return IconButton(
+          tooltip: on ? 'הסרת סימנייה' : 'סימנייה',
+          visualDensity: VisualDensity.compact,
+          iconSize: 20,
+          color: on ? Z.gold : Z.line,
+          onPressed: () => RuleBookmarks.instance.toggle(id),
+          icon: Icon(on ? Icons.bookmark : Icons.bookmark_border),
+        );
+      },
+    );
+  }
+}
+
 void openRule(BuildContext context, RulesBook book, String id, {String? highlight}) {
   Navigator.push(
       context, MaterialPageRoute(builder: (_) => RuleSectionScreen(book: book, id: id, highlight: highlight)));
 }
 
-/// One rule: number badge, English text (left-to-right), tappable
-/// "refer to X" links, search highlights, "updated" badge and a bookmark star.
+/// One rule: number badge, English text (left-to-right), tappable links,
+/// search highlights, "updated" badge and a bookmark star.
 class RuleTile extends StatelessWidget {
   final RulesBook book;
   final Rule rule;
@@ -94,7 +118,7 @@ class RuleTile extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(fontSize: 11.5, color: Z.muted)),
                   ),
-                RuleText(book: book, text: r.text, highlight: highlight, heading: heading),
+                RichRuleText(book: book, text: r.text, highlight: highlight, heading: heading),
                 if (latest)
                   Padding(
                     padding: const EdgeInsets.only(top: 5),
@@ -107,20 +131,7 @@ class RuleTile extends StatelessWidget {
                   ),
               ]),
             ),
-            ListenableBuilder(
-              listenable: RuleBookmarks.instance,
-              builder: (context, _) {
-                final on = RuleBookmarks.instance.ids.contains(r.id);
-                return IconButton(
-                  tooltip: on ? 'הסרת סימנייה' : 'סימנייה',
-                  visualDensity: VisualDensity.compact,
-                  iconSize: 20,
-                  color: on ? Z.gold : Z.line,
-                  onPressed: () => RuleBookmarks.instance.toggle(r.id),
-                  icon: Icon(on ? Icons.bookmark : Icons.bookmark_border),
-                );
-              },
-            ),
+            BookmarkButton(id: r.id),
           ]),
         ),
       ),
@@ -136,52 +147,100 @@ class RuleTile extends StatelessWidget {
   }
 }
 
-/// Rule text with "refer to X-Y" turned into links and query words marked.
-class RuleText extends StatelessWidget {
+/// Rules / Q&A text with:
+///  * "refer to X-Y" → link to that rule,
+///  * `<Keyword>` (incl. `<Security A. +1>`) → link to the keyword's section,
+///  * search words highlighted (same matching as the search itself).
+class RichRuleText extends StatelessWidget {
   final RulesBook book;
   final String text;
   final String? highlight;
   final bool heading;
+  final bool bold;
+  final bool muted;
+  final int? maxLines;
 
-  const RuleText({super.key, required this.book, required this.text, this.highlight, this.heading = false});
+  const RichRuleText({
+    super.key,
+    required this.book,
+    required this.text,
+    this.highlight,
+    this.heading = false,
+    this.bold = false,
+    this.muted = false,
+    this.maxLines,
+  });
+
+  static final _links = RegExp(r'refer to (\d+(?:-\d+)*)|<([A-Za-z][^<>]*?)>');
 
   @override
   Widget build(BuildContext context) {
     final base = TextStyle(
-      fontSize: heading ? 16 : 14.5,
+      fontSize: heading ? 16 : (muted ? 13.5 : 14.5),
       height: 1.45,
-      fontWeight: heading ? FontWeight.w800 : FontWeight.w400,
-      color: Z.text,
+      fontWeight: heading ? FontWeight.w800 : (bold ? FontWeight.w600 : FontWeight.w400),
+      color: muted ? Z.muted : Z.text,
     );
+    final interactive = maxLines == null; // previews in lists stay plain taps
     final spans = <InlineSpan>[];
     var last = 0;
-    for (final m in Rule.refPattern.allMatches(text)) {
-      spans.addAll(_marked(text.substring(last, m.start), base));
-      final id = m.group(1)!;
-      spans.add(TextSpan(text: 'refer to ', style: base));
-      spans.add(WidgetSpan(
-        alignment: PlaceholderAlignment.baseline,
-        baseline: TextBaseline.alphabetic,
-        child: GestureDetector(
-          onTap: () => openRule(context, book, id),
-          child: Text(id,
-              style: base.copyWith(
-                  color: Z.blue,
-                  fontWeight: FontWeight.w700,
-                  decoration: TextDecoration.underline,
-                  decorationColor: Z.blue)),
-        ),
-      ));
+    for (final m in _links.allMatches(text)) {
+      final ruleRef = m.group(1);
+      String? target;
+      String shown;
+      if (ruleRef != null) {
+        target = book.byId.containsKey(ruleRef) || !ruleRef.contains('-') ? ruleRef : null;
+        spans.addAll(_marked(text.substring(last, m.start), base));
+        spans.add(TextSpan(text: 'refer to ', style: base));
+        shown = ruleRef;
+      } else {
+        target = _keywordId(m.group(2)!);
+        if (target == null) continue; // "<...>" that isn't a keyword
+        if (m.group(0) == text.trim()) continue; // the heading "<Blocker>" itself
+        spans.addAll(_marked(text.substring(last, m.start), base));
+        shown = m.group(0)!;
+      }
+      final linkStyle = base.copyWith(
+        color: Z.blue,
+        fontWeight: FontWeight.w700,
+        decoration: interactive ? TextDecoration.underline : null,
+        decorationColor: Z.blue,
+      );
+      if (interactive && target != null) {
+        final id = target;
+        spans.add(WidgetSpan(
+          alignment: PlaceholderAlignment.baseline,
+          baseline: TextBaseline.alphabetic,
+          child: GestureDetector(onTap: () => openRule(context, book, id), child: Text(shown, style: linkStyle)),
+        ));
+      } else {
+        spans.add(TextSpan(text: shown, style: linkStyle));
+      }
       last = m.end;
     }
     spans.addAll(_marked(text.substring(last), base));
-    return Text.rich(TextSpan(children: spans), textDirection: TextDirection.ltr);
+    return Text.rich(
+      TextSpan(children: spans),
+      textDirection: TextDirection.ltr,
+      maxLines: maxLines,
+      overflow: maxLines == null ? null : TextOverflow.ellipsis,
+    );
+  }
+
+  /// "Security A. +1" → id of `<Security A.>`; "Blocker" → 16-5.
+  String? _keywordId(String inner) {
+    final name = inner.replaceAll(RegExp(r'\s*[+-]\s*\d+$'), '').trim().toLowerCase();
+    for (final k in book.keywords) {
+      final n = k.name.toLowerCase();
+      if (n == name || name.startsWith('$n ')) return k.id;
+    }
+    return null;
   }
 
   List<InlineSpan> _marked(String s, TextStyle style) {
     final h = highlight?.trim();
     if (h == null || h.isEmpty || s.isEmpty) return [TextSpan(text: s, style: style)];
-    final terms = RulesBook.searchTerms(h).expand((g) => g).where((t) => t.length >= 2).toList();
+    final terms = SmartSearch.terms(h).expand((g) => g).where((t) => t.length >= 2).toList();
     if (terms.isEmpty) return [TextSpan(text: s, style: style)];
     final re = RegExp(terms.map(RegExp.escape).join('|'), caseSensitive: false);
     final out = <InlineSpan>[];

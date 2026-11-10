@@ -1,7 +1,7 @@
 name: zira
 description: "זירה — ניהול טורנירים: סוויס, ראונד רובין, טופ קאט, חלוקת פרסים וכלי משחק."
 publish_to: 'none'
-version: 1.1.0+5
+version: 1.2.0+6
 
 environment:
   sdk: ^3.9.0

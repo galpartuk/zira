@@ -35,6 +35,7 @@ void main() {
     final spacedHyphen = RegExp(r'[a-z] -[a-z]');
     for (final r in book.rules) {
       expect(repeatedRef.hasMatch(r.text), isFalse, reason: r.id);
+      expect(RegExp(r'\)\d').hasMatch(r.text), isFalse, reason: '${r.id}: digits glued after ")"');
       expect(spacedHyphen.hasMatch(r.text), isFalse, reason: r.id);
     }
     expect(book.search('blocker').first.text, '<Blocker>');

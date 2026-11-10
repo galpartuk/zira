@@ -37,5 +37,12 @@ Flutter Android app (Hebrew, RTL, dark). Local-only: all data in SharedPreferenc
   copy baked into the JSON.
 - `lib/rules/`: data + search (Hebrew aliases in `hebrewAliases`), browser, section screen, bookmarks.
 - The Rule Manual PDF is images only (no text) — it stays an external link.
-- Rollback: `v1.0.3` tag is the last build without in-app rules. Going back = build that code with a
+- Official Q&A (from 1.2.0): `python -I tool/build_qa.py` scrapes world.digimoncard.com/rule/ (POST forms:
+  7 rule categories + one request per product, 1 s apart) into `assets/rules/qa.json`
+  (~700 rule Q&A + ~6,700 card Q&A, ~3 MB). Run it with build_rules.py before a release; then
+  `flutter test test/qa_test.dart`.
+- `lib/rules/smart_search.dart` is the one search over rules + Q&A: Hebrew aliases, English shorthand
+  (sec/evo/KO…), crude stemming, card numbers (zero padding ignored: BT1-1 == BT01-001), scoring
+  (heading/topic > question > answer). `RichRuleText` auto-links "refer to X" and <Keyword>.
+- Rollback: `v1.1.0` = rules without Q&A; `v1.0.3` tag is the last build without in-app rules. Going back = build that code with a
   HIGHER versionCode (never reinstall the old APK — it's a downgrade).

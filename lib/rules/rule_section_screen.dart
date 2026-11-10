@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../theme.dart';
+import 'qa_data.dart';
+import 'qa_widgets.dart';
 import 'rule_widgets.dart';
 import 'rules_data.dart';
 
@@ -56,6 +58,26 @@ class RuleSectionScreen extends StatelessWidget {
               rule: r,
               highlight: highlight,
               indentFrom: isChapter ? 2 : (head?.depth ?? 1),
+            ),
+          // Official Q&A filed under this topic (e.g. every question about <Blocker>).
+          if (head != null && head.isHeading)
+            FutureBuilder<QaBook>(
+              future: QaBook.load(),
+              builder: (context, snap) {
+                final qa = snap.data;
+                if (qa == null) return const SizedBox();
+                final list = qa.forTopic(head.text);
+                if (list.isEmpty) return const SizedBox();
+                return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  const SizedBox(height: 18),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+                    child: Text('שאלות ותשובות רשמיות (${list.length})',
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Z.win)),
+                  ),
+                  for (final e in list) QaTile(book: book, qa: qa, e: e, highlight: highlight),
+                ]);
+              },
             ),
         ],
       ),

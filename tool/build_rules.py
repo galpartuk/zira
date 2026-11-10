@@ -39,8 +39,9 @@ def clean(s):
     s = re.sub(r"(\d)\s+-(\d)", r"\1-\2", s)             # "15 -8"
     s = re.sub(r"(\w)\s+-(\w)", r"\1-\2", s)             # "De -Digivolve", "in -game"
     s = re.sub(r"\s+", " ", s).strip()
-    # The PDF repeats the link target right after a "(refer to ...)" bracket.
-    s = re.sub(r"(refer to (\d+(?:-\d+)*)[^)]*\))\2(?![\d-])", r"\1", s)
+    # The PDF repeats the link target right after a "(refer to ...)" bracket,
+    # sometimes as a deeper number ("refer to 12 ...")12-1").
+    s = re.sub(r"(refer to (\d+(?:-\d+)*)[^)]*\))\2(?:-\d+)*(?![\d-])", r"\1", s)
     return s
 
 
