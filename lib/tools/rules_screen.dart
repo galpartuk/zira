@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../rules/rules_browser_screen.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 
@@ -43,9 +44,11 @@ class RulesScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('חוקי דיג׳ימון')),
       body: ListView.separated(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-        itemCount: digimonRuleLinks.length + 1,
+        itemCount: digimonRuleLinks.length + 2,
         separatorBuilder: (_, _) => const SizedBox(height: 8),
         itemBuilder: (c, i) {
+          if (i == 0) return const _InAppRulesCard();
+          i -= 1;
           if (i == digimonRuleLinks.length) {
             return const Padding(
               padding: EdgeInsets.fromLTRB(4, 8, 4, 0),
@@ -86,6 +89,43 @@ class RulesScreen extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+/// Entry to the searchable rules built into the app.
+class _InAppRulesCard extends StatelessWidget {
+  const _InAppRulesCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Z.blue.withValues(alpha: .12),
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RulesBrowserScreen())),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(16, 16, 12, 16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Z.blue.withValues(alpha: .5)),
+          ),
+          child: const Row(children: [
+            Icon(Icons.manage_search_rounded, color: Z.blue, size: 36),
+            SizedBox(width: 14),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('החוקים המלאים בתוך האפליקציה', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+                SizedBox(height: 3),
+                Text('חיפוש בעברית או באנגלית, מילות מפתח, מעבר בין סעיפים, סימניות. עובד גם בלי אינטרנט.',
+                    style: TextStyle(fontSize: 13, color: Z.muted, height: 1.35)),
+              ]),
+            ),
+            Icon(Icons.chevron_left, color: Z.blue),
+          ]),
+        ),
       ),
     );
   }

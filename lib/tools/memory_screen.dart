@@ -8,6 +8,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../engine/memory.dart';
+import '../rules/rule_section_screen.dart';
+import '../rules/rules_data.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 
@@ -256,6 +258,13 @@ class _MemoryScreenState extends State<MemoryScreen> {
         const SizedBox(height: 12),
         b(Icons.undo, 'ביטול פעולה', _undo.isEmpty ? null : _doUndo),
         b(Icons.casino_outlined, 'משחק חדש', _menu),
+        b(Icons.menu_book_outlined, 'החוק על זיכרון', () async {
+          final book = await RulesBook.load();
+          if (!mounted) return;
+          SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+          await Navigator.push(context, MaterialPageRoute(builder: (_) => RuleSectionScreen(book: book, id: '4-1')));
+          SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+        }),
         const SizedBox(height: 12),
         RotatedBox(
           quarterTurns: 3,

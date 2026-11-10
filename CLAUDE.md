@@ -28,3 +28,14 @@ Flutter Android app (Hebrew, RTL, dark). Local-only: all data in SharedPreferenc
   Bump `version:` in pubspec for every APK. Copies go in `releases/` (git-ignored).
 - Visual check: `flutter build web`, serve `build/web`, screenshot with Playwright (system Chrome,
   `channel="chrome"`), seed localStorage key `flutter.zira.tournaments.v1`.
+
+## In-app rules (branch feature/rules-in-app, from 1.1.0)
+- `assets/rules/comprehensive.json` is generated — never hand-edit. Rebuild when Bandai publishes a
+  new Comprehensive Rules version: `python -I tool/build_rules.py` (downloads the PDF; needs pypdf),
+  run `flutter test test/rules_test.dart` (checks refs resolve + no extraction artifacts), ship a build.
+- The app HEADs the PDF and shows a "newer file online" banner when Last-Modified is newer than the
+  copy baked into the JSON.
+- `lib/rules/`: data + search (Hebrew aliases in `hebrewAliases`), browser, section screen, bookmarks.
+- The Rule Manual PDF is images only (no text) — it stays an external link.
+- Rollback: `v1.0.3` tag is the last build without in-app rules. Going back = build that code with a
+  HIGHER versionCode (never reinstall the old APK — it's a downgrade).
