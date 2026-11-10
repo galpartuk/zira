@@ -28,3 +28,10 @@ Flutter Android app (Hebrew, RTL, dark). Local-only: all data in SharedPreferenc
   Bump `version:` in pubspec for every APK. Copies go in `releases/` (git-ignored).
 - Visual check: `flutter build web`, serve `build/web`, screenshot with Playwright (system Chrome,
   `channel="chrome"`), seed localStorage key `flutter.zira.tournaments.v1`.
+
+## Rules: links only (decided 2026-11-10)
+- The full in-app rules + Q&A + smart search moved to a separate app, **Judgemon**
+  (C:\Users\Owner\judgemon, repo galpartuk/judgemon). Zira keeps only the quick links screen
+  (`lib/tools/rules_screen.dart`). The experiment lives on branch `feature/rules-in-app` (tags v1.1.0, v1.2.0 era).
+- Versions jumped 1.0.3 → 1.2.1 on main because 1.1.0/1.2.0 (from the branch) were installed on
+  Gal's phone; main must stay above them (last branch build: 1.2.0+6 → arm64 2006).
