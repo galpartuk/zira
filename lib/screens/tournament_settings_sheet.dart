@@ -28,6 +28,8 @@ class _TournamentSettingsSheetState extends State<TournamentSettingsSheet> {
   Widget build(BuildContext context) {
     final played = t.swissRoundsList.length;
     final topStarted = t.topRoundsList.isNotEmpty;
+    // A finished event's standings and prizes are final: no structural changes.
+    final locked = topStarted || t.finished;
     final rr = t.format == TFormat.roundRobin;
     return SafeArea(
       child: SingleChildScrollView(
@@ -39,7 +41,10 @@ class _TournamentSettingsSheetState extends State<TournamentSettingsSheet> {
             title: 'שם',
             child: TextButton.icon(
               icon: const Icon(Icons.edit, size: 18),
-              label: Text(t.name),
+              label: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 170),
+                child: Text(t.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+              ),
               onPressed: () async {
                 final v = await promptText(context, 'שם הטורניר', initial: t.name);
                 if (v != null && v.isNotEmpty) _set(() => t.name = v);
@@ -55,7 +60,7 @@ class _TournamentSettingsSheetState extends State<TournamentSettingsSheet> {
                 value: t.swissRounds,
                 min: played < 1 ? 1 : played,
                 max: 15,
-                onChanged: topStarted ? (_) {} : (v) => _set(() => t.swissRounds = v),
+                onChanged: locked ? null : (v) => _set(() => t.swissRounds = v),
               ),
             )
           else
@@ -70,7 +75,7 @@ class _TournamentSettingsSheetState extends State<TournamentSettingsSheet> {
               items: [0, 2, 4, 8, 16, 32]
                   .map((v) => DropdownMenuItem(value: v, child: Text(v == 0 ? 'בלי' : 'טופ $v')))
                   .toList(),
-              onChanged: topStarted ? null : (v) => _set(() => t.topCut = v!),
+              onChanged: locked ? null : (v) => _set(() => t.topCut = v!),
             ),
           ),
           const Divider(),

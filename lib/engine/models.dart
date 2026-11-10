@@ -263,6 +263,24 @@ class Tournament {
 
   bool get swissDone => swissRoundsList.length >= plannedSwissRounds && (swissRoundsList.isEmpty || swissRoundsList.last.complete);
 
+  /// Players can still be added: before the start, or (Swiss only) as late
+  /// entries while at least one more Swiss round will be paired. After that a
+  /// newcomer would never play but could still change the top cut.
+  bool get acceptsNewPlayers {
+    if (finished || topRoundsList.isNotEmpty) return false;
+    if (!started) return true;
+    return format == TFormat.swiss && swissRoundsList.length < plannedSwissRounds;
+  }
+
+  /// The earliest round with a missing result (a result of an older round can
+  /// be cleared after later rounds were paired). Null when all are reported.
+  Round? get firstIncompleteRound {
+    for (final r in rounds) {
+      if (!r.complete) return r;
+    }
+    return null;
+  }
+
   int bestOfFor(Stage s) => s == Stage.swiss ? swissBestOf : topBestOf;
 
   Map<String, dynamic> toJson() => {

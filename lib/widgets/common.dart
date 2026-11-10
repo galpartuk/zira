@@ -74,7 +74,7 @@ class Stepper2 extends StatelessWidget {
   final int value;
   final int min;
   final int max;
-  final ValueChanged<int> onChanged;
+  final ValueChanged<int>? onChanged; // null = locked
   final String Function(int)? format;
   const Stepper2({super.key, required this.value, required this.onChanged, this.min = 0, this.max = 99, this.format});
 
@@ -83,7 +83,7 @@ class Stepper2 extends StatelessWidget {
     Widget btn(IconData i, int d) => IconButton.filledTonal(
           visualDensity: VisualDensity.compact,
           style: IconButton.styleFrom(backgroundColor: Z.raised),
-          onPressed: (value + d < min || value + d > max) ? null : () => onChanged(value + d),
+          onPressed: (onChanged == null || value + d < min || value + d > max) ? null : () => onChanged!(value + d),
           icon: Icon(i, size: 18),
         );
     return Row(mainAxisSize: MainAxisSize.min, children: [

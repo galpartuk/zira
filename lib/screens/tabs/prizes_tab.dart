@@ -359,6 +359,12 @@ class _NumFieldState extends State<_NumField> {
   }
 
   @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return TextField(
       controller: _c,
@@ -404,6 +410,7 @@ class _PctFieldState extends State<_PctField> {
 
   @override
   void dispose() {
+    _c.dispose();
     _focus.dispose();
     super.dispose();
   }

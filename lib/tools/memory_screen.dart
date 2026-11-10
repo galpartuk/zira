@@ -5,11 +5,11 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../engine/memory.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/round_timer.dart' show KeepAwake;
 
 /// Digimon Card Game memory gauge for two players facing each other across
 /// the phone. The top player's half is rotated so it reads right way up for
@@ -38,7 +38,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
   @override
   void initState() {
     super.initState();
-    WakelockPlus.enable();
+    KeepAwake.acquire();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     _load();
   }
@@ -46,7 +46,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
   @override
   void dispose() {
     _bannerTimer?.cancel();
-    WakelockPlus.disable();
+    KeepAwake.release();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.dispose();
   }
@@ -54,7 +54,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
   Future<void> _load() async {
     final p = await SharedPreferences.getInstance();
     final raw = p.getString(_prefsKey);
-    if (raw == null) return;
+    if (raw == null || !mounted) return;
     try {
       final j = jsonDecode(raw) as Map<String, dynamic>;
       setState(() {

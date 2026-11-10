@@ -120,7 +120,7 @@ class _NextStepBar extends StatelessWidget {
     VoidCallback? action;
     IconData icon = Icons.play_arrow_rounded;
 
-    final cur = t.currentRound;
+    final open = t.firstIncompleteRound;
     if (t.finished) {
       final winner = finalPlacements(t).firstOrNull;
       label = 'הטורניר הסתיים';
@@ -136,9 +136,9 @@ class _NextStepBar extends StatelessWidget {
           goTo('rounds');
         };
       }
-    } else if (!cur!.complete) {
-      label = cur.pending == 1 ? 'חסרה תוצאה אחת' : 'חסרות ${cur.pending} תוצאות';
-      hint = cur.stage == Stage.top ? topRoundName(cur) : 'סיבוב ${cur.number} מתוך ${t.plannedSwissRounds}';
+    } else if (open != null) {
+      label = open.pending == 1 ? 'חסרה תוצאה אחת' : 'חסרות ${open.pending} תוצאות';
+      hint = open.stage == Stage.top ? topRoundName(open) : 'סיבוב ${open.number} מתוך ${t.plannedSwissRounds}';
       icon = Icons.hourglass_top_rounded;
       action = () => goTo('rounds');
     } else if (!t.swissDone) {
@@ -165,7 +165,7 @@ class _NextStepBar extends StatelessWidget {
       };
     }
 
-    final waiting = t.started && !t.finished && !cur!.complete;
+    final waiting = t.started && !t.finished && open != null;
     return Material(
       color: Z.surface,
       child: SafeArea(

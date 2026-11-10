@@ -163,8 +163,11 @@ List<int> bracketOrder(int size) {
 }
 
 /// The top cut actually used: the configured size, shrunk to the largest
-/// power of two the active players can fill.
+/// power of two the active players can fill. Once the cut has started its
+/// size is whatever the first bracket round holds (later drops don't shrink it).
 int effectiveTopCut(Tournament t) {
+  final tops = t.topRoundsList;
+  if (tops.isNotEmpty) return tops.first.matches.where((m) => !m.thirdPlace).length * 2;
   if (t.topCut < 2) return 0;
   final active = t.activePlayers.length;
   var size = t.topCut;
@@ -278,6 +281,22 @@ List<Placement> finalPlacements(Tournament t) {
       final finalMatch = tops.last.matches.firstWhere((m) => !m.thirdPlace);
       addGroup([finalMatch.winner!]);
       addGroup([finalMatch.loser!]);
+    } else {
+      // Bracket still running: everyone not yet knocked out comes first, in
+      // seed order, above anyone already eliminated.
+      final out = {
+        for (final r in tops)
+          for (final m in r.matches)
+            if (!m.thirdPlace && m.loser != null) m.loser!
+      };
+      final alive = tops.first.matches
+          .expand((m) => [m.p1, if (m.p2 != null) m.p2!])
+          .where((id) => !out.contains(id))
+          .toList()
+        ..sort((a, b) => seed[a]!.compareTo(seed[b]!));
+      for (final id in alive) {
+        addGroup([id]);
+      }
     }
     for (var i = tops.length - 1; i >= 0; i--) {
       final r = tops[i];
@@ -292,11 +311,6 @@ List<Placement> finalPlacements(Tournament t) {
           .where((id) => !placed.contains(id))
           .toList();
       addGroup(losers);
-    }
-    // Anyone still in the bracket (unfinished) keeps their seed order.
-    final inBracket = tops.first.matches.expand((m) => [m.p1, if (m.p2 != null) m.p2!]).where((id) => !placed.contains(id)).toList();
-    for (final id in inBracket..sort((a, b) => seed[a]!.compareTo(seed[b]!))) {
-      addGroup([id]);
     }
   }
   for (final s in standings) {

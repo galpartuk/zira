@@ -21,9 +21,14 @@ class _PlayersTabState extends State<PlayersTab> {
 
   Tournament get t => widget.t;
 
-  /// Late entries are fine in Swiss (they start on 0 points); a round robin
-  /// schedule is fixed once it starts.
-  bool get canAdd => !t.finished && t.topRoundsList.isEmpty && !(t.format == TFormat.roundRobin && t.started);
+  bool get canAdd => t.acceptsNewPlayers;
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    _focus.dispose();
+    super.dispose();
+  }
 
   void _add() {
     final names = _ctrl.text.split(RegExp(r'[\n,]')).map((s) => s.trim()).where((s) => s.isNotEmpty);

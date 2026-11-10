@@ -33,6 +33,14 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
     final d = DateTime.now();
     _name = TextEditingController(text: 'טורניר ${d.day}.${d.month}');
     _players.addListener(_sync);
+    _name.addListener(() => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _players.dispose();
+    super.dispose();
   }
 
   List<String> get _names =>

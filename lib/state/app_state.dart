@@ -64,15 +64,14 @@ class AppState extends ChangeNotifier {
   int importAll(String raw) {
     final decoded = jsonDecode(raw);
     final list = decoded is List ? decoded : [decoded];
-    var n = 0;
-    for (final e in list) {
-      final t = Tournament.fromJson(e as Map<String, dynamic>);
+    // Parse everything first so a bad entry leaves the current data alone.
+    final parsed = [for (final e in list) Tournament.fromJson(e as Map<String, dynamic>)];
+    for (final t in parsed) {
       tournaments.removeWhere((x) => x.id == t.id);
       tournaments.insert(0, t);
-      n++;
     }
     changed();
-    return n;
+    return parsed.length;
   }
 
   // ------------------------------------------------------------ flow
@@ -92,6 +91,7 @@ class AppState extends ChangeNotifier {
   /// Generates whatever comes next: a Swiss round, the first / next bracket
   /// round, or marks the tournament finished.
   void advance(Tournament t) {
+    if (t.finished || t.firstIncompleteRound != null) return;
     if (!t.swissDone) {
       t.rounds.add(t.format == TFormat.roundRobin ? roundRobinRound(t) : pairSwissRound(t));
     } else if (effectiveTopCut(t) > 0 && !topCutFinished(t)) {

@@ -35,17 +35,27 @@ String fmtClock(int ms) {
 }
 
 /// Sound + vibration when the clock crosses into overtime and when overtime
-/// ends. Keyed by tournament + end time + phase so two clocks on screen (the
-/// card and the full-screen view) never ring twice.
+/// ends. It rings on the *crossing* only: the last phase seen per tournament
+/// is remembered, so two clocks on screen (the card and the full-screen view),
+/// pausing/resuming or +1 minute inside overtime, and reopening the app on a
+/// clock that is already past its time never ring again.
 class RoundAlarm {
-  static final _fired = <String>{};
+  static final _lastPhase = <String, ClockPhase>{};
   static final _player = AudioPlayer();
 
+  /// Records the phase and says whether this is a crossing worth ringing for.
+  static bool shouldRing(String id, ClockPhase phase, bool running) {
+    final prev = _lastPhase[id];
+    _lastPhase[id] = phase;
+    if (!running || prev == null || prev == phase) return false;
+    return phase.index > prev.index;
+  }
+
+  @visibleForTesting
+  static void reset() => _lastPhase.clear();
+
   static void check(Tournament t, ClockState c) {
-    if (!c.running || c.phase == ClockPhase.main) return;
-    final key = '${t.id}|${t.timerEndMs}|${c.phase.name}';
-    if (!_fired.add(key)) return;
-    ring(long: c.phase == ClockPhase.over);
+    if (shouldRing(t.id, c.phase, c.running)) ring(long: c.phase == ClockPhase.over);
   }
 
   static Future<void> ring({bool long = false}) async {
@@ -57,6 +67,24 @@ class RoundAlarm {
       HapticFeedback.vibrate();
       await Future<void>.delayed(const Duration(milliseconds: 350));
     }
+  }
+}
+
+/// Keeps the screen on while anyone needs it. A counter, so the full-screen
+/// clock closing does not switch it off under a still-running round clock.
+class KeepAwake {
+  static int _holders = 0;
+
+  @visibleForTesting
+  static void Function(bool on) apply = (on) => on ? WakelockPlus.enable() : WakelockPlus.disable();
+
+  static void acquire() {
+    if (_holders++ == 0) apply(true);
+  }
+
+  static void release() {
+    if (_holders == 0) return;
+    if (--_holders == 0) apply(false);
   }
 }
 
@@ -89,13 +117,13 @@ class _RoundTimerState extends State<RoundTimer> {
   void _keepAwake(bool on) {
     if (on == _awake) return;
     _awake = on;
-    on ? WakelockPlus.enable() : WakelockPlus.disable();
+    on ? KeepAwake.acquire() : KeepAwake.release();
   }
 
   @override
   void dispose() {
     _tick?.cancel();
-    if (_awake) WakelockPlus.disable();
+    if (_awake) KeepAwake.release();
     super.dispose();
   }
 
@@ -164,7 +192,7 @@ class _BigTimerState extends State<_BigTimer> {
   @override
   void initState() {
     super.initState();
-    WakelockPlus.enable();
+    KeepAwake.acquire();
     _tick = Timer.periodic(const Duration(milliseconds: 250), (_) {
       if (!mounted) return;
       RoundAlarm.check(widget.t, clockOf(widget.t));
@@ -175,7 +203,7 @@ class _BigTimerState extends State<_BigTimer> {
   @override
   void dispose() {
     _tick?.cancel();
-    WakelockPlus.disable();
+    KeepAwake.release();
     super.dispose();
   }
 
