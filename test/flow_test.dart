@@ -45,9 +45,21 @@ void main() {
       expect(m.result?.g1, 2);
     }
 
+    // Drop a player from inside the round: they finish it but are not paired again.
+    final quitter = t.rounds.first.matches.firstWhere((m) => !m.isBye).p2!;
+    final card = find.ancestor(of: find.text(t.nameOf(quitter)).first, matching: find.byType(InkWell)).first;
+    await tester.tap(find.descendant(of: card, matching: find.byIcon(Icons.person_remove_outlined)));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(SwitchListTile, t.nameOf(quitter)));
+    await tester.pumpAndSettle();
+    expect(t.player(quitter)!.dropped, isTrue);
+    await tester.tapAt(const Offset(200, 60)); // close the sheet
+    await tester.pumpAndSettle();
+
     await tester.tap(find.text('זיווג סיבוב 2'));
     await tester.pumpAndSettle();
     expect(t.rounds.length, 2);
+    expect(t.rounds.last.matches.any((m) => m.involves(quitter)), isFalse);
     // Saved to storage.
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getString('zira.tournaments.v1'), contains('אנה'));

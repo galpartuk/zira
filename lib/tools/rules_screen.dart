@@ -15,7 +15,7 @@ class RuleLink {
 }
 
 const digimonRuleLinks = [
-  RuleLink('חוברת החוקים (Rule Manual)', 'החוקים הבסיסיים בצורה פשוטה, עם דוגמאות. מתאים למתחילים.',
+  RuleLink('Rule Manual — חוברת החוקים', 'החוקים הבסיסיים בצורה פשוטה, עם דוגמאות. מתאים למתחילים.',
       'https://en.digimoncard.com/rule/pdf/manual.pdf', Icons.menu_book_rounded),
   RuleLink('Comprehensive Rules', 'החוקים המלאים והמדויקים לכל מצב — לשופטים ולמחלוקות.',
       'https://en.digimoncard.com/rule/pdf/general_rule.pdf', Icons.gavel_rounded),
