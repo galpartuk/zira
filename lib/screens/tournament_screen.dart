@@ -9,7 +9,9 @@ import '../state/app_state.dart';
 import '../state/session.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../cloud/claims.dart';
 import '../widgets/host_strip.dart';
+import '../widgets/my_match_card.dart';
 import 'tabs/bracket_tab.dart';
 import 'tabs/players_tab.dart';
 import 'tabs/prizes_tab.dart';
@@ -103,7 +105,7 @@ class _TournamentScreenState extends State<TournamentScreen> with TickerProvider
         for (final k in _keys)
           switch (k) {
             'players' => PlayersTab(t: t),
-            'rounds' => RoundsTab(t: t),
+            'rounds' => RoundsTab(t: t, header: _hostMatch(context, t)),
             'standings' => StandingsTab(t: t),
             'bracket' => BracketTab(t: t),
             _ => PrizesTab(t: t),
@@ -114,6 +116,29 @@ class _TournamentScreenState extends State<TournamentScreen> with TickerProvider
       bottomNavigationBar: _NextStepBar(t: t, goTo: _goTo),
     );
   }
+}
+
+/// The host's own match when they also play (online only).
+Widget? _hostMatch(BuildContext context, Tournament t) {
+  final sync = hostSyncOf(context);
+  final uid = authOf(context)?.user?.uid;
+  final db = dbOf(context);
+  if (sync == null || uid == null || db == null || t.finished) return null;
+  final me = t.players.where((p) => p.uid == uid).firstOrNull;
+  final r = t.currentRound;
+  if (me == null || r == null || !r.published) return null;
+  final m = r.matches.where((m) => m.involves(me.id)).firstOrNull;
+  if (m == null) return null;
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 12),
+    child: MyMatchCard(
+      t: t,
+      uid: uid,
+      state: sync.stateOf(t, m),
+      onReport: (res) => writeClaim(
+          db, t.id, Claim(matchId: m.id, uid: uid, result: res, atMs: DateTime.now().millisecondsSinceEpoch)),
+    ),
+  );
 }
 
 /// The one primary action of the moment: start, next round, top cut, finish.

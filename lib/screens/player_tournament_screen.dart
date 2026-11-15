@@ -1,0 +1,116 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../engine/models.dart';
+import '../engine/online.dart';
+import '../l10n.dart';
+import '../state/player_session.dart';
+import '../state/session.dart';
+import '../theme.dart';
+import '../widgets/common.dart';
+import '../widgets/my_match_card.dart';
+import '../widgets/round_timer.dart';
+import 'tabs/bracket_tab.dart';
+import 'tabs/standings_tab.dart';
+
+/// A tournament someone else hosts, as the signed-in player sees it (live).
+class PlayerTournamentScreen extends StatelessWidget {
+  final String tid;
+  const PlayerTournamentScreen({super.key, required this.tid});
+
+  @override
+  Widget build(BuildContext context) {
+    final db = dbOf(context)!;
+    final uid = authOf(context, listen: false)!.user!.uid;
+    return ChangeNotifierProvider(
+      create: (_) => PlayerSession(db, tid, uid),
+      child: const _PlayerView(),
+    );
+  }
+}
+
+class _PlayerView extends StatelessWidget {
+  const _PlayerView();
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.watch<PlayerSession>();
+    final t = s.t;
+    if (t == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    final r = t.currentRound;
+    final canDrop = s.me != null && !s.me!.dropped && !t.finished;
+    final tabs = <(String, Widget)>[
+      (S.t.myMatch, _MyMatchTab(s: s, t: t)),
+      (S.t.tabRounds, _Pairings(t: t, myId: s.me?.id)),
+      (S.t.tabStandings, t.started ? StandingsTab(t: t) : const SizedBox()),
+      if (t.topCut > 0) (S.t.tabBracket, BracketTab(t: t, readOnly: true)),
+    ];
+    return DefaultTabController(
+      length: tabs.length,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(t.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+            if (r != null)
+              Text(S.t.roundLabel(r), style: const TextStyle(fontSize: 12.5, color: Z.muted)),
+          ]),
+          actions: [
+            if (canDrop)
+              PopupMenuButton<String>(
+                onSelected: (_) async {
+                  final ok = await confirm(context, S.t.dropFromEvent, S.t.dropFromEventBody, ok: S.t.drop, danger: true);
+                  if (ok) await s.drop();
+                },
+                itemBuilder: (_) => [PopupMenuItem(value: 'drop', child: Text(S.t.dropFromEvent))],
+              ),
+          ],
+          bottom: TabBar(isScrollable: true, tabs: [for (final x in tabs) Tab(text: x.$1)]),
+        ),
+        body: TabBarView(children: [for (final x in tabs) x.$2]),
+      ),
+    );
+  }
+}
+
+class _MyMatchTab extends StatelessWidget {
+  final PlayerSession s;
+  final Tournament t;
+  const _MyMatchTab({required this.s, required this.t});
+
+  @override
+  Widget build(BuildContext context) {
+    if (s.myStatus == EntryStatus.requested) {
+      return EmptyState(icon: Icons.hourglass_top, title: S.t.requestSent, body: '');
+    }
+    final r = t.currentRound;
+    return ListView(padding: const EdgeInsets.all(16), children: [
+      if (r != null && !t.finished) ...[RoundTimer(t: t, readOnly: true), const SizedBox(height: 12)],
+      MyMatchCard(t: t, uid: s.uid, state: s.myState, onReport: s.report),
+    ]);
+  }
+}
+
+class _Pairings extends StatelessWidget {
+  final Tournament t;
+  final String? myId;
+  const _Pairings({required this.t, required this.myId});
+
+  @override
+  Widget build(BuildContext context) {
+    final r = t.currentRound;
+    if (r == null) return EmptyState(icon: Icons.shuffle_rounded, title: S.t.waitingNextRound, body: '');
+    final matches = [...r.matches]..sort((a, b) => a.isBye == b.isBye ? a.table.compareTo(b.table) : (a.isBye ? 1 : -1));
+    return ListView(padding: const EdgeInsets.fromLTRB(16, 12, 16, 24), children: [
+      for (final m in matches)
+        Card(
+          color: myId != null && m.involves(myId!) ? Z.gold.withValues(alpha: .18) : null,
+          child: ListTile(
+            leading: Text(m.isBye ? 'BYE' : '${m.table}',
+                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, fontFeatures: Z.tabular)),
+            title: Text(m.isBye ? t.nameOf(m.p1) : '${t.nameOf(m.p1)}  ${S.t.vs}  ${t.nameOf(m.p2)}'),
+            trailing: m.result == null ? null : Text(S.t.scoreText(m.result!, bestOf: t.bestOfFor(r.stage))),
+          ),
+        ),
+    ]);
+  }
+}

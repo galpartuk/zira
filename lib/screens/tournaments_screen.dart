@@ -6,11 +6,14 @@ import '../engine/models.dart';
 import '../engine/pairing.dart';
 import '../l10n.dart';
 import '../state/app_state.dart';
+import '../state/player_session.dart';
 import '../state/session.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import 'account_sheet.dart';
 import 'create_tournament_screen.dart';
+import 'join_screen.dart';
+import 'player_tournament_screen.dart';
 import 'sign_in_screen.dart';
 import 'tournament_screen.dart';
 
@@ -42,6 +45,12 @@ class TournamentsScreen extends StatelessWidget {
           const LangButton(),
           if (auth != null)
             IconButton(
+              tooltip: S.t.joinWithCode,
+              icon: const Icon(Icons.qr_code_2),
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const JoinScreen())),
+            ),
+          if (auth != null)
+            IconButton(
               tooltip: S.t.account,
               icon: const Icon(Icons.account_circle_outlined),
               onPressed: () => showAccountSheet(context),
@@ -63,7 +72,9 @@ class TournamentsScreen extends StatelessWidget {
       ),
       body: !app.loaded
           ? const Center(child: CircularProgressIndicator())
-          : app.tournaments.isEmpty
+          : auth != null
+              ? _OnlineList(uid: auth.user!.uid, hosted: app.tournaments, onCreate: () => _create(context))
+              : app.tournaments.isEmpty
               ? EmptyState(
                   icon: Icons.emoji_events_outlined,
                   title: S.t.noTournaments,
@@ -155,4 +166,50 @@ class _TournamentCard extends StatelessWidget {
   final r = t.currentRound!;
   if (r.stage == Stage.top) return (S.t.topRoundName(topRoundSize(r)), Z.coral);
   return (S.t.roundOf(r.number, t.plannedSwissRounds), Z.gold);
+}
+
+/// Signed in: tournaments I play in (hosted by others, live) and ones I host.
+class _OnlineList extends StatelessWidget {
+  final String uid;
+  final List<Tournament> hosted;
+  final VoidCallback onCreate;
+  const _OnlineList({required this.uid, required this.hosted, required this.onCreate});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder(
+      stream: joinedTournaments(dbOf(context)!, uid),
+      builder: (context, snap) {
+        final playing = snap.data ?? const [];
+        if (playing.isEmpty && hosted.isEmpty) {
+          return EmptyState(
+            icon: Icons.emoji_events_outlined,
+            title: S.t.noTournaments,
+            body: S.t.noTournamentsBody,
+            action: FilledButton.icon(onPressed: onCreate, icon: const Icon(Icons.add), label: Text(S.t.newTournament)),
+          );
+        }
+        return ListView(padding: const EdgeInsets.fromLTRB(16, 4, 16, 96), children: [
+          if (playing.isNotEmpty) ...[
+            SectionTitle(S.t.playing),
+            for (final p in playing)
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.sports_esports_outlined),
+                  title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.w700)),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => Navigator.push(
+                      context, MaterialPageRoute(builder: (_) => PlayerTournamentScreen(tid: p.tid))),
+                ),
+              ),
+            const SizedBox(height: 12),
+          ],
+          if (hosted.isNotEmpty) ...[
+            SectionTitle(S.t.hosting),
+            for (final t in hosted) Padding(padding: const EdgeInsets.only(bottom: 10), child: _TournamentCard(t)),
+          ],
+        ]);
+      },
+    );
+  }
 }

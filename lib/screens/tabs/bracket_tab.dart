@@ -14,7 +14,10 @@ import '../../widgets/result_sheet.dart';
 /// current standings.
 class BracketTab extends StatelessWidget {
   final Tournament t;
-  const BracketTab({super.key, required this.t});
+
+  /// Players' view: no result entry.
+  final bool readOnly;
+  const BracketTab({super.key, required this.t, this.readOnly = false});
 
   static const double _cardH = 84;
   static const double _gap = 16;
@@ -116,7 +119,7 @@ class BracketTab extends StatelessWidget {
                             seeds: seeds,
                             height: _cardH,
                             preview: preview,
-                            editable: !preview && !t.finished && c == tops.length - 1,
+                            editable: !readOnly && !preview && !t.finished && c == tops.length - 1,
                           ),
                       ],
                     ),
@@ -148,7 +151,7 @@ class BracketTab extends StatelessWidget {
                   seeds: seeds,
                   height: _cardH,
                   preview: preview,
-                  editable: third != null && !t.finished && tops.last.matches.contains(third),
+                  editable: !readOnly && third != null && !t.finished && tops.last.matches.contains(third),
                 ),
               ),
             ]),

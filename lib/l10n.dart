@@ -464,4 +464,27 @@ class S {
   String get addMe => _('Add me as a player', 'הוסף אותי כשחקן');
   String get online => _('Online', 'אונליין');
   String get guest => _('Guest', 'אורח');
+
+  // ---------------------------------------------------------------- online player
+  String get joinWithCode => _('Join with code', 'הצטרף עם קוד');
+  String get codeHint => _('6-character code from the host', 'קוד של 6 תווים מההוסט');
+  String get join => _('Join', 'הצטרף');
+  String get badCode => _('No tournament with this code', 'אין טורניר עם הקוד הזה');
+  String get joinClosed => _('This tournament is closed for joining', 'הטורניר סגור להצטרפות');
+  String get joinRemoved => _('The host removed you from this tournament', 'ההוסט הסיר אותך מהטורניר');
+  String get requestSent => _('Request sent — waiting for the host', 'הבקשה נשלחה — ממתינים להוסט');
+  String get hosting => _('Hosting', 'מארח');
+  String get playing => _('Playing', 'משחק');
+  String get myMatch => _('My match', 'המשחק שלי');
+  String get waitingNextRound => _('Waiting for the next round', 'ממתינים לסבב הבא');
+  String get reportResult => _('Report result', 'דווח תוצאה');
+  String opponentReported(String name, String score) => _('$name reported $score', '$name דיווח $score');
+  String get confirmResult => _('Confirm', 'אשר');
+  String get disputeResult => _('Dispute', 'ערער');
+  String get youReported => _('You reported — waiting for your opponent', 'דיווחת — ממתין ליריב');
+  String get disputeSent => _('Disputed — the host will decide', 'במחלוקת — ההוסט יכריע');
+  String get dropFromEvent => _('Drop from the tournament', 'פרישה מהטורניר');
+  String get dropFromEventBody => _('You won\'t be paired from the next round.', 'לא תשובץ החל מהסבב הבא.');
+  String get youDropped => _('You dropped from this tournament', 'פרשת מהטורניר');
+  String get notInEventYet => _('Waiting for the host to add you', 'ממתינים שההוסט יוסיף אותך');
 }
