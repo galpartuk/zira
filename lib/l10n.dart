@@ -439,4 +439,29 @@ class S {
         _ => _('Sign-in failed ($code)', 'ההתחברות נכשלה ($code)'),
       };
   String migrated(int n) => _('$n tournaments moved to your account', '$n טורנירים הועברו לחשבון שלך');
+
+  // ---------------------------------------------------------------- online host
+  String get joinCodeLabel => _('Join code', 'קוד הצטרפות');
+  String get getCode => _('Get code', 'קבל קוד');
+  String shareCodeText(String name, String code) =>
+      _('Join "$name" in Zira with code $code', 'הצטרפו ל"$name" בזירה עם הקוד $code');
+  String get joinModeLabel => _('Who can join', 'מי יכול להצטרף');
+  String get joinOpen => _('Anyone with the code', 'כל מי שיש לו קוד');
+  String get joinApproval => _('Only after I approve', 'רק אחרי אישור שלי');
+  String get joinClosedOnStart => _('Code closes when the event starts', 'הקוד נסגר כשהטורניר מתחיל');
+  String roundCounts(int rep, int total, int pend, int disp) => _(
+      'Reported $rep/$total · Waiting $pend · Disputes $disp',
+      'דווחו $rep/$total · ממתינים לאישור $pend · מחלוקות $disp');
+  String get draftBanner => _('Draft — players can\'t see this round yet', 'טיוטה — השחקנים עוד לא רואים את הסבב');
+  String get sendToPlayers => _('Send to players', 'שלח לשחקנים');
+  String get waitingConfirm => _('Waiting for confirmation', 'ממתין לאישור');
+  String get disputed => _('Disputed', 'במחלוקת');
+  String claimedBy(String name, String score) => _('$name says $score', '$name טוען $score');
+  String get chooseResult => _('Choose the result', 'בחר את התוצאה');
+  String get otherResult => _('Other result…', 'תוצאה אחרת…');
+  String get joinRequests => _('Join requests', 'בקשות הצטרפות');
+  String get approve => _('Approve', 'אישור');
+  String get addMe => _('Add me as a player', 'הוסף אותי כשחקן');
+  String get online => _('Online', 'אונליין');
+  String get guest => _('Guest', 'אורח');
 }

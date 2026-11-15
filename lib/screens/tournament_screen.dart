@@ -4,9 +4,12 @@ import 'package:provider/provider.dart';
 import '../engine/models.dart';
 import '../engine/pairing.dart';
 import '../l10n.dart';
+import '../engine/online.dart';
 import '../state/app_state.dart';
+import '../state/session.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/host_strip.dart';
 import 'tabs/bracket_tab.dart';
 import 'tabs/players_tab.dart';
 import 'tabs/prizes_tab.dart';
@@ -52,6 +55,7 @@ class _TournamentScreenState extends State<TournamentScreen> with TickerProvider
   @override
   Widget build(BuildContext context) {
     final app = context.watch<AppState>();
+    final sync = hostSyncOf(context);
     final t = app.byId(widget.id);
     if (t == null) return const Scaffold(body: SizedBox());
     _ensureTabs(t);
@@ -92,7 +96,10 @@ class _TournamentScreenState extends State<TournamentScreen> with TickerProvider
           tabs: [for (final k in _keys) Tab(text: labels[k])],
         ),
       ),
-      body: TabBarView(controller: _tabs, children: [
+      body: Column(children: [
+        if (sync != null && !t.finished) HostStrip(t: t, sync: sync),
+        Expanded(
+          child: TabBarView(controller: _tabs, children: [
         for (final k in _keys)
           switch (k) {
             'players' => PlayersTab(t: t),
@@ -101,6 +108,8 @@ class _TournamentScreenState extends State<TournamentScreen> with TickerProvider
             'bracket' => BracketTab(t: t),
             _ => PrizesTab(t: t),
           }
+          ]),
+        ),
       ]),
       bottomNavigationBar: _NextStepBar(t: t, goTo: _goTo),
     );
@@ -122,7 +131,15 @@ class _NextStepBar extends StatelessWidget {
     IconData icon = Icons.play_arrow_rounded;
 
     final open = t.firstIncompleteRound;
-    if (t.finished) {
+    if (draftRound(t) != null) {
+      label = S.t.sendToPlayers;
+      hint = S.t.draftBanner;
+      icon = Icons.send_rounded;
+      action = () {
+        app.publish(t);
+        goTo('rounds');
+      };
+    } else if (t.finished) {
       final winner = finalPlacements(t).firstOrNull;
       label = S.t.tournamentOver;
       hint = winner == null ? null : S.t.champion(t.nameOf(winner.playerId));
@@ -170,7 +187,7 @@ class _NextStepBar extends StatelessWidget {
       };
     }
 
-    final waiting = t.started && !t.finished && open != null;
+    final waiting = t.started && !t.finished && open != null && draftRound(t) == null;
     return Material(
       color: Z.surface,
       child: SafeArea(

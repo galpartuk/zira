@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../engine/models.dart';
+import '../../engine/online.dart';
 import '../../engine/standings.dart';
 import '../../l10n.dart';
 import '../../state/app_state.dart';
+import '../../state/session.dart';
 import '../../theme.dart';
 import '../../widgets/common.dart';
 import '../../widgets/result_sheet.dart';
@@ -12,7 +14,10 @@ import '../../widgets/round_timer.dart';
 
 class RoundsTab extends StatefulWidget {
   final Tournament t;
-  const RoundsTab({super.key, required this.t});
+
+  /// Shown above the round (the host's own match when they also play).
+  final Widget? header;
+  const RoundsTab({super.key, required this.t, this.header});
 
   @override
   State<RoundsTab> createState() => _RoundsTabState();
@@ -43,6 +48,8 @@ class _RoundsTabState extends State<RoundsTab> {
     final idx = (_selected ?? t.rounds.length - 1).clamp(0, t.rounds.length - 1);
     final round = t.rounds[idx];
     final isCurrent = idx == t.rounds.length - 1;
+    final draft = !round.published;
+    final sync = hostSyncOf(context);
     // Points as they stood when this round was paired, not live totals.
     final standings = {for (final s in computeStandings(t, beforeRound: idx)) s.player.id: s};
     final editable = !t.finished && (round.stage == Stage.top ? isCurrent : t.topRoundsList.isEmpty);
@@ -80,7 +87,25 @@ class _RoundsTabState extends State<RoundsTab> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 6, 16, 24),
           children: [
-            if (isCurrent && !t.finished) ...[RoundTimer(t: t), const SizedBox(height: 12)],
+            if (isCurrent && widget.header != null && !draft) widget.header!,
+            if (draft) ...[
+              Card(
+                color: Z.gold.withValues(alpha: .15),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(children: [
+                    Expanded(child: Text(S.t.draftBanner, style: const TextStyle(fontWeight: FontWeight.w700))),
+                    const SizedBox(width: 8),
+                    FilledButton.icon(
+                      onPressed: () => context.read<AppState>().publish(t),
+                      icon: const Icon(Icons.send_rounded, size: 18),
+                      label: Text(S.t.sendToPlayers),
+                    ),
+                  ]),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ] else if (isCurrent && !t.finished) ...[RoundTimer(t: t), const SizedBox(height: 12)],
             Row(children: [
               Text(roundLabel(round), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
               const SizedBox(width: 10),
@@ -91,7 +116,7 @@ class _RoundsTabState extends State<RoundsTab> {
                 icon: const Icon(Icons.copy_rounded),
                 onPressed: () => copyText(context, _pairingsText(round, standings), S.t.pairingsWhat),
               ),
-              if (isCurrent && !round.anyResult && !t.finished)
+              if (isCurrent && !t.finished && (draft || (!round.anyResult && !(sync?.roundHasClaims(t, round) ?? false))))
                 PopupMenuButton<String>(
                   onSelected: (v) async {
                     final app = context.read<AppState>();
@@ -117,7 +142,8 @@ class _RoundsTabState extends State<RoundsTab> {
                 m: m,
                 round: round,
                 standings: standings,
-                onTap: (!editable || m.isBye) ? null : () => _report(round, m),
+                onTap: (!editable || m.isBye || draft) ? null : () => _report(round, m),
+                claim: (sync == null || m.result != null || m.isBye) ? null : sync.stateOf(t, m),
                 // Drops apply from the next pairing, so only offer them while
                 // more Swiss rounds can still follow.
                 onDrop: (isCurrent && !t.finished && round.stage == Stage.swiss) ? () => _drop(m) : null,
@@ -129,6 +155,26 @@ class _RoundsTabState extends State<RoundsTab> {
   }
 
   Future<void> _report(Round round, Match m) async {
+    final st = hostSyncOf(context, listen: false)?.stateOf(t, m);
+    if (st is Disputed && m.result == null) {
+      String who(Claim c) => t.players.firstWhere((p) => p.uid == c.uid).name;
+      final pick = await showDialog<MatchResult>(
+        context: context,
+        builder: (c) => SimpleDialog(title: Text(S.t.chooseResult), children: [
+          for (final cl in [st.a, st.b])
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(c, cl.result),
+              child: Text(S.t.claimedBy(who(cl), S.t.scoreText(cl.result, bestOf: t.bestOfFor(round.stage)))),
+            ),
+          SimpleDialogOption(onPressed: () => Navigator.pop(c), child: Text(S.t.otherResult)),
+        ]),
+      );
+      if (!mounted) return;
+      if (pick != null) {
+        context.read<AppState>().setResult(t, m, pick);
+        return;
+      }
+    }
     final r = await showModalBottomSheet<MatchResult>(
       context: context,
       isScrollControlled: true,
@@ -233,9 +279,16 @@ class _MatchCard extends StatelessWidget {
   final Map<String, Standing> standings;
   final VoidCallback? onTap;
   final VoidCallback? onDrop;
+  final ClaimState? claim;
 
   const _MatchCard(
-      {required this.t, required this.m, required this.round, required this.standings, this.onTap, this.onDrop});
+      {required this.t,
+      required this.m,
+      required this.round,
+      required this.standings,
+      this.onTap,
+      this.onDrop,
+      this.claim});
 
   @override
   Widget build(BuildContext context) {
@@ -308,9 +361,13 @@ class _MatchCard extends StatelessWidget {
                 SizedBox(
                   width: 74,
                   child: Center(
-                    child: res == null
-                        ? Text(S.t.vs, style: const TextStyle(color: Z.muted, fontWeight: FontWeight.w600))
-                        : _Score(res: res, bo: bo),
+                    child: res != null
+                        ? _Score(res: res, bo: bo)
+                        : switch (claim) {
+                            Pending() => Pill(S.t.waitingConfirm, color: Z.gold),
+                            Disputed() => Pill(S.t.disputed, color: Z.danger),
+                            _ => Text(S.t.vs, style: const TextStyle(color: Z.muted, fontWeight: FontWeight.w600)),
+                          },
                   ),
                 ),
                 side(m.p2, Z.coral, TextAlign.end),
