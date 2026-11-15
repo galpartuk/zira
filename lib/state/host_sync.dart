@@ -21,6 +21,10 @@ class HostSync extends ChangeNotifier {
   final _entries = <String, List<Entry>>{};
   final _applied = <String>{};
 
+  /// Last entry status seen per tournament+uid, so an entry is applied once per
+  /// change and a host's later manual fix (e.g. undoing a drop) sticks.
+  final _seenEntries = <String, EntryStatus>{};
+
   HostSync(this.db, this.app, this.uid) {
     app.addListener(_resync);
     _resync();
@@ -57,7 +61,14 @@ class HostSync extends ChangeNotifier {
   void _apply(String tid) {
     final t = app.byId(tid);
     if (t == null) return;
-    var changed = applyEntries(t, _entries[tid] ?? const []);
+    final fresh = [
+      for (final e in _entries[tid] ?? const <Entry>[])
+        if (_seenEntries['$tid/${e.uid}'] != e.status) e,
+    ];
+    for (final e in fresh) {
+      _seenEntries['$tid/${e.uid}'] = e.status;
+    }
+    var changed = applyEntries(t, fresh);
     final r = t.currentRound;
     if (r != null && r.published) {
       for (final m in r.matches) {

@@ -47,7 +47,10 @@ class _CloudGateState extends State<CloudGate> {
     super.initState();
     _auth = context.read<AuthService?>()!;
     _auth.addListener(_onAuth);
-    _onAuth();
+    // After the first frame: _onAuth calls setState, which initState can't.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _onAuth();
+    });
   }
 
   Future<void> _onAuth() async {

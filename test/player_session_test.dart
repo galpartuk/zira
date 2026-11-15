@@ -63,6 +63,17 @@ void main() {
     s.dispose();
   });
 
+  test('a deleted tournament is reported as gone', () async {
+    final db = await hosted();
+    final s = PlayerSession(db, 't1', 'alice');
+    await pumpEventQueue();
+    expect(s.gone, isFalse);
+    await db.doc('tournaments/t1').delete();
+    await pumpEventQueue();
+    expect(s.gone, isTrue);
+    s.dispose();
+  });
+
   test('drop writes a dropped entry', () async {
     final db = await hosted();
     final s = PlayerSession(db, 't1', 'alice');

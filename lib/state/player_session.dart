@@ -48,6 +48,9 @@ class PlayerSession extends ChangeNotifier {
 
   Tournament? t;
   String? hostUid;
+
+  /// The host deleted the tournament.
+  bool gone = false;
   EntryStatus? myStatus;
   List<Claim> _claims = [];
   final _subs = <StreamSubscription>[];
@@ -57,7 +60,12 @@ class PlayerSession extends ChangeNotifier {
     _subs
       ..add(ref.snapshots().listen((s) {
         final d = s.data();
-        if (d == null) return;
+        if (d == null) {
+          gone = s.metadata.isFromCache == false;
+          notifyListeners();
+          return;
+        }
+        gone = false;
         hostUid = d['hostUid'] as String?;
         t = Tournament.fromJson(Map<String, dynamic>.from(d['data'] as Map));
         notifyListeners();

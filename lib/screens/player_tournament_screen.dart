@@ -36,6 +36,11 @@ class _PlayerView extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = context.watch<PlayerSession>();
     final t = s.t;
+    if (s.gone) {
+      return Scaffold(
+          appBar: AppBar(),
+          body: EmptyState(icon: Icons.event_busy, title: S.t.tournamentGone, body: ''));
+    }
     if (t == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final r = t.currentRound;
     final canDrop = s.me != null && !s.me!.dropped && !t.finished;

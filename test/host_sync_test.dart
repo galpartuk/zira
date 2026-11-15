@@ -105,6 +105,21 @@ void main() {
     sync.dispose();
   });
 
+  test('a host undoing a self-drop is not overridden by unrelated entry changes', () async {
+    final (db, app, sync, t) = await setup();
+    app.start(t);
+    app.publish(t);
+    await writeEntry(db, 't1', const Entry(uid: 'alice', displayName: 'A', status: EntryStatus.dropped));
+    await pumpEventQueue();
+    expect(t.player('a')!.dropped, isTrue);
+    t.player('a')!.dropped = false; // host undoes it
+    app.changed();
+    await writeEntry(db, 't1', const Entry(uid: 'eve', displayName: 'Eve', status: EntryStatus.requested));
+    await pumpEventQueue();
+    expect(t.player('a')!.dropped, isFalse);
+    sync.dispose();
+  });
+
   test('roundCounts', () async {
     final (db, app, sync, t) = await setup();
     app.start(t);

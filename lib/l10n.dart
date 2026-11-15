@@ -487,4 +487,5 @@ class S {
   String get dropFromEventBody => _('You won\'t be paired from the next round.', 'לא תשובץ החל מהסבב הבא.');
   String get youDropped => _('You dropped from this tournament', 'פרשת מהטורניר');
   String get notInEventYet => _('Waiting for the host to add you', 'ממתינים שההוסט יוסיף אותך');
+  String get tournamentGone => _('The host deleted this tournament', 'ההוסט מחק את הטורניר');
 }
