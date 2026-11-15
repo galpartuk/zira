@@ -6,9 +6,12 @@ import '../engine/models.dart';
 import '../engine/pairing.dart';
 import '../l10n.dart';
 import '../state/app_state.dart';
+import '../state/session.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import 'account_sheet.dart';
 import 'create_tournament_screen.dart';
+import 'sign_in_screen.dart';
 import 'tournament_screen.dart';
 
 class TournamentsScreen extends StatelessWidget {
@@ -17,11 +20,32 @@ class TournamentsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final app = context.watch<AppState>();
+    final auth = authOf(context);
+    if (auth != null && auth.user == null) {
+      return Scaffold(
+        appBar: AppBar(title: Text(S.t.appName), actions: const [LangButton()]),
+        body: EmptyState(
+          icon: Icons.lock_outline,
+          title: S.t.signIn,
+          body: S.t.signInNeeded,
+          action: FilledButton(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SignInScreen())),
+            child: Text(S.t.signIn),
+          ),
+        ),
+      );
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text(S.t.appName),
         actions: [
           const LangButton(),
+          if (auth != null)
+            IconButton(
+              tooltip: S.t.account,
+              icon: const Icon(Icons.account_circle_outlined),
+              onPressed: () => showAccountSheet(context),
+            ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
             onSelected: (v) => _menu(context, app, v),
@@ -61,6 +85,7 @@ class TournamentsScreen extends StatelessWidget {
         context, MaterialPageRoute(builder: (_) => const CreateTournamentScreen()));
     if (t == null || !context.mounted) return;
     context.read<AppState>().add(t);
+    hostSyncOf(context, listen: false)?.ensureJoinCode(t);
     Navigator.push(context, MaterialPageRoute(builder: (_) => TournamentScreen(id: t.id)));
   }
 

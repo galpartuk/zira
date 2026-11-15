@@ -411,4 +411,32 @@ class S {
   String get floorRulesBody => _('Conduct and procedures at official events.', 'כללי התנהגות ונהלים בטורנירים רשמיים.');
   String get allRules => _('The full official rules page', 'כל עמוד החוקים הרשמי');
   String get allRulesBody => _('Including Q&A and more documents.', 'כולל Q&A ומסמכים נוספים.');
+
+  // ---------------------------------------------------------------- account
+  String get signIn => _('Sign in', 'התחברות');
+  String get signInGoogle => _('Continue with Google', 'המשך עם Google');
+  String get email => _('Email', 'אימייל');
+  String get password => _('Password', 'סיסמה');
+  String get displayNameLabel => _('Your name', 'השם שלך');
+  String get register => _('Create account', 'יצירת חשבון');
+  String get haveAccount => _('I have an account', 'יש לי חשבון');
+  String get noAccount => _('New here? Create an account', 'חדש כאן? יצירת חשבון');
+  String get forgotPassword => _('Forgot password?', 'שכחתי סיסמה');
+  String get resetSent => _('Reset link sent — check your email', 'נשלח קישור לאיפוס — בדוק את האימייל');
+  String get signInNeeded => _('Sign in to run and join tournaments', 'התחבר כדי לנהל טורנירים ולהצטרף אליהם');
+  String get account => _('Account', 'חשבון');
+  String get signOut => _('Sign out', 'התנתקות');
+  String get deleteAccount => _('Delete account', 'מחיקת חשבון');
+  String get deleteAccountBody => _('Your account is deleted. Your name stays in past tournaments.',
+      'החשבון יימחק. השם שלך יישאר בטורנירים שהיו.');
+  String get signInAgain => _('Please sign in again, then delete.', 'צריך להתחבר שוב ואז למחוק.');
+  String authError(String code) => switch (code) {
+        'invalid-credential' || 'wrong-password' || 'user-not-found' => _('Wrong email or password', 'אימייל או סיסמה שגויים'),
+        'email-already-in-use' => _('This email already has an account', 'לאימייל הזה כבר יש חשבון'),
+        'weak-password' => _('Password must be at least 6 characters', 'סיסמה של 6 תווים לפחות'),
+        'invalid-email' => _('Invalid email', 'אימייל לא תקין'),
+        'network-request-failed' => _('No connection', 'אין חיבור'),
+        _ => _('Sign-in failed ($code)', 'ההתחברות נכשלה ($code)'),
+      };
+  String migrated(int n) => _('$n tournaments moved to your account', '$n טורנירים הועברו לחשבון שלך');
 }
