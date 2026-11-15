@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 import '../engine/models.dart';
 import '../engine/online.dart';
@@ -60,7 +61,11 @@ class CloudStore implements TournamentStore {
         'data': publishedJson(t),
       });
       batch.set(ref.collection('private').doc('host'), {'draftRound': draftRound(t)?.toJson()});
-      pending.add(batch.commit());
+      pending.add(batch.commit().catchError((Object e) {
+        // Not saved: forget the signature so the next change tries again.
+        if (_lastSaved[t.id] == sig) _lastSaved.remove(t.id);
+        debugPrint('save ${t.id} failed: $e');
+      }));
     }
     await Future.wait(pending);
   }

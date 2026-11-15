@@ -27,7 +27,12 @@ service cloud.firestore {
       allow delete: if signedIn() && resource.data.hostUid == me();
 
       match /private/{doc} {
-        allow read, write: if isHost();
+        // The host app writes the tournament and this doc in one batch: on
+        // create/update look at the tournament as it will be after the batch
+        // (it may not exist yet); on delete, as it was before.
+        allow read, delete: if isHost();
+        allow create, update: if signedIn()
+          && getAfter(/databases/$(db)/documents/tournaments/$(tid)).data.hostUid == me();
       }
 
       match /entries/{uid} {

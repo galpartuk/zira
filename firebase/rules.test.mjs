@@ -1,7 +1,7 @@
 import { test, before, after, beforeEach } from 'node:test';
 import { readFileSync } from 'node:fs';
 import { initializeTestEnvironment, assertSucceeds, assertFails } from '@firebase/rules-unit-testing';
-import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, writeBatch } from 'firebase/firestore';
 
 let env;
 before(async () => {
@@ -89,4 +89,28 @@ test('claims readable by members and host only', async () => {
 test('users: write only my own', async () => {
   await assertSucceeds(setDoc(doc(as('alice'), 'users/alice'), { displayName: 'A' }));
   await assertFails(setDoc(doc(as('alice'), 'users/bob'), { displayName: 'B' }));
+});
+
+test('host creates tournament + private draft in one batch, and deletes both in one batch', async () => {
+  const db = as('zed');
+  const b = writeBatch(db);
+  b.set(doc(db, 'tournaments/t7'), { hostUid: 'zed', memberUids: ['zed'], joinMode: 'open', status: 'registration', matchUids: {}, data: {} });
+  b.set(doc(db, 'tournaments/t7/private/host'), { draftRound: null });
+  await assertSucceeds(b.commit());
+  const b2 = writeBatch(db);
+  b2.set(doc(db, 'tournaments/t7'), { hostUid: 'zed', memberUids: ['zed'], joinMode: 'open', status: 'running', matchUids: {}, data: {} });
+  b2.set(doc(db, 'tournaments/t7/private/host'), { draftRound: { n: 1 } });
+  await assertSucceeds(b2.commit());
+  const d = writeBatch(db);
+  d.delete(doc(db, 'tournaments/t7/private/host'));
+  d.delete(doc(db, 'tournaments/t7'));
+  await assertSucceeds(d.commit());
+});
+test('others cannot write a private draft into a new tournament they do not host', async () => {
+  const db = as('alice');
+  const b = writeBatch(db);
+  b.set(doc(db, 'tournaments/t8'), { hostUid: 'zed', memberUids: ['zed'] });
+  b.set(doc(db, 'tournaments/t8/private/host'), { draftRound: null });
+  await assertFails(b.commit());
+  await assertFails(setDoc(doc(db, 'tournaments/t1/private/host'), { draftRound: null }));
 });
