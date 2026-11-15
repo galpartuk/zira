@@ -23,18 +23,24 @@ class Player {
   String name;
   bool dropped;
 
+  /// Firebase user id when the player joined with an account; null = guest
+  /// added by name by the host.
+  final String? uid;
+
   /// Fixed random number used as the last tiebreaker ("decided randomly").
   final int tieRand;
 
-  Player({required this.id, required this.name, this.dropped = false, int? tieRand})
+  Player({required this.id, required this.name, this.dropped = false, this.uid, int? tieRand})
       : tieRand = tieRand ?? _rng.nextInt(1 << 30);
 
-  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'dropped': dropped, 'tieRand': tieRand};
+  Map<String, dynamic> toJson() =>
+      {'id': id, 'name': name, 'dropped': dropped, 'tieRand': tieRand, if (uid != null) 'uid': uid};
 
   factory Player.fromJson(Map<String, dynamic> j) => Player(
         id: j['id'] as String,
         name: j['name'] as String,
         dropped: j['dropped'] as bool? ?? false,
+        uid: j['uid'] as String?,
         tieRand: j['tieRand'] as int?,
       );
 }
@@ -120,19 +126,28 @@ class Round {
   final Stage stage;
   final List<Match> matches;
 
-  Round({required this.number, required this.stage, required this.matches});
+  /// Online tournaments: false while the host is still reviewing the pairing
+  /// (a draft players can't see). Local tournaments always publish at once.
+  bool published;
+
+  Round({required this.number, required this.stage, required this.matches, this.published = true});
 
   bool get complete => matches.every((m) => m.done);
   int get pending => matches.where((m) => !m.done).length;
   bool get anyResult => matches.any((m) => !m.isBye && m.result != null);
 
-  Map<String, dynamic> toJson() =>
-      {'n': number, 's': stage.index, 'm': matches.map((m) => m.toJson()).toList()};
+  Map<String, dynamic> toJson() => {
+        'n': number,
+        's': stage.index,
+        'm': matches.map((m) => m.toJson()).toList(),
+        if (!published) 'pub': false,
+      };
 
   factory Round.fromJson(Map<String, dynamic> j) => Round(
         number: j['n'] as int,
         stage: Stage.values[j['s'] as int],
         matches: (j['m'] as List).map((e) => Match.fromJson(e as Map<String, dynamic>)).toList(),
+        published: j['pub'] as bool? ?? true,
       );
 }
 
@@ -217,6 +232,11 @@ class Tournament {
   int? timerEndMs;
   int? timerPausedMs;
 
+  /// Online: the 6-character code players type to join, and who may join
+  /// ('open' | 'approval' | 'closedOnStart').
+  String? joinCode;
+  String joinMode;
+
   Tournament({
     String? id,
     required this.name,
@@ -237,6 +257,8 @@ class Tournament {
     this.rrSchedule,
     this.timerEndMs,
     this.timerPausedMs,
+    this.joinCode,
+    this.joinMode = 'open',
   })  : id = id ?? newId(),
         created = created ?? DateTime.now(),
         players = players ?? [],
@@ -303,6 +325,8 @@ class Tournament {
         if (rrSchedule != null) 'rr': rrSchedule,
         if (timerEndMs != null) 'tEnd': timerEndMs,
         if (timerPausedMs != null) 'tPaused': timerPausedMs,
+        if (joinCode != null) 'code': joinCode,
+        if (joinMode != 'open') 'join': joinMode,
       };
 
   factory Tournament.fromJson(Map<String, dynamic> j) => Tournament(
@@ -327,6 +351,8 @@ class Tournament {
             .toList(),
         timerEndMs: j['tEnd'] as int?,
         timerPausedMs: j['tPaused'] as int?,
+        joinCode: j['code'] as String?,
+        joinMode: j['join'] as String? ?? 'open',
       );
 }
 
