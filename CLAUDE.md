@@ -1,7 +1,25 @@
 # זירה (Zira) — tournament manager
 
-Flutter Android app (English by default, Hebrew/RTL optional; dark). Local-only: all data in SharedPreferences
-(`zira.tournaments.v1`, memory gauge in `zira.memory.v1`). No server, no accounts.
+Flutter Android app (+ web build for iPhone players; English by default, Hebrew/RTL optional; dark).
+Online since 1.4.0 (branch `feature/online-tournaments`, spec/plan in `docs/superpowers/`): Firebase project
+**`tcg-arena-app`** (Spark plan, Firestore `me-west1`, Auth Google + email). Memory gauge stays local (`zira.memory.v1`).
+
+## Online architecture
+- The **host's phone is the only writer** of `tournaments/{tid}` (whole `Tournament` JSON in `data`, minus a draft
+  round, which sits in host-only `private/host`). Players write only `entries/{uid}` (join/drop) and
+  `claims/{matchId}_{uid}` (result reports). `HostSync` (lib/state/host_sync.dart) applies them through the engine.
+- Pure rules for this live in `lib/engine/online.dart` (`resolveClaims`, `applyEntries`, `matchUidsFor`...).
+  Only `lib/cloud/`, `lib/state/host_sync.dart`, `player_session.dart`, `session.dart` import Firebase.
+- `AppState` takes a `TournamentStore`: `PrefsStore` (tests, offline `ZiraApp()`), `CloudStore` once signed in
+  (`CloudGate` in lib/state/session.dart attaches it and migrates old local tournaments once per uid).
+- Rounds made online are drafts (`Round.published == false`) until the host taps "Send to players".
+- Security rules: `firestore.rules`, tests `cd firebase && npm test` (needs JDK 21: portable one in
+  `C:\Users\Owner\tools\jdk-21.0.13+9`, set JAVA_HOME/PATH for the command). Deploy:
+  `firebase deploy --only firestore:rules --project tcg-arena-app`. Firebase CLI 15.36 is global (v13 is broken on Node 22).
+- Google sign-in needs every signing SHA-1/256 registered (release + debug done). If published on Play, also add
+  Play App Signing's SHA-1 (`firebase apps:android:sha:create`).
+- Web build: if a release web build shows a blank page with a `channel-error`, delete `build/web` and
+  `.dart_tool/flutter_build` and rebuild (stale plugin registrant).
 
 ## Layout
 - `lib/engine/` — pure Dart, no Flutter imports. Models + JSON, standings/tiebreakers,
