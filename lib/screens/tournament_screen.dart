@@ -183,6 +183,12 @@ class _NextStepBar extends StatelessWidget {
     IconData icon = Icons.play_arrow_rounded;
 
     final open = t.firstIncompleteRound;
+    final sync = hostSyncOf(context);
+    // Only unconfirmed reports left in the current round: they can be accepted.
+    final pending = (sync != null && open != null && identical(open, t.currentRound))
+        ? sync.pendingOnly(t, open)
+        : const <(Match, Claim)>[];
+    final onlyPendingLeft = pending.isNotEmpty && pending.length == open!.pending;
     if (draftRound(t) != null) {
       label = S.t.sendToPlayers;
       hint = S.t.draftBanner;
@@ -190,6 +196,29 @@ class _NextStepBar extends StatelessWidget {
       action = () {
         app.publish(t);
         goTo('rounds');
+      };
+    } else if (t.finished && sync != null && !t.resultsPublished) {
+      label = S.t.sendResults;
+      hint = S.t.sendResultsHint;
+      icon = Icons.send_rounded;
+      action = () {
+        t.resultsPublished = true;
+        app.changed();
+        goTo('prizes');
+      };
+    } else if (onlyPendingLeft) {
+      label = S.t.nextAcceptingPending(pending.length);
+      hint = S.t.acceptPendingHint;
+      icon = Icons.done_all_rounded;
+      action = () async {
+        final ok = await confirm(context, S.t.acceptPendingTitle(pending.length), S.t.acceptPendingBody);
+        if (!ok) return;
+        sync!.acceptPending(t, open);
+        if (!context.mounted) return;
+        if (t.firstIncompleteRound == null) {
+          app.advance(t);
+          goTo(t.topRoundsList.isNotEmpty ? 'bracket' : 'rounds');
+        }
       };
     } else if (t.finished) {
       final winner = finalPlacements(t).firstOrNull;
@@ -239,7 +268,7 @@ class _NextStepBar extends StatelessWidget {
       };
     }
 
-    final waiting = t.started && !t.finished && open != null && draftRound(t) == null;
+    final waiting = t.started && !t.finished && open != null && draftRound(t) == null && !onlyPendingLeft;
     return Material(
       color: Z.surface,
       child: SafeArea(

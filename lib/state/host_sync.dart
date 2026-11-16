@@ -174,6 +174,26 @@ class HostSync extends ChangeNotifier {
   Future<void> reportOwn(Tournament t, Match m, MatchResult r) => writeClaim(
       db, t.id, Claim(matchId: m.id, uid: uid, result: r, atMs: DateTime.now().millisecondsSinceEpoch));
 
+  /// Matches of [r] still without a result whose only report waits for the
+  /// opponent's confirmation (no dispute, not unreported).
+  List<(Match, Claim)> pendingOnly(Tournament t, Round r) => [
+        for (final m in r.matches)
+          if (!m.isBye && m.result == null)
+            if (stateOf(t, m) case Pending(by: final c)) (m, c),
+      ];
+
+  /// Moving on: an unconfirmed report counts as reported. After this the
+  /// opponent can no longer confirm or dispute it.
+  int acceptPending(Tournament t, Round r) {
+    final list = pendingOnly(t, r);
+    for (final (m, c) in list) {
+      m.result = c.result;
+      m.by = 'p:${c.uid}';
+    }
+    if (list.isNotEmpty) app.changed();
+    return list.length;
+  }
+
   bool roundHasClaims(Tournament t, Round r) {
     final ids = r.matches.map((m) => m.id).toSet();
     return (_claims[t.id] ?? const []).any((c) => ids.contains(c.matchId));

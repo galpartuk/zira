@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../engine/models.dart';
 import '../engine/online.dart';
+import '../engine/pairing.dart';
+import '../engine/prizes.dart';
 import '../l10n.dart';
 import '../state/player_session.dart';
 import '../state/session.dart';
@@ -47,6 +49,7 @@ class _PlayerView extends StatelessWidget {
     final r = t.currentRound;
     final canDrop = s.me != null && !s.me!.dropped && !t.finished;
     final tabs = <(String, Widget)>[
+      if (t.finished && t.resultsPublished) (S.t.finalResults, _Results(t: t, myId: s.me?.id)),
       (S.t.myMatch, _MyMatchTab(s: s, t: t)),
       (S.t.tabRounds, _Pairings(t: t, myId: s.me?.id)),
       (S.t.tabStandings, t.started ? StandingsTab(t: t) : const SizedBox()),
@@ -54,7 +57,7 @@ class _PlayerView extends StatelessWidget {
     ];
     return DefaultTabController(
       length: tabs.length,
-      initialIndex: t.finished ? 2 : 0, // finished: open on the final standings
+      initialIndex: 0, // finished + sent: the results tab is first
       child: Scaffold(
         appBar: AppBar(
           title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -87,7 +90,8 @@ class _PlayerView extends StatelessWidget {
                   width: double.infinity,
                   color: Z.win.withValues(alpha: .15),
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
-                  child: Text(S.t.tournamentOverFinal, style: const TextStyle(color: Z.win, fontWeight: FontWeight.w800)),
+                  child: Text(t.resultsPublished ? S.t.tournamentOverFinal : S.t.waitingFinalResults,
+                      style: const TextStyle(color: Z.win, fontWeight: FontWeight.w800)),
                 ),
               TabBar(isScrollable: true, tabs: [for (final x in tabs) Tab(text: x.$1)]),
             ]),
@@ -145,6 +149,46 @@ class _Pairings extends StatelessWidget {
                 style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, fontFeatures: Z.tabular)),
             title: Text(m.isBye ? t.nameOf(m.p1) : '${t.nameOf(m.p1)}  ${S.t.vs}  ${t.nameOf(m.p2)}'),
             trailing: m.result == null ? null : Text(S.t.scoreText(m.result!, bestOf: t.bestOfFor(r.stage))),
+          ),
+        ),
+    ]);
+  }
+}
+
+/// Final placements and prizes, once the host sent them.
+class _Results extends StatelessWidget {
+  final Tournament t;
+  final String? myId;
+  const _Results({required this.t, required this.myId});
+
+  @override
+  Widget build(BuildContext context) {
+    final placements = finalPlacements(t);
+    final prizes = computePrizes(t.prizes, t.players.length, placements: placements);
+    final prizeOf = {
+      for (final l in prizes.lines)
+        if (l.playerId != null && l.amount > 0) l.playerId!: S.t.amount(t.prizes.unit, l.amount),
+    };
+    return ListView(padding: const EdgeInsets.fromLTRB(16, 12, 16, 24), children: [
+      for (final p in placements)
+        Card(
+          color: p.playerId == myId ? Z.gold.withValues(alpha: .18) : null,
+          child: ListTile(
+            leading: SizedBox(
+              width: 44,
+              child: Text(p.groupFrom == p.groupTo ? '${p.groupFrom}' : '${p.groupFrom}-${p.groupTo}',
+                  textAlign: TextAlign.center,
+                  textDirection: TextDirection.ltr,
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: p.place == 1 ? Z.gold : Z.text,
+                      fontFeatures: Z.tabular)),
+            ),
+            title: Text(t.nameOf(p.playerId), style: const TextStyle(fontWeight: FontWeight.w700)),
+            trailing: prizeOf[p.playerId] == null
+                ? null
+                : Text(prizeOf[p.playerId]!, style: const TextStyle(color: Z.win, fontWeight: FontWeight.w800)),
           ),
         ),
     ]);

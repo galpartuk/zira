@@ -50,6 +50,9 @@ String? provenanceText(Tournament t, Match m, {required String? viewerUid}) {
   final otherId = m.p1 == reporter.id ? m.p2 : m.p1;
   final other = t.player(otherId);
   final you = viewerUid != null;
+  if (by.startsWith('p:')) {
+    return (you && reporter.uid == viewerUid) ? S.t.byYouUnconfirmed : S.t.byUnconfirmed(reporter.name);
+  }
   if (by.startsWith('g:')) {
     return (you && reporter.uid == viewerUid) ? S.t.byYouVsGuest : S.t.byPlayer(reporter.name);
   }

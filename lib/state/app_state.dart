@@ -215,6 +215,18 @@ class AppState extends ChangeNotifier {
     changed();
   }
 
+  /// Host only: drop the current round even if it has results, so the one
+  /// before becomes current again (fix its results, then pair again).
+  void backOneRound(Tournament t) {
+    if (t.rounds.isEmpty) return;
+    t.rounds.removeLast();
+    if (t.rounds.isEmpty) t.rrSchedule = null;
+    t.finished = false;
+    t.resultsPublished = false;
+    resetTimer(t, notify: false);
+    changed();
+  }
+
   void setResult(Tournament t, Match m, MatchResult? r, {String by = 'host'}) {
     if (roundOf(t, m)?.published == false) return; // drafts can't be scored
     m.result = r;

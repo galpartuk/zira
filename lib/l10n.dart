@@ -563,4 +563,24 @@ class S {
 
   // ---------------------------------------------------------------- memory gauge win button
   String get winShort => _('Win', 'ניצחון');
+
+  // ---------------------------------------------------------------- results / accepting / back a round
+  String get sendResults => _('Send results to players', 'שלח תוצאות לשחקנים');
+  String get sendResultsHint => _('Players see final standings and prizes', 'השחקנים יראו דירוג סופי ופרסים');
+  String get finalResults => _('Results', 'תוצאות');
+  String get waitingFinalResults => _('Tournament over — waiting for the final results', 'הטורניר הסתיים — ממתינים לתוצאות הסופיות');
+  String nextAcceptingPending(int n) =>
+      _(n == 1 ? 'Continue · accept 1 report' : 'Continue · accept $n reports', n == 1 ? 'המשך · קבל דיווח 1' : 'המשך · קבל $n דיווחים');
+  String get acceptPendingHint => _('Unconfirmed reports count as reported', 'דיווחים שלא אושרו ייחשבו כמדווחים');
+  String acceptPendingTitle(int n) => _('Accept $n unconfirmed reports?', 'לקבל $n דיווחים שלא אושרו?');
+  String get acceptPendingBody => _(
+      'The reported results become final; the opponents can no longer confirm or dispute them.',
+      'התוצאות שדווחו יהפכו לסופיות, והיריבים כבר לא יוכלו לאשר או לערער עליהן.');
+  String get backOneRound => _('Back one round', 'חזרה סיבוב אחד אחורה');
+  String backOneRoundTitle(String round) => _('Delete $round?', 'למחוק את $round?');
+  String get backOneRoundBody => _(
+      'This round and its results are deleted; the round before becomes current so you can fix it and pair again.',
+      'הסיבוב והתוצאות שלו יימחקו; הסיבוב הקודם יחזור להיות הנוכחי, כדי שתוכל לתקן אותו ולשבץ שוב.');
+  String get byYouUnconfirmed => _('Reported by you (accepted without confirmation)', 'דווח על ידך (התקבל בלי אישור)');
+  String byUnconfirmed(String n) => _('Reported by $n (accepted without confirmation)', 'דווח על ידי $n (התקבל בלי אישור)');
 }

@@ -249,6 +249,9 @@ class Tournament {
   /// Off once the host picks a number by hand.
   bool autoRounds;
 
+  /// Online: the host sent the final standings and prizes to the players.
+  bool resultsPublished;
+
   Tournament({
     String? id,
     required this.name,
@@ -272,6 +275,7 @@ class Tournament {
     this.joinCode,
     this.joinMode = 'open',
     this.autoRounds = false,
+    this.resultsPublished = false,
   })  : id = id ?? newId(),
         created = created ?? DateTime.now(),
         players = players ?? [],
@@ -344,6 +348,7 @@ class Tournament {
         if (joinCode != null) 'code': joinCode,
         if (joinMode != 'open') 'join': joinMode,
         if (autoRounds) 'autoR': true,
+        if (resultsPublished) 'resPub': true,
       };
 
   factory Tournament.fromJson(Map<String, dynamic> j) => Tournament(
@@ -371,6 +376,7 @@ class Tournament {
         joinCode: j['code'] as String?,
         joinMode: j['join'] as String? ?? 'open',
         autoRounds: j['autoR'] as bool? ?? false,
+        resultsPublished: j['resPub'] as bool? ?? false,
       );
 }
 

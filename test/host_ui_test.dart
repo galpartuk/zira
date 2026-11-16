@@ -95,4 +95,55 @@ void main() {
     expect(claims.docs.map((d) => d.id), contains('${mine.id}_host'));
     sync.dispose();
   });
+
+  testWidgets('only unconfirmed reports left: the host can accept them and move on', (tester) async {
+    final (db, app, sync, t) = await pumpHost(tester, 'en');
+    app.start(t);
+    app.publish(t);
+    await tester.pumpAndSettle();
+    for (final m in t.currentRound!.matches) {
+      await writeClaim(db, 't1', Claim(matchId: m.id, uid: t.player(m.p1)!.uid!, result: const MatchResult(Outcome.p1, 2, 0), atMs: 1));
+    }
+    await tester.pumpAndSettle();
+    expect(find.text('Continue · accept 2 reports'), findsOneWidget);
+    await tester.tap(find.text('Continue · accept 2 reports'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('OK').last);
+    await tester.pumpAndSettle();
+    expect(t.rounds.length, 2); // round 2 drafted
+    expect(t.rounds.first.matches.every((m) => m.by!.startsWith('p:')), isTrue);
+    sync.dispose();
+  });
+
+  testWidgets('finished: Send results to players', (tester) async {
+    final (db, app, sync, t) = await pumpHost(tester, 'en');
+    app.start(t);
+    app.publish(t);
+    for (final m in t.currentRound!.matches) {
+      app.setResult(t, m, const MatchResult(Outcome.p1, 2, 0));
+    }
+    t.finished = true;
+    app.changed();
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Send results to players'));
+    await tester.pumpAndSettle();
+    expect(t.resultsPublished, isTrue);
+    expect((await db.doc('tournaments/t1').get()).data()!['data']['resPub'], isTrue);
+    sync.dispose();
+  });
+
+  test('back one round drops the current round even with results', () async {
+    final app = AppState();
+    final t = Tournament(name: 'T', players: [for (var i = 0; i < 4; i++) Player(id: 'p$i', name: 'P$i', tieRand: i)]);
+    app.add(t);
+    app.start(t);
+    for (final m in t.currentRound!.matches) {
+      app.setResult(t, m, const MatchResult(Outcome.p1, 2, 0));
+    }
+    app.advance(t);
+    app.setResult(t, t.currentRound!.matches.first, const MatchResult(Outcome.p2, 0, 2));
+    app.backOneRound(t);
+    expect(t.rounds.length, 1);
+    expect(t.currentRound!.complete, isTrue);
+  });
 }

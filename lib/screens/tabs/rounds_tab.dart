@@ -134,6 +134,15 @@ class _RoundsTabState extends State<RoundsTab> {
                       PopupMenuItem(value: 'repair', child: Text(S.t.repair)),
                     PopupMenuItem(value: 'undo', child: Text(S.t.undoRound)),
                   ],
+                )
+              else if (isCurrent && t.rounds.length > 1 && hostSyncOf(context) != null)
+                PopupMenuButton<String>(
+                  onSelected: (_) async {
+                    final ok = await confirm(context, S.t.backOneRoundTitle(roundLabel(round)), S.t.backOneRoundBody,
+                        ok: S.t.backOneRound, danger: true);
+                    if (ok && context.mounted) context.read<AppState>().backOneRound(t);
+                  },
+                  itemBuilder: (_) => [PopupMenuItem(value: 'back', child: Text(S.t.backOneRound))],
                 ),
             ]),
             const SizedBox(height: 6),
