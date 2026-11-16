@@ -78,4 +78,37 @@ void main() {
     ));
     expect(find.textContaining('Registration is closed'), findsOneWidget);
   });
+
+  test("tonight's flow: open empty, guests by hand + players by code, start with the right rounds", () async {
+    final db = FakeFirebaseFirestore();
+    final app = AppState(store: CloudStore(db, 'host'), draftRounds: true);
+    await app.load();
+    final t = Tournament(id: 't1', name: 'Playtest', swissRounds: recommendedSwissRounds(0), autoRounds: true);
+    app.add(t);
+    final sync = HostSync(db, app, 'host');
+    await pumpEventQueue();
+    // Guests typed in by the host while others join with the code.
+    for (final n in ['Guest A', 'Guest B', 'Guest C']) {
+      t.players.add(Player(id: newId(), name: n));
+      app.changed();
+    }
+    for (final u in ['u1', 'u2', 'u3', 'u4', 'u5', 'u6']) {
+      await writeEntry(db, 't1', Entry(uid: u, displayName: 'Player $u', status: EntryStatus.joined));
+    }
+    await pumpEventQueue();
+    expect(t.players.length, 9);
+    app.start(t);
+    expect(t.swissRounds, 4); // 9 players
+    expect(t.currentRound!.published, isFalse); // draft until "Send to players"
+    // A registered player against a guest: their report counts at once.
+    app.publish(t);
+    final vsGuest = t.currentRound!.matches.firstWhere((m) =>
+        !m.isBye && ((t.player(m.p1)!.uid == null) != (t.player(m.p2)!.uid == null)));
+    final reporter = t.player(vsGuest.p1)!.uid ?? t.player(vsGuest.p2)!.uid!;
+    await writeClaim(db, 't1', Claim(matchId: vsGuest.id, uid: reporter, result: const MatchResult(Outcome.p1, 2, 0), atMs: 1));
+    await pumpEventQueue();
+    expect(vsGuest.result, isNotNull);
+    sync.dispose();
+  });
 }
+

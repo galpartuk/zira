@@ -75,7 +75,11 @@ class _TournamentSettingsSheetState extends State<TournamentSettingsSheet> {
                 value: t.swissRounds,
                 min: played < 1 ? 1 : played,
                 max: 15,
-                onChanged: locked ? null : (v) => _set(() => t.swissRounds = v),
+                onChanged: locked
+                    ? null
+                    : (v) => _set(() => t
+                      ..swissRounds = v
+                      ..autoRounds = false),
               ),
             )
           else

@@ -67,6 +67,22 @@ class _PlayersTabState extends State<PlayersTab> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
       children: [
+        if (sync != null && !t.started)
+          Card(
+            margin: const EdgeInsets.only(bottom: 12),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(S.t.setupGuideTitle, style: const TextStyle(fontWeight: FontWeight.w800)),
+                const SizedBox(height: 6),
+                for (final line in [S.t.setupGuide1, S.t.setupGuide2, S.t.setupGuide3])
+                  Padding(
+                    padding: const EdgeInsets.only(top: 3),
+                    child: Text('•  $line', style: const TextStyle(color: Z.muted, fontSize: 13.5)),
+                  ),
+              ]),
+            ),
+          ),
         if (requests.isNotEmpty) ...[
           SectionTitle(S.t.joinRequests),
           for (final e in requests)

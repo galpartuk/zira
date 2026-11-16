@@ -175,7 +175,7 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
           child: FilledButton(
             onPressed: _name.text.trim().isEmpty ? null : _create,
-            child: Text(n < 2 ? S.t.createNoPlayers : S.t.createWith(n)),
+            child: Text(n < 2 ? S.t.openAndGetCode : S.t.createWith(n)),
           ),
         ),
       ),
@@ -198,6 +198,7 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
       name: _name.text.trim(),
       format: _format,
       swissRounds: _rounds,
+      autoRounds: !_roundsTouched,
       topCut: _top,
       swissBestOf: _swissBo,
       topBestOf: _topBo,

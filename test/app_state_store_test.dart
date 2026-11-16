@@ -76,4 +76,39 @@ void main() {
     expect(app.tournaments, isEmpty);
     expect(app.draftRounds, isFalse);
   });
+
+  test('opened with no players: Swiss rounds follow the head count until the start', () async {
+    final app = AppState(store: MemStore(), draftRounds: true);
+    await app.load();
+    final t = Tournament(name: 'T', swissRounds: recommendedSwissRounds(0), autoRounds: true);
+    app.add(t);
+    for (var i = 0; i < 12; i++) {
+      t.players.add(Player(id: 'p$i', name: 'P$i', tieRand: i));
+    }
+    app.changed();
+    expect(t.swissRounds, 4); // 9-16 players
+    app.start(t);
+    expect(t.swissRounds, 4);
+    t.players.add(Player(id: 'late', name: 'Late', tieRand: 99)); // late entry: no change once started
+    app.changed();
+    expect(t.swissRounds, 4);
+  });
+
+  test('rounds the host picked by hand are kept', () async {
+    final app = AppState(store: MemStore());
+    await app.load();
+    final t = Tournament(name: 'T', swissRounds: 6, autoRounds: false);
+    app.add(t);
+    for (var i = 0; i < 4; i++) {
+      t.players.add(Player(id: 'p$i', name: 'P$i', tieRand: i));
+    }
+    app.changed();
+    expect(t.swissRounds, 6);
+  });
+
+  test('autoRounds survives JSON, old saves load as manual', () {
+    final t = Tournament(name: 'T', autoRounds: true);
+    expect(Tournament.fromJson(t.toJson()).autoRounds, isTrue);
+    expect(Tournament.fromJson(Tournament(name: 'T').toJson()).autoRounds, isFalse);
+  });
 }

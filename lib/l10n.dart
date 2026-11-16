@@ -534,4 +534,12 @@ class S {
   String get wld => _('W-L-D', 'נ-ה-ת');
   String get winRate => _('Win %', 'ניצחון %');
   String get myRecord => _('My record', 'התיעוד שלי');
+
+  // ---------------------------------------------------------------- open-first flow
+  String get openAndGetCode => _('Open tournament and get a code', 'פתח טורניר וקבל קוד');
+  String get setupGuideTitle => _('While players join', 'בזמן שהשחקנים מצטרפים');
+  String get setupGuide1 => _('Share the code at the top — players join from their phones',
+      'שתף את הקוד למעלה — שחקנים מצטרפים מהטלפון');
+  String get setupGuide2 => _('Players without the app: add them by name here', 'שחקנים בלי האפליקציה: הוסף אותם כאן בשם');
+  String get setupGuide3 => _('Rounds, time and top cut: the ⚙ button at the top', 'סיבובים, זמן וטופ קאט: כפתור ⚙ למעלה');
 }

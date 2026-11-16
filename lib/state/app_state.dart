@@ -87,8 +87,17 @@ class AppState extends ChangeNotifier {
 
   /// Call after mutating a tournament in place.
   void changed() {
+    for (final t in tournaments) {
+      _autoRounds(t);
+    }
     notifyListeners();
     _save();
+  }
+
+  void _autoRounds(Tournament t) {
+    if (t.autoRounds && !t.started && t.format == TFormat.swiss) {
+      t.swissRounds = recommendedSwissRounds(t.activePlayers.length);
+    }
   }
 
   Round _fresh(Round r) => r..published = !_draftRounds;
@@ -130,6 +139,7 @@ class AppState extends ChangeNotifier {
   // ------------------------------------------------------------ flow
 
   void start(Tournament t) {
+    _autoRounds(t);
     if (t.format == TFormat.roundRobin) {
       t.rrSchedule = buildRoundRobinSchedule(t.activePlayers.map((p) => p.id).toList());
       t.swissRounds = t.rrSchedule!.length;

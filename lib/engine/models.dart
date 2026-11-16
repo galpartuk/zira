@@ -237,6 +237,11 @@ class Tournament {
   String? joinCode;
   String joinMode;
 
+  /// Swiss rounds follow the head count (recommended table) until the start,
+  /// so a tournament opened before anyone joined still gets the right number.
+  /// Off once the host picks a number by hand.
+  bool autoRounds;
+
   Tournament({
     String? id,
     required this.name,
@@ -259,6 +264,7 @@ class Tournament {
     this.timerPausedMs,
     this.joinCode,
     this.joinMode = 'open',
+    this.autoRounds = false,
   })  : id = id ?? newId(),
         created = created ?? DateTime.now(),
         players = players ?? [],
@@ -327,6 +333,7 @@ class Tournament {
         if (timerPausedMs != null) 'tPaused': timerPausedMs,
         if (joinCode != null) 'code': joinCode,
         if (joinMode != 'open') 'join': joinMode,
+        if (autoRounds) 'autoR': true,
       };
 
   factory Tournament.fromJson(Map<String, dynamic> j) => Tournament(
@@ -353,6 +360,7 @@ class Tournament {
         timerPausedMs: j['tPaused'] as int?,
         joinCode: j['code'] as String?,
         joinMode: j['join'] as String? ?? 'open',
+        autoRounds: j['autoR'] as bool? ?? false,
       );
 }
 
