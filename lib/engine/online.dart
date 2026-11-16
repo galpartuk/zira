@@ -166,3 +166,14 @@ Round? roundOf(Tournament t, Match m) {
   }
   return null;
 }
+
+/// Host edits a draft pairing by hand: players [a] and [b] trade seats
+/// (across tables, with a bye, or within one match).
+void swapPlayers(Round r, String a, String b) {
+  if (a == b) return;
+  String sw(String x) => x == a ? b : (x == b ? a : x);
+  for (final m in r.matches) {
+    m.p1 = sw(m.p1);
+    if (m.p2 != null) m.p2 = sw(m.p2!);
+  }
+}

@@ -583,4 +583,8 @@ class S {
       'הסיבוב והתוצאות שלו יימחקו; הסיבוב הקודם יחזור להיות הנוכחי, כדי שתוכל לתקן אותו ולשבץ שוב.');
   String get byYouUnconfirmed => _('Reported by you (accepted without confirmation)', 'דווח על ידך (התקבל בלי אישור)');
   String byUnconfirmed(String n) => _('Reported by $n (accepted without confirmation)', 'דווח על ידי $n (התקבל בלי אישור)');
+
+  // ---------------------------------------------------------------- manual pairing
+  String get swapHint => _('Tap two players to swap them', 'הקש על שני שחקנים כדי להחליף ביניהם');
+  String swapPickSecond(String name) => _('Now tap who swaps with $name', 'עכשיו הקש על מי שיתחלף עם $name');
 }

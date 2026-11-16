@@ -47,6 +47,31 @@ Claim claim(String uid, Outcome o, [int g1 = 2, int g2 = 1]) =>
     Claim(matchId: 'm1', uid: uid, result: MatchResult(o, g1, g2), atMs: 0);
 
 void onlineGroups() {
+  group('manual pairing', () {
+    Round r() => Round(number: 1, stage: Stage.swiss, matches: [
+          Match(id: 'm1', table: 1, p1: 'a', p2: 'b'),
+          Match(id: 'm2', table: 2, p1: 'c', p2: 'd'),
+          Match(id: 'bye', table: 0, p1: 'e'),
+        ]);
+    String pairs(Round x) => x.matches.map((m) => '${m.p1}-${m.p2}').join(',');
+    test('across tables', () {
+      final x = r();
+      swapPlayers(x, 'b', 'c');
+      expect(pairs(x), 'a-c,b-d,e-null');
+    });
+    test('with the bye', () {
+      final x = r();
+      swapPlayers(x, 'a', 'e');
+      expect(pairs(x), 'e-b,c-d,a-null');
+    });
+    test('within a match, or the same player twice', () {
+      final x = r();
+      swapPlayers(x, 'a', 'b');
+      swapPlayers(x, 'c', 'c');
+      expect(pairs(x), 'b-a,c-d,e-null');
+    });
+  });
+
   group('resolveClaims', () {
     test('no claims', () {
       final t = online2();

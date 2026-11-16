@@ -20,7 +20,8 @@ Online since 1.4.0 (branch `feature/online-tournaments`, spec/plan in `docs/supe
   Play App Signing's SHA-1 (`firebase apps:android:sha:create`).
 - Web build: if a release web build shows a blank page with a `channel-error`, delete `build/web` and
   `.dart_tool/flutter_build` and rebuild (stale plugin registrant).
-- **Web is live** at https://tcg-arena-app.web.app (Firebase Hosting, players without the APK). Deploy:
+- **Web is live** at https://duel-network.web.app (Firebase Hosting site `duel-network`, players without the APK;
+  the default site tcg-arena-app.web.app is disabled — don't re-enable it). Deploy:
   `rm -rf build/web .dart_tool/flutter_build && flutter build web --release && firebase deploy --only hosting --project tcg-arena-app`.
 - Display name is **Duel Network** (since 1.5.2: app name, Android label, web title). The package id stays
   `com.galpartuk.zira` — changing it would make a different app. Release APKs are named `duel-network-x.y.z-<abi>.apk`.

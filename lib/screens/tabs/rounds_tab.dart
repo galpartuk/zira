@@ -26,6 +26,7 @@ class RoundsTab extends StatefulWidget {
 
 class _RoundsTabState extends State<RoundsTab> {
   int? _selected; // index into t.rounds; null = latest
+  String? _swapPick; // draft: first player tapped for a manual swap
   int _lastCount = 0;
 
   Tournament get t => widget.t;
@@ -95,7 +96,14 @@ class _RoundsTabState extends State<RoundsTab> {
                 child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: Row(children: [
-                    Expanded(child: Text(S.t.draftBanner, style: const TextStyle(fontWeight: FontWeight.w700))),
+                    Expanded(
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text(S.t.draftBanner, style: const TextStyle(fontWeight: FontWeight.w700)),
+                        const SizedBox(height: 2),
+                        Text(_swapPick == null ? S.t.swapHint : S.t.swapPickSecond(t.nameOf(_swapPick)),
+                            style: const TextStyle(fontSize: 12.5, color: Z.muted)),
+                      ]),
+                    ),
                     const SizedBox(width: 8),
                     FilledButton.icon(
                       onPressed: () => context.read<AppState>().publish(t),
@@ -153,6 +161,8 @@ class _RoundsTabState extends State<RoundsTab> {
                 round: round,
                 standings: standings,
                 onTap: (!editable || m.isBye || draft) ? null : () => _report(round, m),
+                picked: draft ? _swapPick : null,
+                onPickPlayer: (draft && isCurrent) ? (pid) => _pickForSwap(round, pid) : null,
                 claim: (sync == null || m.result != null || m.isBye) ? null : sync.stateOf(t, m),
                 // Drops apply from the next pairing, so only offer them while
                 // more Swiss rounds can still follow.
@@ -162,6 +172,19 @@ class _RoundsTabState extends State<RoundsTab> {
         ),
       ),
     ]);
+  }
+
+  /// Draft only: tap one player, then another, to swap their seats.
+  void _pickForSwap(Round round, String pid) {
+    if (_swapPick == null) {
+      setState(() => _swapPick = pid);
+      return;
+    }
+    if (_swapPick != pid) {
+      swapPlayers(round, _swapPick!, pid);
+      context.read<AppState>().changed();
+    }
+    setState(() => _swapPick = null);
   }
 
   Future<void> _report(Round round, Match m) async {
@@ -298,6 +321,10 @@ class _MatchCard extends StatelessWidget {
   final VoidCallback? onDrop;
   final ClaimState? claim;
 
+  /// Draft editing: tap a player to pick them for a swap.
+  final void Function(String pid)? onPickPlayer;
+  final String? picked;
+
   const _MatchCard(
       {required this.t,
       required this.m,
@@ -305,7 +332,9 @@ class _MatchCard extends StatelessWidget {
       required this.standings,
       this.onTap,
       this.onDrop,
-      this.claim});
+      this.claim,
+      this.onPickPlayer,
+      this.picked});
 
   @override
   Widget build(BuildContext context) {
@@ -317,8 +346,25 @@ class _MatchCard extends StatelessWidget {
       final isWinner = w != null && w == id;
       final isLoser = res != null && !m.isBye && w != id;
       final st = id == null ? null : standings[id];
+      final pickable = onPickPlayer != null && id != null;
+      final isPicked = pickable && picked == id;
+      Widget wrap(Widget child) => !pickable
+          ? child
+          : InkWell(
+              borderRadius: BorderRadius.circular(8),
+              onTap: () => onPickPlayer!(id),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isPicked ? Z.gold.withValues(alpha: .25) : null,
+                  border: Border.all(color: isPicked ? Z.gold : Z.line),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: child,
+              ),
+            );
       return Expanded(
-        child: Column(
+        child: wrap(Column(
           crossAxisAlignment: align == TextAlign.start ? CrossAxisAlignment.start : CrossAxisAlignment.end,
           children: [
             Text(
@@ -338,7 +384,7 @@ class _MatchCard extends StatelessWidget {
             if (t.player(id)?.dropped ?? false)
               Padding(padding: const EdgeInsets.only(top: 3), child: Pill(S.t.dropped, color: Z.danger)),
           ],
-        ),
+        )),
       );
     }
 
