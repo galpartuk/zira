@@ -284,10 +284,32 @@ class _ClaimPromptState extends State<ClaimPrompt> {
   /// Claims already shown, so each report pops up once.
   final _shown = <String>{};
   bool _open = false;
+  String? _openMatchId;
+  BuildContext? _dialogCtx;
+
+  /// The pop-up still makes sense: same match, no result yet, the opponent's
+  /// report still waiting for me.
+  bool _stillOpenFor(String matchId) {
+    final t = widget.t;
+    final s = widget.state;
+    if (t == null) return false;
+    final info = MyMatchInfo.of(t, widget.uid);
+    return info != null &&
+        info.match.id == matchId &&
+        info.match.result == null &&
+        s is Pending &&
+        s.by.matchId == matchId &&
+        s.by.uid != widget.uid;
+  }
 
   @override
   void didUpdateWidget(ClaimPrompt old) {
     super.didUpdateWidget(old);
+    // The host moved on (or decided) while the pop-up was up: close it.
+    final ctx = _dialogCtx;
+    if (_open && _openMatchId != null && !_stillOpenFor(_openMatchId!) && ctx != null && ctx.mounted) {
+      Navigator.of(ctx).pop('stale');
+    }
     _maybePrompt();
   }
 
@@ -311,10 +333,13 @@ class _ClaimPromptState extends State<ClaimPrompt> {
   Future<void> _show(Tournament t, MyMatchInfo info, Claim c) async {
     if (!mounted) return;
     _open = true;
+    _openMatchId = info.match.id;
     final opp = t.nameOf(info.opponentId);
     final choice = await showDialog<String>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) {
+        _dialogCtx = ctx;
+        return AlertDialog(
         icon: const Icon(Icons.notifications_active_rounded, color: Z.blue, size: 34),
         title: Text(S.t.opponentReportedTitle(opp), textAlign: TextAlign.center),
         content: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -332,15 +357,20 @@ class _ClaimPromptState extends State<ClaimPrompt> {
           OutlinedButton(onPressed: () => Navigator.pop(ctx, 'dispute'), child: Text(S.t.disputeResult)),
           FilledButton(onPressed: () => Navigator.pop(ctx, 'confirm'), child: Text(S.t.confirmResult)),
         ],
-      ),
+      );
+      },
     );
     _open = false;
-    if (!mounted) return;
-    if (choice == 'confirm') {
+    _dialogCtx = null;
+    final matchId = _openMatchId!;
+    _openMatchId = null;
+    if (!mounted || choice == 'stale') return;
+    if (choice == 'confirm' && _stillOpenFor(matchId)) {
       await widget.onReport(c.result);
     } else if (choice == 'dispute') {
       final r = await pickResult(context, t, info);
-      if (r != null) await widget.onReport(r);
+      // The round may have moved on while the sheet was open.
+      if (r != null && mounted && _stillOpenFor(matchId)) await widget.onReport(r);
     }
   }
 

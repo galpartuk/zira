@@ -169,4 +169,31 @@ void main() {
     expect(find.byIcon(Icons.more_time), findsNothing);
     await tester.pumpWidget(const SizedBox()); // stops the clock's ticker
   });
+
+  testWidgets('the pop-up closes by itself when the host moves on', (tester) async {
+    Lang.instance.code = 'en';
+    final t = Tournament(name: 'T', players: [
+      Player(id: 'a', name: 'Alice', uid: 'alice', tieRand: 1),
+      Player(id: 'b', name: 'Bob', uid: 'bob', tieRand: 2),
+    ]);
+    t.rounds.add(Round(number: 1, stage: Stage.swiss, matches: [Match(id: 'm1', table: 3, p1: 'a', p2: 'b')]));
+    const theirs = MatchResult(Outcome.p1, 2, 1);
+    final sent = <MatchResult>[];
+    Widget app(ClaimState st) => MaterialApp(
+          home: Scaffold(
+            body: ClaimPrompt(t: t, uid: 'bob', state: st, onReport: (r) async => sent.add(r), child: const SizedBox.expand()),
+          ),
+        );
+    await tester.pumpWidget(app(const Pending(Claim(matchId: 'm1', uid: 'alice', result: theirs, atMs: 1))));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsOneWidget);
+    // The host accepted Alice's report and moved on.
+    t.rounds.single.matches.single
+      ..result = theirs
+      ..by = 'p:alice';
+    await tester.pumpWidget(app(const NoClaims()));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(sent, isEmpty);
+  });
 }

@@ -38,7 +38,7 @@ class _TournamentScreenState extends State<TournamentScreen> with TickerProvider
     if (_tabs != null && keys.join() == _keys.join()) return;
     final prevKey = _tabs == null ? null : _keys[_tabs!.index];
     _tabs?.dispose();
-    var initial = keys.indexOf(prevKey ?? (t.started ? 'rounds' : 'players'));
+    var initial = keys.indexOf(prevKey ?? (t.finished ? 'prizes' : (t.started ? 'rounds' : 'players')));
     if (initial < 0) initial = 0;
     _keys = keys;
     _tabs = TabController(length: keys.length, vsync: this, initialIndex: initial);
@@ -217,7 +217,7 @@ class _NextStepBar extends StatelessWidget {
         if (!context.mounted) return;
         if (t.firstIncompleteRound == null) {
           app.advance(t);
-          goTo(t.topRoundsList.isNotEmpty ? 'bracket' : 'rounds');
+          goTo(t.finished ? 'prizes' : (t.topRoundsList.isNotEmpty ? 'bracket' : 'rounds'));
         }
       };
     } else if (t.finished) {
