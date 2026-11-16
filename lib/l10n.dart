@@ -504,4 +504,14 @@ class S {
   String get confirmQuestion => _('Is this the result?', 'זו התוצאה?');
   String get later => _('Later', 'אחר כך');
   String get roundClockHost => _('The host runs the clock', 'ההוסט מפעיל את השעון');
+
+  // ---------------------------------------------------------------- joining / history
+  String get joinClosedLate =>
+      _('Registration is closed — no more rounds to pair you into', 'ההרשמה נסגרה — אין יותר סבבים לשבץ אותך אליהם');
+  String playerJoined(String name) => _('$name joined the tournament', '$name הצטרף לטורניר');
+  String joinRequestFrom(String name) => _('$name asks to join — see Players', '$name מבקש להצטרף — ראה שחקנים');
+  String get playingNow => _('Playing now', 'משחק עכשיו');
+  String get history => _('History', 'היסטוריה');
+  String get finishedPill => _('Finished', 'הסתיים');
+  String get tournamentOverFinal => _('Tournament over — final standings', 'הטורניר הסתיים — דירוג סופי');
 }

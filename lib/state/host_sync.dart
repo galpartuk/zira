@@ -27,6 +27,13 @@ class HostSync extends ChangeNotifier {
 
   /// How long to wait before listening again after the server refused.
   static Duration retryDelay = const Duration(seconds: 3);
+
+  /// Short messages for the host ("Aviv joined"), shown as a snack bar.
+  void Function(String message)? onNotice;
+
+  /// Message texts; the UI layer (which owns the language) replaces them.
+  static String Function(String name) noticeJoined = (n) => '$n joined';
+  static String Function(String name) noticeRequested = (n) => '$n asks to join';
   bool _disposed = false;
 
   HostSync(this.db, this.app, this.uid) {
@@ -87,7 +94,14 @@ class HostSync extends ChangeNotifier {
     for (final e in fresh) {
       _seenEntries['$tid/${e.uid}'] = e.status;
     }
+    final before = {for (final p in t.players) p.uid};
     var changed = applyEntries(t, fresh);
+    for (final p in t.players) {
+      if (p.uid != null && !before.contains(p.uid)) onNotice?.call(noticeJoined(p.name));
+    }
+    for (final e in fresh) {
+      if (e.status == EntryStatus.requested) onNotice?.call(noticeRequested(e.displayName));
+    }
     final r = t.currentRound;
     if (r != null && r.published) {
       for (final m in r.matches) {

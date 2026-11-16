@@ -74,7 +74,11 @@ class MyMatchCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final me = t.players.where((p) => p.uid == uid).firstOrNull;
-    if (me == null) return _Message(icon: Icons.hourglass_top_rounded, text: S.t.notInEventYet);
+    if (me == null) {
+      return (t.finished || !t.acceptsNewPlayers)
+          ? _Message(icon: Icons.block_rounded, text: S.t.joinClosedLate)
+          : _Message(icon: Icons.hourglass_top_rounded, text: S.t.notInEventYet);
+    }
     if (me.dropped) return _Message(icon: Icons.logout_rounded, text: S.t.youDropped);
     final info = MyMatchInfo.of(t, uid);
     if (info == null) return _Message(icon: Icons.schedule_rounded, text: S.t.waitingNextRound);

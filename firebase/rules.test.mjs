@@ -114,3 +114,10 @@ test('others cannot write a private draft into a new tournament they do not host
   await assertFails(b.commit());
   await assertFails(setDoc(doc(db, 'tournaments/t1/private/host'), { draftRound: null }));
 });
+
+test('no joining once the host says the tournament no longer accepts players', async () => {
+  await env.withSecurityRulesDisabled((c) => updateDoc(doc(c.firestore(), 'tournaments/t1'), { status: 'running', acceptsPlayers: false }));
+  await assertFails(setDoc(doc(as('bob'), 'tournaments/t1/entries/bob'), { displayName: 'Bob', status: 'joined' }));
+  await env.withSecurityRulesDisabled((c) => updateDoc(doc(c.firestore(), 'tournaments/t1'), { acceptsPlayers: true }));
+  await assertSucceeds(setDoc(doc(as('bob'), 'tournaments/t1/entries/bob'), { displayName: 'Bob', status: 'joined' }));
+});

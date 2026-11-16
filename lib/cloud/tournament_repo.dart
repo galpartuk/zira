@@ -55,6 +55,8 @@ class CloudStore implements TournamentStore {
         'joinCode': t.joinCode,
         'joinMode': t.joinMode,
         'status': onlineStatus(t),
+        // Read by the join screen and the rules: no joins once no round is left to pair.
+        'acceptsPlayers': !t.finished && t.acceptsNewPlayers,
         'memberUids': {uid, ...t.players.map((p) => p.uid).whereType<String>()}.toList(),
         'matchUids': matchUidsFor(t),
         'updatedAt': FieldValue.serverTimestamp(),

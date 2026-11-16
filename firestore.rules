@@ -38,6 +38,7 @@ service cloud.firestore {
       match /entries/{uid} {
         function joinAllowed(status) {
           return t().status != 'finished'
+            && t().get('acceptsPlayers', true) == true
             && !(t().joinMode == 'closedOnStart' && t().status != 'registration')
             && ((t().joinMode == 'approval' && status == 'requested')
                 || (t().joinMode != 'approval' && status == 'joined'));

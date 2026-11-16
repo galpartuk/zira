@@ -52,6 +52,7 @@ class _PlayerView extends StatelessWidget {
     ];
     return DefaultTabController(
       length: tabs.length,
+      initialIndex: t.finished ? 2 : 0, // finished: open on the final standings
       child: Scaffold(
         appBar: AppBar(
           title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -69,7 +70,19 @@ class _PlayerView extends StatelessWidget {
                 itemBuilder: (_) => [PopupMenuItem(value: 'drop', child: Text(S.t.dropFromEvent))],
               ),
           ],
-          bottom: TabBar(isScrollable: true, tabs: [for (final x in tabs) Tab(text: x.$1)]),
+          bottom: PreferredSize(
+            preferredSize: Size.fromHeight(t.finished ? 82 : 46),
+            child: Column(children: [
+              if (t.finished)
+                Container(
+                  width: double.infinity,
+                  color: Z.win.withValues(alpha: .15),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+                  child: Text(S.t.tournamentOverFinal, style: const TextStyle(color: Z.win, fontWeight: FontWeight.w800)),
+                ),
+              TabBar(isScrollable: true, tabs: [for (final x in tabs) Tab(text: x.$1)]),
+            ]),
+          ),
         ),
         body: ClaimPrompt(
           t: t,

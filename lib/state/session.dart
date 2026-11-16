@@ -75,7 +75,11 @@ class _CloudGateState extends State<CloudGate> {
     }
     await app.attach(store, draftRounds: true);
     if (!mounted || _uid != uid) return;
-    setState(() => _sync = HostSync(db, app, uid));
+    HostSync.noticeJoined = S.t.playerJoined;
+    HostSync.noticeRequested = S.t.joinRequestFrom;
+    final sync = HostSync(db, app, uid)
+      ..onNotice = (msg) => messengerKey.currentState?.showSnackBar(SnackBar(content: Text(msg)));
+    setState(() => _sync = sync);
     if (moved > 0) {
       messengerKey.currentState?.showSnackBar(SnackBar(content: Text(S.t.migrated(moved))));
     }

@@ -21,7 +21,9 @@ Future<(JoinResult, String?)> joinWithCode(FirebaseFirestore db,
   if (mine?['status'] == 'joined') return (JoinResult.ok, tid);
   final mode = doc['joinMode'] as String? ?? 'open';
   final status = doc['status'] as String? ?? 'registration';
-  if (status == 'finished' || (mode == 'closedOnStart' && status != 'registration')) {
+  if (status == 'finished' ||
+      doc['acceptsPlayers'] == false ||
+      (mode == 'closedOnStart' && status != 'registration')) {
     return (JoinResult.closed, null);
   }
   final approval = mode == 'approval';

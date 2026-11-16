@@ -181,6 +181,8 @@ class _OnlineList extends StatelessWidget {
       stream: joinedTournaments(dbOf(context)!, uid),
       builder: (context, snap) {
         final playing = snap.data ?? const [];
+        final live = [for (final p in playing) if (p.status != 'finished') p];
+        final done = [for (final p in playing) if (p.status == 'finished') p];
         if (playing.isEmpty && hosted.isEmpty) {
           return EmptyState(
             icon: Icons.emoji_events_outlined,
@@ -190,26 +192,32 @@ class _OnlineList extends StatelessWidget {
           );
         }
         return ListView(padding: const EdgeInsets.fromLTRB(16, 4, 16, 96), children: [
-          if (playing.isNotEmpty) ...[
-            SectionTitle(S.t.playing),
-            for (final p in playing)
-              Card(
-                child: ListTile(
-                  leading: const Icon(Icons.sports_esports_outlined),
-                  title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.w700)),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Navigator.push(
-                      context, MaterialPageRoute(builder: (_) => PlayerTournamentScreen(tid: p.tid))),
-                ),
-              ),
+          if (live.isNotEmpty) ...[
+            SectionTitle(S.t.playingNow),
+            for (final p in live) _joinedTile(context, p.tid, p.name, finished: false),
             const SizedBox(height: 12),
           ],
           if (hosted.isNotEmpty) ...[
             SectionTitle(S.t.hosting),
             for (final t in hosted) Padding(padding: const EdgeInsets.only(bottom: 10), child: _TournamentCard(t)),
+            const SizedBox(height: 12),
+          ],
+          if (done.isNotEmpty) ...[
+            SectionTitle(S.t.history),
+            for (final p in done) _joinedTile(context, p.tid, p.name, finished: true),
           ],
         ]);
       },
     );
   }
 }
+
+Widget _joinedTile(BuildContext context, String tid, String name, {required bool finished}) => Card(
+      child: ListTile(
+        leading: Icon(finished ? Icons.history_rounded : Icons.sports_esports_outlined,
+            color: finished ? Z.muted : Z.gold),
+        title: Text(name, style: const TextStyle(fontWeight: FontWeight.w700)),
+        trailing: finished ? Pill(S.t.finishedPill) : const Icon(Icons.chevron_right),
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => PlayerTournamentScreen(tid: tid))),
+      ),
+    );
