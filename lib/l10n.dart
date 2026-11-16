@@ -551,4 +551,9 @@ class S {
   String byYouAcceptedBy(String n) => _('Reported by you, accepted by $n', 'דווח על ידך, אושר על ידי $n');
   String byThemAcceptedByYou(String n) => _('Reported by $n, accepted by you', 'דווח על ידי $n, אושר על ידך');
   String byAccepted(String a, String b) => _('Reported by $a, accepted by $b', 'דווח על ידי $a, אושר על ידי $b');
+
+  // ---------------------------------------------------------------- player time notices
+  String get overtimeNotice => _('Overtime — finish your turns, then report the result',
+      'תורות נוספים — סיימו את התורות ודווחו תוצאה');
+  String get timeUpNotice => _('Time is up — report your result now', 'הזמן נגמר — דווחו את התוצאה עכשיו');
 }

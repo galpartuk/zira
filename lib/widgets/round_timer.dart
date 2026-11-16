@@ -102,7 +102,8 @@ class KeepAwake {
 class RoundTimer extends StatefulWidget {
   final Tournament t;
 
-  /// Players see the host's clock (and hear its alarm) but can't run it.
+  /// Players see the host's clock but can't run it, and it stays silent
+  /// (their cue is the on-screen [TimeNotice]).
   final bool readOnly;
   const RoundTimer({super.key, required this.t, this.readOnly = false});
 
@@ -120,7 +121,7 @@ class _RoundTimerState extends State<RoundTimer> {
     _tick = Timer.periodic(const Duration(milliseconds: 250), (_) {
       if (!mounted) return;
       final c = clockOf(widget.t);
-      RoundAlarm.check(widget.t, c);
+      if (!widget.readOnly) RoundAlarm.check(widget.t, c); // only the host's phone rings
       _keepAwake(c.running && c.phase != ClockPhase.over);
       if (c.running) setState(() {});
     });
@@ -210,7 +211,7 @@ class _BigTimerState extends State<_BigTimer> {
     KeepAwake.acquire();
     _tick = Timer.periodic(const Duration(milliseconds: 250), (_) {
       if (!mounted) return;
-      RoundAlarm.check(widget.t, clockOf(widget.t));
+      if (!widget.readOnly) RoundAlarm.check(widget.t, clockOf(widget.t));
       setState(() {});
     });
   }

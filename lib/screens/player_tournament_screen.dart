@@ -10,6 +10,7 @@ import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/my_match_card.dart';
 import '../widgets/round_timer.dart';
+import '../widgets/time_notice.dart';
 import 'history_screen.dart';
 import 'tabs/bracket_tab.dart';
 import 'tabs/standings_tab.dart';
@@ -97,7 +98,10 @@ class _PlayerView extends StatelessWidget {
           uid: s.uid,
           state: s.myState,
           onReport: s.report,
-          child: TabBarView(children: [for (final x in tabs) x.$2]),
+          child: Column(children: [
+            TimeNotice(t: t, uid: s.uid, state: s.myState),
+            Expanded(child: TabBarView(children: [for (final x in tabs) x.$2])),
+          ]),
         ),
       ),
     );
