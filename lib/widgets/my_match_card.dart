@@ -37,6 +37,27 @@ String myResultText(MatchResult r, bool iAmP1) {
   return S.t.myDraw(mine, theirs);
 }
 
+/// Who put the result in, from [viewerUid]'s point of view (null viewer =
+/// neutral, for the host's list). Null when unknown (local events).
+String? provenanceText(Tournament t, Match m, {required String? viewerUid}) {
+  final by = m.by;
+  if (by == null || m.result == null) return null;
+  if (by == 'host') return S.t.byHost;
+  if (by == 'dispute') return S.t.byDispute;
+  final uid = by.substring(2);
+  final reporter = t.players.where((p) => p.uid == uid).firstOrNull;
+  if (reporter == null) return null;
+  final otherId = m.p1 == reporter.id ? m.p2 : m.p1;
+  final other = t.player(otherId);
+  final you = viewerUid != null;
+  if (by.startsWith('g:')) {
+    return (you && reporter.uid == viewerUid) ? S.t.byYouVsGuest : S.t.byPlayer(reporter.name);
+  }
+  if (you && reporter.uid == viewerUid) return S.t.byYouAcceptedBy(other?.name ?? '?');
+  if (you && other?.uid == viewerUid) return S.t.byThemAcceptedByYou(reporter.name);
+  return S.t.byAccepted(reporter.name, other?.name ?? '?');
+}
+
 /// Opens the result sheet for [info]'s match and returns the chosen result.
 Future<MatchResult?> pickResult(BuildContext context, Tournament t, MyMatchInfo info) async {
   final r = await showModalBottomSheet<MatchResult>(
@@ -96,7 +117,7 @@ class MyMatchCard extends StatelessWidget {
           color: Z.win,
           icon: Icons.check_circle_rounded,
           title: myResultText(m.result!, info.iAmP1),
-          subtitle: S.t.resultFinal,
+          subtitle: provenanceText(t, m, viewerUid: uid) ?? S.t.resultFinal,
         ),
       Pending(by: final c) when c.uid == uid => _Status(
           color: Z.gold,

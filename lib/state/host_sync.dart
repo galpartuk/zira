@@ -111,6 +111,7 @@ class HostSync extends ChangeNotifier {
           final key = '${m.id}|${s.result.outcome.index}|${s.result.g1}|${s.result.g2}';
           if (_applied.add(key)) {
             m.result = s.result;
+            m.by = _provenance(t, m, _claims[tid] ?? const []);
             changed = true;
           }
         }
@@ -118,6 +119,14 @@ class HostSync extends ChangeNotifier {
     }
     if (changed) app.changed();
     notifyListeners();
+  }
+
+  /// `c:UID` of the first reporter when both reported, `g:UID` against a guest.
+  static String? _provenance(Tournament t, Match m, List<Claim> claims) {
+    final mine = claims.where((c) => c.matchId == m.id).toList()..sort((a, b) => a.atMs.compareTo(b.atMs));
+    if (mine.isEmpty) return null;
+    final guest = t.player(m.p1)?.uid == null || t.player(m.p2)?.uid == null;
+    return '${guest ? 'g' : 'c'}:${mine.first.uid}';
   }
 
   ClaimState stateOf(Tournament t, Match m) => resolveClaims(t, m, _claims[t.id] ?? const []);

@@ -41,7 +41,7 @@ class S {
   String _(String en, String heb) => he ? heb : en;
 
   // ---------------------------------------------------------------- app
-  String get appName => _('Zira', 'זירה');
+  String get appName => 'Duel Network';
   String get langButton => _('עב', 'EN');
   String get langTooltip => _('עברית', 'English');
   String get tournaments => _('Tournaments', 'טורנירים');
@@ -524,7 +524,7 @@ class S {
   String get opponentDeck => _('Opponent deck', 'דק יריב');
   String get unmarked => _('Not recorded', 'לא סומן');
   String get whichDeck => _('Which deck did you play?', 'איזה דק שיחקת?');
-  String get myDeckHint => _('e.g. Red Hybrid', 'למשל Red Hybrid');
+  String get myDeckHint => _('e.g. Xros Heart', 'למשל Xros Heart');
   String get oppDeckHint => _('Opponent\'s deck', 'הדק של היריב');
   String get myRounds => _('My rounds', 'הסיבובים שלי');
   String get noStatsYet => _('No finished tournaments yet', 'עוד אין טורנירים שהסתיימו');
@@ -542,4 +542,13 @@ class S {
       'שתף את הקוד למעלה — שחקנים מצטרפים מהטלפון');
   String get setupGuide2 => _('Players without the app: add them by name here', 'שחקנים בלי האפליקציה: הוסף אותם כאן בשם');
   String get setupGuide3 => _('Rounds, time and top cut: the ⚙ button at the top', 'סיבובים, זמן וטופ קאט: כפתור ⚙ למעלה');
+
+  // ---------------------------------------------------------------- who reported
+  String get byHost => _('Recorded by the host', 'נרשם על ידי ההוסט');
+  String get byDispute => _('Disputed — decided by the host', 'במחלוקת — הוכרע על ידי ההוסט');
+  String get byYouVsGuest => _('Reported by you (opponent without the app)', 'דווח על ידך (יריב בלי האפליקציה)');
+  String byPlayer(String n) => _('Reported by $n', 'דווח על ידי $n');
+  String byYouAcceptedBy(String n) => _('Reported by you, accepted by $n', 'דווח על ידך, אושר על ידי $n');
+  String byThemAcceptedByYou(String n) => _('Reported by $n, accepted by you', 'דווח על ידי $n, אושר על ידך');
+  String byAccepted(String a, String b) => _('Reported by $a, accepted by $b', 'דווח על ידי $a, אושר על ידי $b');
 }

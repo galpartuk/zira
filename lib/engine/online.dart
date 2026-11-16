@@ -118,7 +118,7 @@ bool applyEntries(Tournament t, Iterable<Entry> entries) {
       case EntryStatus.dropped:
       case EntryStatus.removed:
         if (p != null) {
-          if (!t.started) {
+          if (!t.underway) {
             t.players.remove(p);
             changed = true;
           } else if (!p.dropped) {
@@ -146,7 +146,7 @@ Map<String, List<String>> matchUidsFor(Tournament t) {
   return out;
 }
 
-String onlineStatus(Tournament t) => t.finished ? 'finished' : (t.started ? 'running' : 'registration');
+String onlineStatus(Tournament t) => t.finished ? 'finished' : (t.underway ? 'running' : 'registration');
 
 Round? draftRound(Tournament t) {
   final r = t.currentRound;

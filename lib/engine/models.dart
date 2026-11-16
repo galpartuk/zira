@@ -70,7 +70,12 @@ class Match {
   /// Top cut only: the match for 3rd place.
   final bool thirdPlace;
 
-  Match({String? id, required this.table, required this.p1, this.p2, this.result, this.thirdPlace = false})
+  /// Where the result came from (online): `host`, `dispute` (host decided),
+  /// `c:UID` (that player reported, the opponent confirmed), `g:UID`
+  /// (that player reported against a guest). Null for local events.
+  String? by;
+
+  Match({String? id, required this.table, required this.p1, this.p2, this.result, this.thirdPlace = false, this.by})
       : id = id ?? newId();
 
   bool get isBye => p2 == null;
@@ -109,6 +114,7 @@ class Match {
         'p2': p2,
         if (result != null) 'r': result!.toJson(),
         if (thirdPlace) 'third': true,
+        if (by != null && result != null) 'by': by,
       };
 
   factory Match.fromJson(Map<String, dynamic> j) => Match(
@@ -118,6 +124,7 @@ class Match {
         p2: j['p2'] as String?,
         result: j['r'] == null ? null : MatchResult.fromJson(j['r'] as Map<String, dynamic>),
         thirdPlace: j['third'] as bool? ?? false,
+        by: j['by'] as String?,
       );
 }
 
@@ -295,10 +302,13 @@ class Tournament {
   /// entries while at least one more Swiss round will be paired. After that a
   /// newcomer would never play but could still change the top cut.
   bool get acceptsNewPlayers {
-    if (finished || topRoundsList.isNotEmpty) return false;
-    if (!started) return true;
-    return format == TFormat.swiss && swissRoundsList.length < plannedSwissRounds;
+    if (finished || topRoundsList.any((r) => r.published)) return false;
+    if (!underway) return true;
+    return format == TFormat.swiss && swissRoundsList.where((r) => r.published).length < plannedSwissRounds;
   }
+
+  /// At least one round has been sent to the players (a draft doesn't count).
+  bool get underway => rounds.any((r) => r.published);
 
   /// The earliest round with a missing result (a result of an older round can
   /// be cleared after later rounds were paired). Null when all are reported.

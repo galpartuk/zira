@@ -110,5 +110,69 @@ void main() {
     expect(vsGuest.result, isNotNull);
     sync.dispose();
   });
-}
 
+  test('a player who joins while round 1 is still a draft is paired into round 1', () async {
+    final db = FakeFirebaseFirestore();
+    final app = AppState(store: CloudStore(db, 'host'), draftRounds: true);
+    await app.load();
+    final t = swiss(3);
+    app.add(t);
+    final sync = HostSync(db, app, 'host');
+    await pumpEventQueue();
+    app.start(t); // round 1 drafted for 4 players
+    expect(t.currentRound!.published, isFalse);
+    await writeEntry(db, 't1', const Entry(uid: 'late', displayName: 'Late', status: EntryStatus.joined));
+    await pumpEventQueue();
+    final late = t.players.firstWhere((p) => p.uid == 'late');
+    expect(t.rounds.length, 1);
+    expect(t.currentRound!.matches.any((m) => m.involves(late.id)), isTrue);
+    expect(t.currentRound!.published, isFalse);
+    // Same for someone the host types in by hand.
+    t.players.add(Player(id: 'g', name: 'Guest', tieRand: 77));
+    app.changed();
+    expect(t.currentRound!.matches.any((m) => m.involves('g')), isTrue);
+    sync.dispose();
+  });
+
+  test('the last round as a draft still takes players; once sent, joining closes', () async {
+    final db = FakeFirebaseFirestore();
+    final app = AppState(store: CloudStore(db, 'host'), draftRounds: true);
+    await app.load();
+    final t = swiss(1);
+    app.add(t);
+    app.start(t);
+    expect(t.acceptsNewPlayers, isTrue); // round 1 of 1 is still a draft
+    app.publish(t);
+    expect(t.acceptsNewPlayers, isFalse);
+  });
+
+  test('who reported, from each side', () {
+    final t = swiss(3);
+    final m = Match(id: 'm', table: 1, p1: 'p0', p2: 'p1', result: const MatchResult(Outcome.p1, 2, 0), by: 'c:u0');
+    expect(provenanceText(t, m, viewerUid: 'u0'), 'Reported by you, accepted by P1');
+    expect(provenanceText(t, m, viewerUid: 'u1'), 'Reported by P0, accepted by you');
+    expect(provenanceText(t, m, viewerUid: null), 'Reported by P0, accepted by P1');
+    m.by = 'host';
+    expect(provenanceText(t, m, viewerUid: 'u0'), 'Recorded by the host');
+    m.by = 'dispute';
+    expect(provenanceText(t, m, viewerUid: 'u0'), 'Disputed — decided by the host');
+  });
+
+  test('confirmed claims record who reported first', () async {
+    final db = FakeFirebaseFirestore();
+    final app = AppState(store: CloudStore(db, 'host'), draftRounds: true);
+    await app.load();
+    final t = swiss(3);
+    app.add(t);
+    final sync = HostSync(db, app, 'host');
+    app.start(t);
+    app.publish(t);
+    final m = t.currentRound!.matches.first;
+    final a = t.player(m.p1)!.uid!, b = t.player(m.p2)!.uid!;
+    await writeClaim(db, 't1', Claim(matchId: m.id, uid: b, result: const MatchResult(Outcome.p2, 0, 2), atMs: 1));
+    await writeClaim(db, 't1', Claim(matchId: m.id, uid: a, result: const MatchResult(Outcome.p2, 0, 2), atMs: 2));
+    await pumpEventQueue();
+    expect(m.by, 'c:$b');
+    sync.dispose();
+  });
+}

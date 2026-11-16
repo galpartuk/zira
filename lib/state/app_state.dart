@@ -89,13 +89,27 @@ class AppState extends ChangeNotifier {
   void changed() {
     for (final t in tournaments) {
       _autoRounds(t);
+      _syncDraft(t);
     }
     notifyListeners();
     _save();
   }
 
+  /// Someone joined, was added or dropped while a Swiss round is still a
+  /// draft: pair it again so the round players receive matches the roster.
+  void _syncDraft(Tournament t) {
+    final d = draftRound(t);
+    if (d == null || d.stage != Stage.swiss || t.format != TFormat.swiss) return;
+    final inDraft = {for (final m in d.matches) ...[m.p1, if (m.p2 != null) m.p2!]};
+    final active = {for (final p in t.activePlayers) p.id};
+    if (inDraft.length == active.length && inDraft.containsAll(active)) return;
+    t.rounds.removeLast();
+    _autoRounds(t);
+    t.rounds.add(_fresh(pairSwissRound(t)));
+  }
+
   void _autoRounds(Tournament t) {
-    if (t.autoRounds && !t.started && t.format == TFormat.swiss) {
+    if (t.autoRounds && !t.underway && t.format == TFormat.swiss) {
       t.swissRounds = recommendedSwissRounds(t.activePlayers.length);
     }
   }
@@ -201,9 +215,10 @@ class AppState extends ChangeNotifier {
     changed();
   }
 
-  void setResult(Tournament t, Match m, MatchResult? r) {
+  void setResult(Tournament t, Match m, MatchResult? r, {String by = 'host'}) {
     if (roundOf(t, m)?.published == false) return; // drafts can't be scored
     m.result = r;
+    m.by = r == null ? null : by;
     changed();
   }
 

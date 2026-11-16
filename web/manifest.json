@@ -1,11 +1,11 @@
 {
-    "name": "zira",
-    "short_name": "zira",
+    "name": "Duel Network",
+    "short_name": "Duel Network",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Run card-game tournaments and play them from your phone.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -9,6 +9,7 @@ import '../../state/app_state.dart';
 import '../../state/session.dart';
 import '../../theme.dart';
 import '../../widgets/common.dart';
+import '../../widgets/my_match_card.dart';
 import '../../widgets/result_sheet.dart';
 import '../../widgets/round_timer.dart';
 
@@ -171,7 +172,7 @@ class _RoundsTabState extends State<RoundsTab> {
       );
       if (!mounted) return;
       if (pick != null) {
-        context.read<AppState>().setResult(t, m, pick);
+        context.read<AppState>().setResult(t, m, pick, by: 'dispute');
         return;
       }
     }
@@ -333,8 +334,9 @@ class _MatchCard extends StatelessWidget {
     }
 
     final label = m.isBye ? 'BYE' : (m.thirdPlace ? '3' : '${m.table}');
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+    final source = provenanceText(t, m, viewerUid: null);
+    final card = Padding(
+      padding: EdgeInsets.only(bottom: source == null ? 8 : 2),
       child: Material(
         color: Z.surface,
         borderRadius: BorderRadius.circular(14),
@@ -397,5 +399,13 @@ class _MatchCard extends StatelessWidget {
         ),
       ),
     );
+    if (source == null) return card;
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      card,
+      Padding(
+        padding: const EdgeInsetsDirectional.only(start: 62, bottom: 8),
+        child: Text(source, style: const TextStyle(fontSize: 12, color: Z.muted)),
+      ),
+    ]);
   }
 }

@@ -184,6 +184,8 @@ class _OnlineList extends StatelessWidget {
         final playing = snap.data ?? const [];
         final live = [for (final p in playing) if (p.status != 'finished') p];
         final done = [for (final p in playing) if (p.status == 'finished') p];
+        final hostingNow = [for (final t in hosted) if (!t.finished) t];
+        final hostedDone = [for (final t in hosted) if (t.finished) t];
         if (playing.isEmpty && hosted.isEmpty) {
           return EmptyState(
             icon: Icons.emoji_events_outlined,
@@ -198,13 +200,14 @@ class _OnlineList extends StatelessWidget {
             for (final p in live) _joinedTile(context, p.tid, p.name, finished: false),
             const SizedBox(height: 12),
           ],
-          if (hosted.isNotEmpty) ...[
+          if (hostingNow.isNotEmpty) ...[
             SectionTitle(S.t.hosting),
-            for (final t in hosted) Padding(padding: const EdgeInsets.only(bottom: 10), child: _TournamentCard(t)),
+            for (final t in hostingNow) Padding(padding: const EdgeInsets.only(bottom: 10), child: _TournamentCard(t)),
             const SizedBox(height: 12),
           ],
-          if (done.isNotEmpty) ...[
+          if (done.isNotEmpty || hostedDone.isNotEmpty) ...[
             SectionTitle(S.t.history),
+            for (final t in hostedDone) Padding(padding: const EdgeInsets.only(bottom: 10), child: _TournamentCard(t)),
             for (final p in done) _joinedTile(context, p.tid, p.name, finished: true),
           ],
         ]);
