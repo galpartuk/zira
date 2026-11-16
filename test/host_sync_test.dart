@@ -99,6 +99,9 @@ void main() {
 
   test('removePlayer before start removes and blocks rejoin', () async {
     final (db, app, sync, t) = await setup();
+    // Bob joined by code, so he has an entry.
+    await writeEntry(db, 't1', const Entry(uid: 'bob', displayName: 'B', status: EntryStatus.joined));
+    await pumpEventQueue();
     await sync.removePlayer(t, t.player('b')!);
     expect(t.player('b'), isNull);
     expect((await db.doc('tournaments/t1/entries/bob').get()).data()!['status'], 'removed');

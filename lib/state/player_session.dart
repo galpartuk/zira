@@ -8,7 +8,7 @@ import '../cloud/join_codes.dart';
 import '../engine/models.dart';
 import '../engine/online.dart';
 
-enum JoinResult { ok, requested, badCode, closed, removed }
+enum JoinResult { ok, requested, badCode, closed, removed, dropped }
 
 Future<(JoinResult, String?)> joinWithCode(FirebaseFirestore db,
     {required String uid, required String name, required String code}) async {
@@ -19,6 +19,8 @@ Future<(JoinResult, String?)> joinWithCode(FirebaseFirestore db,
   final mine = (await db.doc('tournaments/$tid/entries/$uid').get()).data();
   if (mine?['status'] == 'removed') return (JoinResult.removed, null);
   if (mine?['status'] == 'joined') return (JoinResult.ok, tid);
+  if (mine?['status'] == 'requested') return (JoinResult.requested, tid); // still waiting: just open it
+  if (mine?['status'] == 'dropped') return (JoinResult.dropped, tid);
   final mode = doc['joinMode'] as String? ?? 'open';
   final status = doc['status'] as String? ?? 'registration';
   if (status == 'finished' ||
@@ -144,10 +146,7 @@ class PlayerSession extends ChangeNotifier {
     if (s is Pending && s.by.uid != uid) await report(s.by.result);
   }
 
-  Future<void> drop() async {
-    final p = me;
-    await writeEntry(db, tid, Entry(uid: uid, displayName: p?.name ?? '?', status: EntryStatus.dropped));
-  }
+  Future<void> drop() => setEntryStatus(db, tid, uid, EntryStatus.dropped);
 
   @override
   void dispose() {

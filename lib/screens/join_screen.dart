@@ -69,6 +69,8 @@ Future<void> joinAndOpen(BuildContext context, String code, {bool replace = fals
         toast(context, S.t.joinClosed);
       case JoinResult.removed:
         toast(context, S.t.joinRemoved);
+      case JoinResult.dropped:
+        toast(context, S.t.joinAlreadyDropped);
     }
   } catch (_) {
     if (context.mounted) toast(context, S.t.authError('network-request-failed'));

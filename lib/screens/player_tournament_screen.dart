@@ -77,7 +77,12 @@ class _PlayerView extends StatelessWidget {
               PopupMenuButton<String>(
                 onSelected: (_) async {
                   final ok = await confirm(context, S.t.dropFromEvent, S.t.dropFromEventBody, ok: S.t.drop, danger: true);
-                  if (ok) await s.drop();
+                  if (!ok) return;
+                  try {
+                    await s.drop();
+                  } catch (_) {
+                    if (context.mounted) toast(context, S.t.authError('network-request-failed'));
+                  }
                 },
                 itemBuilder: (_) => [PopupMenuItem(value: 'drop', child: Text(S.t.dropFromEvent))],
               ),

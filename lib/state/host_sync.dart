@@ -21,10 +21,6 @@ class HostSync extends ChangeNotifier {
   final _entries = <String, List<Entry>>{};
   final _applied = <String>{};
 
-  /// Last entry status seen per tournament+uid, so an entry is applied once per
-  /// change and a host's later manual fix (e.g. undoing a drop) sticks.
-  final _seenEntries = <String, EntryStatus>{};
-
   /// How long to wait before listening again after the server refused.
   static Duration retryDelay = const Duration(seconds: 3);
 
@@ -89,13 +85,13 @@ class HostSync extends ChangeNotifier {
     if (t == null) return;
     final fresh = [
       for (final e in _entries[tid] ?? const <Entry>[])
-        if (_seenEntries['$tid/${e.uid}'] != e.status) e,
+        if (t.entrySeen[e.uid] != e.status.name) e,
     ];
     for (final e in fresh) {
-      _seenEntries['$tid/${e.uid}'] = e.status;
+      t.entrySeen[e.uid] = e.status.name;
     }
     final before = {for (final p in t.players) p.uid};
-    var changed = applyEntries(t, fresh);
+    var changed = applyEntries(t, fresh) || fresh.isNotEmpty;
     for (final p in t.players) {
       if (p.uid != null && !before.contains(p.uid)) onNotice?.call(noticeJoined(p.name));
     }
@@ -105,7 +101,7 @@ class HostSync extends ChangeNotifier {
     final r = t.currentRound;
     if (r != null && r.published) {
       for (final m in r.matches) {
-        if (m.isBye || m.result != null) continue;
+        if (m.isBye || m.result != null || m.by == 'x') continue; // 'x': host cleared it
         final s = resolveClaims(t, m, _claims[tid] ?? const []);
         if (s is Confirmed) {
           final key = '${m.id}|${s.result.outcome.index}|${s.result.g1}|${s.result.g2}';
@@ -135,8 +131,7 @@ class HostSync extends ChangeNotifier {
       (_entries[t.id] ?? const []).where((e) => e.status == EntryStatus.requested).toList();
 
   Future<void> approve(Tournament t, String playerUid) async {
-    final e = (_entries[t.id] ?? const []).firstWhere((e) => e.uid == playerUid);
-    await writeEntry(db, t.id, Entry(uid: e.uid, displayName: e.displayName, status: EntryStatus.joined));
+    await setEntryStatus(db, t.id, playerUid, EntryStatus.joined);
   }
 
   /// Before the start the player disappears; after it they are dropped
@@ -148,8 +143,14 @@ class HostSync extends ChangeNotifier {
       p.dropped = true;
     }
     app.changed();
-    if (p.uid != null) {
-      await writeEntry(db, t.id, Entry(uid: p.uid!, displayName: p.name, status: EntryStatus.removed));
+    // Only players who joined by code have an entry (not guests, not the host).
+    final hasEntry = (_entries[t.id] ?? const <Entry>[]).any((e) => e.uid == p.uid);
+    if (p.uid != null && p.uid != uid && hasEntry) {
+      try {
+        await setEntryStatus(db, t.id, p.uid!, EntryStatus.removed);
+      } catch (e) {
+        debugPrint('remove entry: $e');
+      }
     }
   }
 

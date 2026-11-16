@@ -229,8 +229,11 @@ class AppState extends ChangeNotifier {
 
   void setResult(Tournament t, Match m, MatchResult? r, {String by = 'host'}) {
     if (roundOf(t, m)?.published == false) return; // drafts can't be scored
+    // Clearing a reported result on purpose is remembered ('x') so the old
+    // reports aren't applied again.
+    final reported = m.by != null && (m.by!.startsWith('c:') || m.by!.startsWith('g:') || m.by!.startsWith('p:'));
     m.result = r;
-    m.by = r == null ? null : by;
+    m.by = r != null ? by : (reported ? 'x' : null);
     changed();
   }
 

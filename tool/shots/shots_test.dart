@@ -104,6 +104,7 @@ Future<void> shot(WidgetTester tester, String name) async {
 
 void main() {
   setUpAll(() async {
+    // ignore: invalid_use_of_visible_for_testing_member
     KeepAwake.apply = (_) {}; // no wakelock plugin in tests
     await loadFont('Heebo', 'assets/fonts/Heebo.ttf');
     const sdk = 'C:/tools/flutter';

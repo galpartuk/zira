@@ -490,9 +490,12 @@ class S {
   String get tournamentGone => _('The host deleted this tournament', 'ההוסט מחק את הטורניר');
 
   // ---------------------------------------------------------------- my match status
-  String youWon(int a, int b) => _('You won $a–$b', 'ניצחת $a–$b');
-  String youLost(int a, int b) => _('You lost $a–$b', 'הפסדת $a–$b');
-  String myDraw(int a, int b) => _('Draw $a–$b', 'תיקו $a–$b');
+  /// "my–their" score kept left-to-right inside Hebrew text; without the
+  /// isolate the bidi algorithm flips it ("הפסדת 1–2" would show as 2–1).
+  String _score(int a, int b) => '\u2066$a–$b\u2069';
+  String youWon(int a, int b) => _('You won ${_score(a, b)}', 'ניצחת ${_score(a, b)}');
+  String youLost(int a, int b) => _('You lost ${_score(a, b)}', 'הפסדת ${_score(a, b)}');
+  String myDraw(int a, int b) => _('Draw ${_score(a, b)}', 'תיקו ${_score(a, b)}');
   String get byeAutoWin => _('Bye — automatic win', 'BYE — ניצחון אוטומטי');
   String get resultFinal => _('Result recorded', 'התוצאה נרשמה');
   String waitingFor(String name) => _('Waiting for $name to confirm', 'ממתין לאישור של $name');
@@ -587,4 +590,7 @@ class S {
   // ---------------------------------------------------------------- manual pairing
   String get swapHint => _('Tap two players to swap them', 'הקש על שני שחקנים כדי להחליף ביניהם');
   String swapPickSecond(String name) => _('Now tap who swaps with $name', 'עכשיו הקש על מי שיתחלף עם $name');
+
+  // ---------------------------------------------------------------- review fixes
+  String get joinAlreadyDropped => _('You dropped from this tournament', 'פרשת מהטורניר הזה');
 }

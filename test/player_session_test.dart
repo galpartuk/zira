@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:zira/l10n.dart';
 import 'package:zira/widgets/my_match_card.dart';
 import 'package:zira/widgets/round_timer.dart';
+import 'package:zira/cloud/claims.dart';
 import 'package:zira/cloud/tournament_repo.dart';
 import 'package:zira/engine/models.dart';
 import 'package:zira/engine/online.dart';
@@ -90,6 +91,7 @@ void main() {
 
   test('drop writes a dropped entry', () async {
     final db = await hosted();
+    await writeEntry(db, 't1', const Entry(uid: 'alice', displayName: 'Alice', status: EntryStatus.joined));
     final s = PlayerSession(db, 't1', 'alice');
     await pumpEventQueue();
     await s.drop();
@@ -149,7 +151,7 @@ void main() {
     await tester.pumpWidget(app(pending));
     await tester.pumpAndSettle();
     expect(find.text('Alice reported a result'), findsOneWidget);
-    expect(find.text('You lost 1–2'), findsOneWidget); // from Bob's side
+    expect(find.text(S.t.youLost(1, 2)), findsOneWidget); // from Bob's side
     await tester.tap(find.text('Confirm'));
     await tester.pumpAndSettle();
     expect(sent.single, same(theirs));

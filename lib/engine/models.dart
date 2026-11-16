@@ -114,7 +114,7 @@ class Match {
         'p2': p2,
         if (result != null) 'r': result!.toJson(),
         if (thirdPlace) 'third': true,
-        if (by != null && result != null) 'by': by,
+        if (by != null) 'by': by,
       };
 
   factory Match.fromJson(Map<String, dynamic> j) => Match(
@@ -252,6 +252,10 @@ class Tournament {
   /// Online: the host sent the final standings and prizes to the players.
   bool resultsPublished;
 
+  /// Online, host side: the last join/drop status applied per player uid, so
+  /// an entry is applied once even across app restarts (and manual fixes stick).
+  final Map<String, String> entrySeen;
+
   Tournament({
     String? id,
     required this.name,
@@ -276,11 +280,13 @@ class Tournament {
     this.joinMode = 'open',
     this.autoRounds = false,
     this.resultsPublished = false,
+    Map<String, String>? entrySeen,
   })  : id = id ?? newId(),
         created = created ?? DateTime.now(),
         players = players ?? [],
         rounds = rounds ?? [],
-        prizes = prizes ?? PrizeConfig();
+        prizes = prizes ?? PrizeConfig(),
+        entrySeen = entrySeen ?? {};
 
   Player? player(String? id) {
     if (id == null) return null;
@@ -307,6 +313,8 @@ class Tournament {
   /// newcomer would never play but could still change the top cut.
   bool get acceptsNewPlayers {
     if (finished || topRoundsList.any((r) => r.published)) return false;
+    // Round robin: the schedule is fixed when the event starts (even as a draft).
+    if (format == TFormat.roundRobin) return !started;
     if (!underway) return true;
     return format == TFormat.swiss && swissRoundsList.where((r) => r.published).length < plannedSwissRounds;
   }
@@ -349,6 +357,7 @@ class Tournament {
         if (joinMode != 'open') 'join': joinMode,
         if (autoRounds) 'autoR': true,
         if (resultsPublished) 'resPub': true,
+        if (entrySeen.isNotEmpty) 'seen': entrySeen,
       };
 
   factory Tournament.fromJson(Map<String, dynamic> j) => Tournament(
@@ -377,6 +386,7 @@ class Tournament {
         joinMode: j['join'] as String? ?? 'open',
         autoRounds: j['autoR'] as bool? ?? false,
         resultsPublished: j['resPub'] as bool? ?? false,
+        entrySeen: (j['seen'] as Map?)?.map((k, v) => MapEntry(k as String, v as String)),
       );
 }
 
