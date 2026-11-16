@@ -143,6 +143,14 @@ class HostSync extends ChangeNotifier {
     }
   }
 
+  /// The host also plays in [m]: their own result goes through the opponent's
+  /// confirmation like any player's, not straight into the standings.
+  bool isOwnMatch(Tournament t, Match m) =>
+      !m.isBye && (t.player(m.p1)?.uid == uid || t.player(m.p2)?.uid == uid);
+
+  Future<void> reportOwn(Tournament t, Match m, MatchResult r) => writeClaim(
+      db, t.id, Claim(matchId: m.id, uid: uid, result: r, atMs: DateTime.now().millisecondsSinceEpoch));
+
   bool roundHasClaims(Tournament t, Round r) {
     final ids = r.matches.map((m) => m.id).toSet();
     return (_claims[t.id] ?? const []).any((c) => ids.contains(c.matchId));

@@ -72,4 +72,27 @@ void main() {
     sync.dispose();
     Lang.instance.code = 'en';
   });
+
+  testWidgets('host who plays: tapping their own match sends a player report, not a final result', (tester) async {
+    final (db, app, sync, t) = await pumpHost(tester, 'en');
+    // The host plays too, as 'Alice' would: give the host's uid to a player.
+    final hostPlayer = Player(id: 'h', name: 'Host', uid: 'host', tieRand: 9);
+    t.players
+      ..removeWhere((p) => p.id == 'd')
+      ..add(hostPlayer);
+    app.start(t);
+    app.publish(t);
+    await tester.pumpAndSettle();
+    final mine = t.currentRound!.matches.firstWhere((m) => m.involves('h'));
+    await tester.tap(find.text('Rounds'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Host').last); // the match in the round list
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('2-0'));
+    await tester.pumpAndSettle();
+    expect(mine.result, isNull, reason: 'the opponent still has to confirm');
+    final claims = await db.collection('tournaments/t1/claims').get();
+    expect(claims.docs.map((d) => d.id), contains('${mine.id}_host'));
+    sync.dispose();
+  });
 }

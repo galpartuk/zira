@@ -187,6 +187,13 @@ class _RoundsTabState extends State<RoundsTab> {
       ),
     );
     if (r == null || !mounted) return;
+    final sync = hostSyncOf(context, listen: false);
+    if (sync != null && m.result == null && sync.isOwnMatch(t, m) && !identical(r, ResultSheet.clear)) {
+      // The host's own match: a player report the opponent has to confirm.
+      await sync.reportOwn(t, m, r);
+      if (mounted) toast(context, S.t.resultSent(t.nameOf(t.player(m.p1)?.uid == sync.uid ? m.p2 : m.p1)));
+      return;
+    }
     context.read<AppState>().setResult(t, m, identical(r, ResultSheet.clear) ? null : r);
   }
 

@@ -6,6 +6,7 @@ import '../../engine/pairing.dart';
 import '../../engine/standings.dart';
 import '../../l10n.dart';
 import '../../state/app_state.dart';
+import '../../state/session.dart';
 import '../../theme.dart';
 import '../../widgets/common.dart';
 import '../../widgets/result_sheet.dart';
@@ -238,6 +239,12 @@ class _BracketMatch extends StatelessWidget {
                     ),
                   );
                   if (r == null || !context.mounted) return;
+                  final sync = hostSyncOf(context, listen: false);
+                  if (sync != null && m.result == null && sync.isOwnMatch(t, m) && !identical(r, ResultSheet.clear)) {
+                    // The host's own match: the opponent confirms it.
+                    await sync.reportOwn(t, m, r);
+                    return;
+                  }
                   context.read<AppState>().setResult(t, m, identical(r, ResultSheet.clear) ? null : r);
                 },
           child: Padding(
