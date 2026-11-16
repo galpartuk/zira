@@ -43,7 +43,8 @@ class _MemoryScreenState extends State<MemoryScreen> {
   void initState() {
     super.initState();
     KeepAwake.acquire();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    // Status bar hidden for more room; the navigation bar (back) stays.
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: [SystemUiOverlay.bottom]);
     _load();
   }
 
@@ -51,7 +52,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
   void dispose() {
     _bannerTimer?.cancel();
     KeepAwake.release();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
     super.dispose();
   }
 

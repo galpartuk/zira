@@ -15,7 +15,13 @@ class AuthService extends ChangeNotifier {
     });
   }
 
-  String get displayName => user?.displayName?.trim().isNotEmpty == true ? user!.displayName! : (user?.email ?? '?');
+  /// Never the full email: other players see this name.
+  String get displayName {
+    final n = user?.displayName?.trim();
+    if (n != null && n.isNotEmpty) return n;
+    final email = user?.email;
+    return email == null ? '?' : email.split('@').first;
+  }
 
   Future<void> _profile() async {
     final u = auth.currentUser;

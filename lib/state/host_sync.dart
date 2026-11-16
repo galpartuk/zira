@@ -25,6 +25,10 @@ class HostSync extends ChangeNotifier {
   /// change and a host's later manual fix (e.g. undoing a drop) sticks.
   final _seenEntries = <String, EntryStatus>{};
 
+  /// How long to wait before listening again after the server refused.
+  static Duration retryDelay = const Duration(seconds: 3);
+  bool _disposed = false;
+
   HostSync(this.db, this.app, this.uid) {
     app.addListener(_resync);
     _resync();
@@ -49,13 +53,28 @@ class HostSync extends ChangeNotifier {
         ref.collection('entries').snapshots().listen((s) {
           _entries[id] = [for (final d in s.docs) Entry.fromJson(d.id, d.data())];
           _apply(id);
-        }),
+        }, onError: (Object e) => _listenFailed(id, e)),
         ref.collection('claims').snapshots().listen((s) {
           _claims[id] = [for (final d in s.docs) Claim.fromJson(d.data())];
           _apply(id);
-        }),
+        }, onError: (Object e) => _listenFailed(id, e)),
       ];
     }
+  }
+
+  /// A rejected listener (typically: the tournament was just created and has
+  /// not reached the server yet, so the rules can't find its host) is dead
+  /// for good in Firestore. Drop it and subscribe again shortly.
+  void _listenFailed(String id, Object e) {
+    debugPrint('listen $id failed: $e');
+    final subs = _subs.remove(id);
+    if (subs == null) return; // the other stream already scheduled a retry
+    for (final s in subs) {
+      s.cancel();
+    }
+    Future.delayed(retryDelay, () {
+      if (!_disposed) _resync();
+    });
   }
 
   void _apply(String tid) {
@@ -163,6 +182,7 @@ class HostSync extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
     app.removeListener(_resync);
     for (final l in _subs.values) {
       for (final s in l) {

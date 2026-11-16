@@ -62,6 +62,14 @@ class RoundAlarm {
   static Future<void> ring({bool long = false}) async {
     try {
       await _player.stop();
+      // Alarm stream: heard even when media volume is down.
+      await _player.setAudioContext(AudioContext(
+        android: const AudioContextAndroid(
+          contentType: AndroidContentType.sonification,
+          usageType: AndroidUsageType.alarm,
+          audioFocus: AndroidAudioFocus.gainTransientMayDuck,
+        ),
+      ));
       await _player.play(AssetSource('sounds/alarm.wav'), volume: 1);
     } catch (_) {}
     for (var i = 0; i < (long ? 6 : 3); i++) {
@@ -94,7 +102,7 @@ class KeepAwake {
 class RoundTimer extends StatefulWidget {
   final Tournament t;
 
-  /// Players see the host's clock but can't run it (and the alarm stays on the host's phone).
+  /// Players see the host's clock (and hear its alarm) but can't run it.
   final bool readOnly;
   const RoundTimer({super.key, required this.t, this.readOnly = false});
 
@@ -112,7 +120,7 @@ class _RoundTimerState extends State<RoundTimer> {
     _tick = Timer.periodic(const Duration(milliseconds: 250), (_) {
       if (!mounted) return;
       final c = clockOf(widget.t);
-      if (!widget.readOnly) RoundAlarm.check(widget.t, c);
+      RoundAlarm.check(widget.t, c);
       _keepAwake(c.running && c.phase != ClockPhase.over);
       if (c.running) setState(() {});
     });
@@ -202,7 +210,7 @@ class _BigTimerState extends State<_BigTimer> {
     KeepAwake.acquire();
     _tick = Timer.periodic(const Duration(milliseconds: 250), (_) {
       if (!mounted) return;
-      if (!widget.readOnly) RoundAlarm.check(widget.t, clockOf(widget.t));
+      RoundAlarm.check(widget.t, clockOf(widget.t));
       setState(() {});
     });
   }
