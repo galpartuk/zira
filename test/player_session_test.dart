@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zira/l10n.dart';
 import 'package:zira/widgets/my_match_card.dart';
+import 'package:zira/widgets/round_timer.dart';
 import 'package:zira/cloud/tournament_repo.dart';
 import 'package:zira/engine/models.dart';
 import 'package:zira/engine/online.dart';
@@ -74,6 +75,19 @@ void main() {
     s.dispose();
   });
 
+  test('claims are only listened to once I am a member (the rules refuse it before)', () async {
+    final db = await hosted();
+    // Eve just joined: she is in no player list and not a member yet.
+    await db.doc('tournaments/t1').update({'memberUids': ['host', 'alice', 'bob']});
+    final s = PlayerSession(db, 't1', 'eve');
+    await pumpEventQueue();
+    expect(s.listeningToClaims, isFalse);
+    await db.doc('tournaments/t1').update({'memberUids': ['host', 'alice', 'bob', 'eve']});
+    await pumpEventQueue();
+    expect(s.listeningToClaims, isTrue);
+    s.dispose();
+  });
+
   test('drop writes a dropped entry', () async {
     final db = await hosted();
     final s = PlayerSession(db, 't1', 'alice');
@@ -102,8 +116,57 @@ void main() {
         ),
       ),
     ));
-    expect(find.textContaining('Alice reported'), findsOneWidget);
+    expect(find.text('Alice reported a result'), findsOneWidget);
     await tester.tap(find.text('Confirm'));
     expect(sent, same(theirs));
+  });
+
+  testWidgets('pop-up appears once when the opponent reports, and Confirm sends their result', (tester) async {
+    Lang.instance.code = 'en';
+    final t = Tournament(name: 'T', players: [
+      Player(id: 'a', name: 'Alice', uid: 'alice', tieRand: 1),
+      Player(id: 'b', name: 'Bob', uid: 'bob', tieRand: 2),
+    ]);
+    t.rounds.add(Round(number: 1, stage: Stage.swiss, matches: [Match(id: 'm1', table: 3, p1: 'a', p2: 'b')]));
+    const theirs = MatchResult(Outcome.p1, 2, 1);
+    final sent = <MatchResult>[];
+    Widget app(ClaimState st) => MaterialApp(
+          home: Scaffold(
+            body: ClaimPrompt(
+              t: t,
+              uid: 'bob',
+              state: st,
+              onReport: (r) async => sent.add(r),
+              child: const SizedBox.expand(),
+            ),
+          ),
+        );
+    await tester.pumpWidget(app(const NoClaims()));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+
+    const pending = Pending(Claim(matchId: 'm1', uid: 'alice', result: theirs, atMs: 1));
+    await tester.pumpWidget(app(pending));
+    await tester.pumpAndSettle();
+    expect(find.text('Alice reported a result'), findsOneWidget);
+    expect(find.text('You lost 1–2'), findsOneWidget); // from Bob's side
+    await tester.tap(find.text('Confirm'));
+    await tester.pumpAndSettle();
+    expect(sent.single, same(theirs));
+
+    await tester.pumpWidget(app(pending)); // same report again: no second pop-up
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+  });
+
+  testWidgets('players get the clock without start/pause/reset buttons', (tester) async {
+    Lang.instance.code = 'en';
+    final t = Tournament(name: 'T');
+    await tester.pumpWidget(MaterialApp(home: Scaffold(body: RoundTimer(t: t, readOnly: true))));
+    expect(find.byIcon(Icons.play_arrow_rounded), findsNothing);
+    expect(find.byIcon(Icons.pause_rounded), findsNothing);
+    expect(find.byIcon(Icons.replay), findsNothing);
+    expect(find.byIcon(Icons.more_time), findsNothing);
+    await tester.pumpWidget(const SizedBox()); // stops the clock's ticker
   });
 }

@@ -488,4 +488,20 @@ class S {
   String get youDropped => _('You dropped from this tournament', 'פרשת מהטורניר');
   String get notInEventYet => _('Waiting for the host to add you', 'ממתינים שההוסט יוסיף אותך');
   String get tournamentGone => _('The host deleted this tournament', 'ההוסט מחק את הטורניר');
+
+  // ---------------------------------------------------------------- my match status
+  String youWon(int a, int b) => _('You won $a–$b', 'ניצחת $a–$b');
+  String youLost(int a, int b) => _('You lost $a–$b', 'הפסדת $a–$b');
+  String myDraw(int a, int b) => _('Draw $a–$b', 'תיקו $a–$b');
+  String get byeAutoWin => _('Bye — automatic win', 'BYE — ניצחון אוטומטי');
+  String get resultFinal => _('Result recorded', 'התוצאה נרשמה');
+  String waitingFor(String name) => _('Waiting for $name to confirm', 'ממתין לאישור של $name');
+  String youReportedScore(String r) => _('You reported: $r', 'דיווחת: $r');
+  String get change => _('Change', 'שינוי');
+  String opponentReportedTitle(String name) => _('$name reported a result', '$name דיווח תוצאה');
+  String get disputeBody => _('The two reports differ. Tell the host.', 'הדיווחים שונים. פנה להוסט.');
+  String resultSent(String name) => _('Result sent — $name will be asked to confirm', 'התוצאה נשלחה — $name יתבקש לאשר');
+  String get confirmQuestion => _('Is this the result?', 'זו התוצאה?');
+  String get later => _('Later', 'אחר כך');
+  String get roundClockHost => _('The host runs the clock', 'ההוסט מפעיל את השעון');
 }

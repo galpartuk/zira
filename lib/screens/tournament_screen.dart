@@ -98,7 +98,7 @@ class _TournamentScreenState extends State<TournamentScreen> with TickerProvider
           tabs: [for (final k in _keys) Tab(text: labels[k])],
         ),
       ),
-      body: Column(children: [
+      body: _withHostPrompt(context, t, Column(children: [
         if (sync != null && !t.finished) HostStrip(t: t, sync: sync),
         Expanded(
           child: TabBarView(controller: _tabs, children: [
@@ -112,10 +112,29 @@ class _TournamentScreenState extends State<TournamentScreen> with TickerProvider
           }
           ]),
         ),
-      ]),
+      ])),
       bottomNavigationBar: _NextStepBar(t: t, goTo: _goTo),
     );
   }
+}
+
+/// A host who also plays gets the same pop-up as players when the opponent reports.
+Widget _withHostPrompt(BuildContext context, Tournament t, Widget child) {
+  final sync = hostSyncOf(context);
+  final uid = authOf(context)?.user?.uid;
+  final db = dbOf(context);
+  if (sync == null || uid == null || db == null) return child;
+  final info = MyMatchInfo.of(t, uid);
+  return ClaimPrompt(
+    t: t,
+    uid: uid,
+    state: info == null ? const NoClaims() : sync.stateOf(t, info.match),
+    onReport: (res) => info == null
+        ? Future.value()
+        : writeClaim(db, t.id,
+            Claim(matchId: info.match.id, uid: uid, result: res, atMs: DateTime.now().millisecondsSinceEpoch)),
+    child: child,
+  );
 }
 
 /// The host's own match when they also play (online only).

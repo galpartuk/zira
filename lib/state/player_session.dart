@@ -68,10 +68,8 @@ class PlayerSession extends ChangeNotifier {
         gone = false;
         hostUid = d['hostUid'] as String?;
         t = Tournament.fromJson(Map<String, dynamic>.from(d['data'] as Map));
-        notifyListeners();
-      }))
-      ..add(ref.collection('claims').snapshots().listen((s) {
-        _claims = [for (final d in s.docs) Claim.fromJson(d.data())];
+        final members = (d['memberUids'] as List?)?.cast<String>() ?? const <String>[];
+        if (members.contains(uid)) _listenClaims();
         notifyListeners();
       }))
       ..add(ref.collection('entries').doc(uid).snapshots().listen((s) {
@@ -79,6 +77,32 @@ class PlayerSession extends ChangeNotifier {
         myStatus = d == null ? null : Entry.fromJson(uid, d).status;
         notifyListeners();
       }));
+  }
+
+  StreamSubscription? _claimsSub;
+  bool _disposed = false;
+
+  /// Delay before listening again after the server refused.
+  static Duration retryDelay = const Duration(seconds: 3);
+
+  /// True while reports are being received. The rules only allow it once the
+  /// host has made me a member, a moment after I join; a listener started
+  /// before that is refused and dead for good, hence the wait and the retry.
+  bool get listeningToClaims => _claimsSub != null;
+
+  void _listenClaims() {
+    if (_claimsSub != null || _disposed) return;
+    _claimsSub = db.collection('tournaments/$tid/claims').snapshots().listen((s) {
+      _claims = [for (final d in s.docs) Claim.fromJson(d.data())];
+      notifyListeners();
+    }, onError: (Object e) {
+      debugPrint('claims $tid: $e');
+      _claimsSub?.cancel();
+      _claimsSub = null;
+      Future.delayed(retryDelay, () {
+        if (!_disposed && t != null) _listenClaims();
+      });
+    });
   }
 
   Player? get me {
@@ -125,6 +149,8 @@ class PlayerSession extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
+    _claimsSub?.cancel();
     for (final s in _subs) {
       s.cancel();
     }

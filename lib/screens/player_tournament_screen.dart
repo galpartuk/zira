@@ -71,7 +71,13 @@ class _PlayerView extends StatelessWidget {
           ],
           bottom: TabBar(isScrollable: true, tabs: [for (final x in tabs) Tab(text: x.$1)]),
         ),
-        body: TabBarView(children: [for (final x in tabs) x.$2]),
+        body: ClaimPrompt(
+          t: t,
+          uid: s.uid,
+          state: s.myState,
+          onReport: s.report,
+          child: TabBarView(children: [for (final x in tabs) x.$2]),
+        ),
       ),
     );
   }

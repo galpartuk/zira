@@ -229,7 +229,7 @@ class _BigTimerState extends State<_BigTimer> {
     final c = clockOf(t);
     final r = t.currentRound;
     final (bg, color, caption) = switch (c.phase) {
-      ClockPhase.main => (Z.ink, Z.text, c.running ? S.t.tapToPause : S.t.tapToStart),
+      ClockPhase.main => (Z.ink, Z.text, widget.readOnly ? S.t.roundClockHost : (c.running ? S.t.tapToPause : S.t.tapToStart)),
       ClockPhase.overtime => (const Color(0xFF3A2620), Z.coral, S.t.overtimeCaption(t.overtimeMinutes)),
       ClockPhase.over => (const Color(0xFF3A1414), Z.danger, S.t.timeUpCaption),
     };
