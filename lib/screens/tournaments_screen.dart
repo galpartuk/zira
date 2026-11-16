@@ -46,12 +46,6 @@ class TournamentsScreen extends StatelessWidget {
           const LangButton(),
           if (auth != null)
             IconButton(
-              tooltip: S.t.joinWithCode,
-              icon: const Icon(Icons.qr_code_2),
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const JoinScreen())),
-            ),
-          if (auth != null)
-            IconButton(
               tooltip: S.t.account,
               icon: const Icon(Icons.account_circle_outlined),
               onPressed: () => showAccountSheet(context),
@@ -186,15 +180,19 @@ class _OnlineList extends StatelessWidget {
         final done = [for (final p in playing) if (p.status == 'finished') p];
         final hostingNow = [for (final t in hosted) if (!t.finished) t];
         final hostedDone = [for (final t in hosted) if (t.finished) t];
-        if (playing.isEmpty && hosted.isEmpty) {
-          return EmptyState(
-            icon: Icons.emoji_events_outlined,
-            title: S.t.noTournaments,
-            body: S.t.noTournamentsBody,
-            action: FilledButton.icon(onPressed: onCreate, icon: const Icon(Icons.add), label: Text(S.t.newTournament)),
-          );
-        }
-        return ListView(padding: const EdgeInsets.fromLTRB(16, 4, 16, 96), children: [
+        return ListView(padding: const EdgeInsets.fromLTRB(16, 8, 16, 96), children: [
+          const JoinCard(),
+          if (playing.isEmpty && hosted.isEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 24),
+              child: EmptyState(
+                icon: Icons.emoji_events_outlined,
+                title: S.t.noTournaments,
+                body: S.t.noTournamentsBody,
+                action:
+                    FilledButton.icon(onPressed: onCreate, icon: const Icon(Icons.add), label: Text(S.t.newTournament)),
+              ),
+            ),
           if (live.isNotEmpty) ...[
             SectionTitle(S.t.playingNow),
             for (final p in live) _joinedTile(context, p.tid, p.name, finished: false),

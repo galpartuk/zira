@@ -556,4 +556,8 @@ class S {
   String get overtimeNotice => _('Overtime — finish your turns, then report the result',
       'תורות נוספים — סיימו את התורות ודווחו תוצאה');
   String get timeUpNotice => _('Time is up — report your result now', 'הזמן נגמר — דווחו את התוצאה עכשיו');
+
+  // ---------------------------------------------------------------- join card
+  String get joinTournament => _('Join a tournament', 'הצטרפות לטורניר');
+  String get joinTournamentBody => _('Enter the 6-character code from the host', 'הקלד את הקוד בן 6 התווים מההוסט');
 }
