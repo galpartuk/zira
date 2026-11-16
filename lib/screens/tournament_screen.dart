@@ -18,6 +18,7 @@ import 'tabs/prizes_tab.dart';
 import 'tabs/rounds_tab.dart';
 import 'tabs/standings_tab.dart';
 import 'tournament_settings_sheet.dart';
+import 'history_screen.dart';
 import 'tournaments_screen.dart';
 
 class TournamentScreen extends StatefulWidget {
@@ -85,6 +86,13 @@ class _TournamentScreenState extends State<TournamentScreen> with TickerProvider
         ]),
         toolbarHeight: 68,
         actions: [
+          if (t.finished && sync != null && t.players.any((p) => p.uid == sync.uid))
+            IconButton(
+              tooltip: S.t.myRecord,
+              icon: const Icon(Icons.style_outlined),
+              onPressed: () =>
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => TournamentHistoryScreen(tid: t.id))),
+            ),
           IconButton(
             tooltip: S.t.settings,
             icon: const Icon(Icons.tune),

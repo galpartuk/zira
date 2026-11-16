@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../l10n.dart';
 import '../tools/tools_screen.dart';
+import 'stats_screen.dart';
 import 'tournaments_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -19,7 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(index: _tab, children: const [TournamentsScreen(), ToolsScreen()]),
+      body: IndexedStack(index: _tab, children: const [TournamentsScreen(), ToolsScreen(), StatsScreen()]),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tab,
         onDestinationSelected: (i) => setState(() => _tab = _lastTab = i),
@@ -27,6 +28,8 @@ class _HomeScreenState extends State<HomeScreen> {
           NavigationDestination(
               icon: const Icon(Icons.emoji_events_outlined), selectedIcon: const Icon(Icons.emoji_events), label: S.t.tournaments),
           NavigationDestination(icon: const Icon(Icons.casino_outlined), selectedIcon: const Icon(Icons.casino), label: S.t.gameTools),
+          NavigationDestination(
+              icon: const Icon(Icons.insights_outlined), selectedIcon: const Icon(Icons.insights), label: S.t.stats),
         ],
       ),
     );

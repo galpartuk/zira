@@ -10,6 +10,7 @@ import '../theme.dart';
 import '../widgets/common.dart';
 import '../widgets/my_match_card.dart';
 import '../widgets/round_timer.dart';
+import 'history_screen.dart';
 import 'tabs/bracket_tab.dart';
 import 'tabs/standings_tab.dart';
 
@@ -61,6 +62,13 @@ class _PlayerView extends StatelessWidget {
               Text(S.t.roundLabel(r), style: const TextStyle(fontSize: 12.5, color: Z.muted)),
           ]),
           actions: [
+            if (t.finished && s.me != null)
+              IconButton(
+                tooltip: S.t.myRecord,
+                icon: const Icon(Icons.style_outlined),
+                onPressed: () =>
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => TournamentHistoryScreen(tid: s.tid))),
+              ),
             if (canDrop)
               PopupMenuButton<String>(
                 onSelected: (_) async {

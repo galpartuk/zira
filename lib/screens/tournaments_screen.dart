@@ -12,6 +12,7 @@ import '../theme.dart';
 import '../widgets/common.dart';
 import 'account_sheet.dart';
 import 'create_tournament_screen.dart';
+import 'history_screen.dart';
 import 'join_screen.dart';
 import 'player_tournament_screen.dart';
 import 'sign_in_screen.dart';
@@ -218,6 +219,9 @@ Widget _joinedTile(BuildContext context, String tid, String name, {required bool
             color: finished ? Z.muted : Z.gold),
         title: Text(name, style: const TextStyle(fontWeight: FontWeight.w700)),
         trailing: finished ? Pill(S.t.finishedPill) : const Icon(Icons.chevron_right),
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => PlayerTournamentScreen(tid: tid))),
+        onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (_) => finished ? TournamentHistoryScreen(tid: tid) : PlayerTournamentScreen(tid: tid))),
       ),
     );

@@ -121,3 +121,10 @@ test('no joining once the host says the tournament no longer accepts players', a
   await env.withSecurityRulesDisabled((c) => updateDoc(doc(c.firestore(), 'tournaments/t1'), { acceptsPlayers: true }));
   await assertSucceeds(setDoc(doc(as('bob'), 'tournaments/t1/entries/bob'), { displayName: 'Bob', status: 'joined' }));
 });
+
+test('history: only the owner reads and writes it', async () => {
+  await assertSucceeds(setDoc(doc(as('alice'), 'users/alice/history/t1'), { myDeck: 'Red', opp: { m1: 'Blue' } }));
+  await assertSucceeds(getDoc(doc(as('alice'), 'users/alice/history/t1')));
+  await assertFails(getDoc(doc(as('bob'), 'users/alice/history/t1')));
+  await assertFails(setDoc(doc(as('bob'), 'users/alice/history/t1'), { myDeck: 'X' }));
+});

@@ -9,6 +9,11 @@ service cloud.firestore {
       allow write: if signedIn() && me() == uid;
     }
 
+    // A player's own record: their deck and opponents' decks per tournament.
+    match /users/{uid}/history/{tid} {
+      allow read, write: if signedIn() && me() == uid;
+    }
+
     match /joinCodes/{code} {
       allow get: if signedIn();
       allow create: if signedIn() && request.resource.data.hostUid == me();

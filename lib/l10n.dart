@@ -514,4 +514,24 @@ class S {
   String get history => _('History', 'היסטוריה');
   String get finishedPill => _('Finished', 'הסתיים');
   String get tournamentOverFinal => _('Tournament over — final standings', 'הטורניר הסתיים — דירוג סופי');
+
+  // ---------------------------------------------------------------- history & stats
+  String get stats => _('Stats', 'סטטיסטיקה');
+  String get myDecks => _('My decks', 'הדקים שלי');
+  String get matchups => _('Matchups', 'מאצ\'אפים');
+  String get allMyDecks => _('All my decks', 'כל הדקים שלי');
+  String get deck => _('Deck', 'דק');
+  String get opponentDeck => _('Opponent deck', 'דק יריב');
+  String get unmarked => _('Not recorded', 'לא סומן');
+  String get whichDeck => _('Which deck did you play?', 'איזה דק שיחקת?');
+  String get myDeckHint => _('e.g. Red Hybrid', 'למשל Red Hybrid');
+  String get oppDeckHint => _('Opponent\'s deck', 'הדק של היריב');
+  String get myRounds => _('My rounds', 'הסיבובים שלי');
+  String get noStatsYet => _('No finished tournaments yet', 'עוד אין טורנירים שהסתיימו');
+  String get noStatsBody => _('Play a tournament, then open it from History and record the decks.',
+      'שחק טורניר, ואז פתח אותו מההיסטוריה וסמן את הדקים.');
+  String get tournamentsShort => _('Events', 'טורנירים');
+  String get wld => _('W-L-D', 'נ-ה-ת');
+  String get winRate => _('Win %', 'ניצחון %');
+  String get myRecord => _('My record', 'התיעוד שלי');
 }
