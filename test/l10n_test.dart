@@ -206,4 +206,20 @@ void main() {
     expect(find.text('Dana'), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
   });
+
+  testWidgets('memory gauge: the Win button records a game win', (tester) async {
+    Lang.instance.code = 'en';
+    SharedPreferences.setMockInitialValues({});
+    await tester.binding.setSurfaceSize(const Size(420, 900));
+    await tester.pumpWidget(MaterialApp(theme: buildTheme(), home: const MemoryScreen()));
+    await tester.pumpAndSettle();
+    expect(find.text('Win'), findsNWidgets(2)); // one per player
+    await tester.tap(find.text('Win').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(S.t.yesNewGame));
+    await tester.pumpAndSettle();
+    final saved = (await SharedPreferences.getInstance()).getString('zira.memory.v1')!;
+    expect(saved.contains('"bw":1') || saved.contains('"tw":1'), isTrue);
+    await tester.pumpWidget(const SizedBox());
+  });
 }

@@ -560,4 +560,7 @@ class S {
   // ---------------------------------------------------------------- join card
   String get joinTournament => _('Join a tournament', 'הצטרפות לטורניר');
   String get joinTournamentBody => _('Enter the 6-character code from the host', 'הקלד את הקוד בן 6 התווים מההוסט');
+
+  // ---------------------------------------------------------------- memory gauge win button
+  String get winShort => _('Win', 'ניצחון');
 }

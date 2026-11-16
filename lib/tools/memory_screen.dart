@@ -405,7 +405,18 @@ class _MemoryScreenState extends State<MemoryScreen> {
               ]),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 6),
+          // A visible way to record the game (the dots' long press still works).
+          ActionChip(
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
+            backgroundColor: color.withValues(alpha: .13),
+            side: BorderSide(color: color.withValues(alpha: .5)),
+            avatar: Icon(Icons.emoji_events_rounded, size: 16, color: color),
+            label: Text(S.t.winShort, style: TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 13)),
+            onPressed: () => _gameWon(s),
+          ),
+          const SizedBox(width: 10),
           Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
             Text(mem > 0 ? '$mem' : (mem == 0 ? '0' : '−${-mem}'),
                 textDirection: TextDirection.ltr,
