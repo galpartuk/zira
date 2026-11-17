@@ -459,9 +459,9 @@ class S {
   String get joinOpen => _('Anyone with the code', 'כל מי שיש לו קוד');
   String get joinApproval => _('Only after I approve', 'רק אחרי אישור שלי');
   String get joinClosedOnStart => _('Code closes when the event starts', 'הקוד נסגר כשהטורניר מתחיל');
-  String roundCounts(int rep, int total, int pend, int disp) => _(
-      'Reported $rep/$total · Waiting $pend · Disputes $disp',
-      'דווחו $rep/$total · ממתינים לאישור $pend · מחלוקות $disp');
+  String countReported(int rep, int total) => _('Reported $rep/$total', 'דווחו $rep/$total');
+  String countPending(int n) => _('$n unconfirmed', '$n ממתינים לאישור');
+  String countDisputed(int n) => _(n == 1 ? '1 dispute' : '$n disputes', n == 1 ? 'מחלוקת אחת' : '$n מחלוקות');
   String get draftBanner => _('Draft — players can\'t see this round yet', 'טיוטה — השחקנים עוד לא רואים את הסבב');
   String get sendToPlayers => _('Send to players', 'שלח לשחקנים');
   String get waitingConfirm => _('Waiting for confirmation', 'ממתין לאישור');
@@ -535,7 +535,6 @@ class S {
   String joinRequestFrom(String name) => _('$name asks to join — see Players', '$name מבקש להצטרף — ראה שחקנים');
   String get playingNow => _('Playing now', 'משחק עכשיו');
   String get history => _('History', 'היסטוריה');
-  String get finishedPill => _('Finished', 'הסתיים');
   String get tournamentOverFinal => _('Tournament over — final standings', 'הטורניר הסתיים — דירוג סופי');
 
   // ---------------------------------------------------------------- history & stats

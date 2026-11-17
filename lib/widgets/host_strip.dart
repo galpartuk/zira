@@ -24,8 +24,14 @@ class HostStrip extends StatelessWidget {
             Text(t.joinCode ?? '——————',
                 style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, letterSpacing: 4, fontFeatures: Z.tabular)),
             if (c.total > 0)
-              Text(S.t.roundCounts(c.reported, c.total, c.pending, c.disputed),
-                  style: TextStyle(fontSize: 12.5, color: c.disputed > 0 ? Z.danger : Z.muted)),
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Wrap(spacing: 6, runSpacing: 4, children: [
+                  Pill(S.t.countReported(c.reported, c.total), color: c.reported == c.total ? Z.win : Z.muted),
+                  if (c.pending > 0) Pill(S.t.countPending(c.pending), color: Z.gold),
+                  if (c.disputed > 0) Pill(S.t.countDisputed(c.disputed), color: Z.danger),
+                ]),
+              ),
           ]),
         ),
         if (t.joinCode == null)

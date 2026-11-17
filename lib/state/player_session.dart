@@ -34,15 +34,32 @@ Future<(JoinResult, String?)> joinWithCode(FirebaseFirestore db,
   return (approval ? JoinResult.requested : JoinResult.ok, tid);
 }
 
-Stream<List<({String tid, String name, String status})>> joinedTournaments(FirebaseFirestore db, String uid) => db
+Stream<List<({String tid, String name, String status, Tournament? t})>> joinedTournaments(
+        FirebaseFirestore db, String uid) =>
+    db
     .collection('tournaments')
     .where('memberUids', arrayContains: uid)
     .snapshots()
     .map((s) => [
           for (final d in s.docs)
             if (d.data()['hostUid'] != uid)
-              (tid: d.id, name: d.data()['name'] as String? ?? '?', status: d.data()['status'] as String? ?? '')
+              (
+                tid: d.id,
+                name: d.data()['name'] as String? ?? '?',
+                status: d.data()['status'] as String? ?? '',
+                t: _published(d.data()['data']),
+              )
         ]);
+
+/// The published tournament inside a tournament document, when it can be read.
+Tournament? _published(Object? data) {
+  if (data is! Map) return null;
+  try {
+    return Tournament.fromJson(Map<String, dynamic>.from(data));
+  } catch (_) {
+    return null;
+  }
+}
 
 /// One tournament as a player sees it, live.
 class PlayerSession extends ChangeNotifier {

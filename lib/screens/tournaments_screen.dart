@@ -9,6 +9,7 @@ import '../state/app_state.dart';
 import '../state/player_session.dart';
 import '../state/session.dart';
 import '../theme.dart';
+import '../widgets/brand.dart';
 import '../widgets/common.dart';
 import 'about_screen.dart';
 import 'account_sheet.dart';
@@ -28,7 +29,7 @@ class TournamentsScreen extends StatelessWidget {
     final auth = authOf(context);
     if (auth != null && auth.user == null) {
       return Scaffold(
-        appBar: AppBar(title: Text(S.t.appName), actions: const [LangButton()]),
+        appBar: AppBar(title: const BrandTitle(), actions: const [LangButton()]),
         body: EmptyState(
           icon: Icons.lock_outline,
           title: S.t.signIn,
@@ -42,7 +43,7 @@ class TournamentsScreen extends StatelessWidget {
     }
     return Scaffold(
       appBar: AppBar(
-        title: Text(S.t.appName),
+        title: const BrandTitle(),
         actions: [
           const LangButton(),
           if (auth != null)
@@ -117,20 +118,35 @@ class TournamentsScreen extends StatelessWidget {
 
 class _TournamentCard extends StatelessWidget {
   final Tournament t;
-  const _TournamentCard(this.t);
+
+  /// Set for a tournament I play in (someone else hosts it): opens the player
+  /// screen, or its history once finished, and can't be deleted from here.
+  final String? joinedTid;
+  const _TournamentCard(this.t, {this.joinedTid});
 
   @override
   Widget build(BuildContext context) {
     final (status, color) = statusOf(t);
     final d = t.created;
+    final tid = joinedTid;
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TournamentScreen(id: t.id))),
-        onLongPress: () async {
-          final ok = await confirm(context, S.t.deleteTitle(t.name), S.t.deleteBody, ok: S.t.delete, danger: true);
-          if (ok && context.mounted) context.read<AppState>().remove(t);
-        },
+        onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (_) => tid == null
+                    ? TournamentScreen(id: t.id)
+                    : t.finished
+                        ? TournamentHistoryScreen(tid: tid)
+                        : PlayerTournamentScreen(tid: tid))),
+        onLongPress: tid != null
+            ? null
+            : () async {
+                final ok =
+                    await confirm(context, S.t.deleteTitle(t.name), S.t.deleteBody, ok: S.t.delete, danger: true);
+                if (ok && context.mounted) context.read<AppState>().remove(t);
+              },
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
           child: Row(children: [
@@ -199,7 +215,7 @@ class _OnlineList extends StatelessWidget {
             ),
           if (live.isNotEmpty) ...[
             SectionTitle(S.t.playingNow),
-            for (final p in live) _joinedTile(context, p.tid, p.name, finished: false),
+            for (final p in live) _joined(context, p.tid, p.name, p.t, finished: false),
             const SizedBox(height: 12),
           ],
           if (hostingNow.isNotEmpty) ...[
@@ -210,7 +226,7 @@ class _OnlineList extends StatelessWidget {
           if (done.isNotEmpty || hostedDone.isNotEmpty) ...[
             SectionTitle(S.t.history),
             for (final t in hostedDone) Padding(padding: const EdgeInsets.only(bottom: 10), child: _TournamentCard(t)),
-            for (final p in done) _joinedTile(context, p.tid, p.name, finished: true),
+            for (final p in done) _joined(context, p.tid, p.name, p.t, finished: true),
           ],
         ]);
       },
@@ -218,12 +234,18 @@ class _OnlineList extends StatelessWidget {
   }
 }
 
+/// A tournament I play in: the full card when its data can be read, a plain row otherwise.
+Widget _joined(BuildContext context, String tid, String name, Tournament? t, {required bool finished}) => Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: t != null ? _TournamentCard(t, joinedTid: tid) : _joinedTile(context, tid, name, finished: finished),
+    );
+
 Widget _joinedTile(BuildContext context, String tid, String name, {required bool finished}) => Card(
       child: ListTile(
         leading: Icon(finished ? Icons.history_rounded : Icons.sports_esports_outlined,
             color: finished ? Z.muted : Z.gold),
         title: Text(name, style: const TextStyle(fontWeight: FontWeight.w700)),
-        trailing: finished ? Pill(S.t.finishedPill) : const Icon(Icons.chevron_right),
+        trailing: finished ? Pill(S.t.statusFinished) : const Icon(Icons.chevron_right),
         onTap: () => Navigator.push(
             context,
             MaterialPageRoute(

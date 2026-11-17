@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../cloud/auth_service.dart';
 import '../l10n.dart';
 import '../theme.dart';
+import '../widgets/brand.dart';
 import '../widgets/common.dart';
 
 class SignInScreen extends StatefulWidget {
@@ -57,39 +58,70 @@ class _SignInScreenState extends State<SignInScreen> {
     final auth = _auth!;
     return Scaffold(
       appBar: AppBar(title: Text(S.t.signIn), actions: const [LangButton()]),
-      body: ListView(padding: const EdgeInsets.all(20), children: [
-        Text(S.t.signInNeeded, style: const TextStyle(color: Z.muted)),
-        const SizedBox(height: 20),
-        FilledButton.icon(
-          onPressed: _busy ? null : () => _run(auth.signInGoogle),
-          icon: const Icon(Icons.login),
-          label: Text(S.t.signInGoogle),
-        ),
-        const Padding(padding: EdgeInsets.symmetric(vertical: 16), child: Divider()),
-        if (_register) TextField(controller: _name, decoration: InputDecoration(labelText: S.t.displayNameLabel)),
-        TextField(controller: _email, keyboardType: TextInputType.emailAddress, decoration: InputDecoration(labelText: S.t.email)),
-        TextField(controller: _pw, obscureText: true, decoration: InputDecoration(labelText: S.t.password)),
-        const SizedBox(height: 16),
-        FilledButton.tonal(
-          onPressed: _busy
-              ? null
-              : () => _run(() => _register
-                  ? auth.register(_name.text, _email.text, _pw.text)
-                  : auth.signInEmail(_email.text, _pw.text)),
-          child: Text(_register ? S.t.register : S.t.signIn),
-        ),
-        TextButton(
-            onPressed: () => setState(() => _register = !_register),
-            child: Text(_register ? S.t.haveAccount : S.t.noAccount)),
-        if (!_register)
-          TextButton(
-            onPressed: () => _run(() async {
-              await auth.resetPassword(_email.text);
-              if (context.mounted) toast(context, S.t.resetSent);
-            }),
-            child: Text(S.t.forgotPassword),
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          const SizedBox(height: 8),
+          const Center(child: BrandMark(size: 56, tile: true)),
+          const SizedBox(height: 14),
+          Text(
+            S.t.appName,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
           ),
-      ]),
+          const SizedBox(height: 6),
+          Text(
+            S.t.signInNeeded,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Z.muted),
+          ),
+          const SizedBox(height: 24),
+          FilledButton.icon(
+            onPressed: _busy ? null : () => _run(auth.signInGoogle),
+            icon: const Icon(Icons.login),
+            label: Text(S.t.signInGoogle),
+          ),
+          const Padding(padding: EdgeInsets.symmetric(vertical: 16), child: Divider()),
+          if (_register)
+            TextField(
+              controller: _name,
+              decoration: InputDecoration(labelText: S.t.displayNameLabel),
+            ),
+          TextField(
+            controller: _email,
+            keyboardType: TextInputType.emailAddress,
+            decoration: InputDecoration(labelText: S.t.email),
+          ),
+          TextField(
+            controller: _pw,
+            obscureText: true,
+            decoration: InputDecoration(labelText: S.t.password),
+          ),
+          const SizedBox(height: 16),
+          FilledButton.tonal(
+            onPressed: _busy
+                ? null
+                : () => _run(
+                    () => _register
+                        ? auth.register(_name.text, _email.text, _pw.text)
+                        : auth.signInEmail(_email.text, _pw.text),
+                  ),
+            child: Text(_register ? S.t.register : S.t.signIn),
+          ),
+          TextButton(
+            onPressed: () => setState(() => _register = !_register),
+            child: Text(_register ? S.t.haveAccount : S.t.noAccount),
+          ),
+          if (!_register)
+            TextButton(
+              onPressed: () => _run(() async {
+                await auth.resetPassword(_email.text);
+                if (context.mounted) toast(context, S.t.resetSent);
+              }),
+              child: Text(S.t.forgotPassword),
+            ),
+        ],
+      ),
     );
   }
 }

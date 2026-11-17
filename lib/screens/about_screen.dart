@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../l10n.dart';
 import '../theme.dart';
 import '../version.dart';
+import '../widgets/brand.dart';
 import '../widgets/common.dart';
 
 /// Who made the app, how to reach them, and what it is built with.
@@ -75,16 +76,7 @@ class AboutScreen extends StatelessWidget {
 
   Widget _app() => Row(
     children: [
-      Container(
-        width: 52,
-        height: 52,
-        decoration: BoxDecoration(
-          color: Z.gold.withValues(alpha: .14),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Z.gold.withValues(alpha: .5)),
-        ),
-        child: const Icon(Icons.emoji_events_rounded, color: Z.gold, size: 28),
-      ),
+      const BrandMark(size: 30, tile: true),
       const SizedBox(width: 14),
       Expanded(
         child: Column(
@@ -105,7 +97,7 @@ class AboutScreen extends StatelessWidget {
     padding: const EdgeInsets.all(18),
     decoration: BoxDecoration(
       color: Z.surface,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(14),
       border: Border.all(color: Z.line),
     ),
     child: Column(
