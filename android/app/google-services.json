@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "111644541949",
+    "project_id": "tcg-arena-app",
+    "storage_bucket": "tcg-arena-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:111644541949:android:649b4dbd15c8a4588f4f94",
+        "android_client_info": {
+          "package_name": "com.galpartuk.zira"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "111644541949-jfblc0j226e34ot28cm5rvhatjqsr6n0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.galpartuk.zira",
+            "certificate_hash": "bf6eefc1b9dc8e22da77ee422bc7281f99487543"
+          }
+        },
+        {
+          "client_id": "111644541949-ud18si9ner0qfv0dbotlvtrsa2a1arln.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.galpartuk.zira",
+            "certificate_hash": "88d623e32f2dc11a498b3dc58ebca786b9c52e2d"
+          }
+        },
+        {
+          "client_id": "111644541949-7mj7sh9cnfqmkmam7t0ojsq8p63ki9ko.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDpajl0D5RAfRY5Yx-am2pJ0dbUFZAyJT8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "111644541949-7mj7sh9cnfqmkmam7t0ojsq8p63ki9ko.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

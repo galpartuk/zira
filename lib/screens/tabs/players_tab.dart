@@ -4,7 +4,9 @@ import 'package:provider/provider.dart';
 import '../../engine/models.dart';
 import '../../engine/standings.dart';
 import '../../l10n.dart';
+import '../../engine/online.dart';
 import '../../state/app_state.dart';
+import '../../state/session.dart';
 import '../../theme.dart';
 import '../../widgets/common.dart';
 
@@ -58,9 +60,52 @@ class _PlayersTabState extends State<PlayersTab> {
         return t.started ? standings[a.id]!.rank.compareTo(standings[b.id]!.rank) : 0;
       });
 
+    final sync = hostSyncOf(context);
+    final auth = authOf(context);
+    final myUid = auth?.user?.uid;
+    final requests = sync?.requests(t) ?? const <Entry>[];
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
       children: [
+        if (sync != null && !t.started)
+          Card(
+            margin: const EdgeInsets.only(bottom: 12),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(S.t.setupGuideTitle, style: const TextStyle(fontWeight: FontWeight.w800)),
+                const SizedBox(height: 6),
+                for (final line in [S.t.setupGuide1, S.t.setupGuide2, S.t.setupGuide3])
+                  Padding(
+                    padding: const EdgeInsets.only(top: 3),
+                    child: Text('•  $line', style: const TextStyle(color: Z.muted, fontSize: 13.5)),
+                  ),
+              ]),
+            ),
+          ),
+        if (requests.isNotEmpty) ...[
+          SectionTitle(S.t.joinRequests),
+          for (final e in requests)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.person_outline),
+              title: Text(e.displayName),
+              trailing: FilledButton.tonal(onPressed: () => sync!.approve(t, e.uid), child: Text(S.t.approve)),
+            ),
+          const SizedBox(height: 8),
+        ],
+        if (sync != null && myUid != null && canAdd && !t.players.any((p) => p.uid == myUid))
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: OutlinedButton.icon(
+              icon: const Icon(Icons.person_add_alt),
+              label: Text(S.t.addMe),
+              onPressed: () {
+                t.players.add(Player(id: newId(), name: uniquePlayerName(t, auth!.displayName), uid: myUid));
+                context.read<AppState>().changed();
+              },
+            ),
+          ),
         if (canAdd)
           Row(children: [
             Expanded(
@@ -111,6 +156,7 @@ class _PlayersTabState extends State<PlayersTab> {
               : null,
           trailing: Row(mainAxisSize: MainAxisSize.min, children: [
             if (p.dropped) Pill(S.t.dropped, color: Z.danger),
+            if (hostSyncOf(context) != null && !p.dropped) Pill(p.uid != null ? S.t.online : S.t.guest),
             PopupMenuButton<String>(
               onSelected: (v) => _action(p, v),
               itemBuilder: (_) => [
@@ -143,8 +189,13 @@ class _PlayersTabState extends State<PlayersTab> {
         p.dropped = !p.dropped;
         app.changed();
       case 'delete':
-        t.players.remove(p);
-        app.changed();
+        final sync = hostSyncOf(context, listen: false);
+        if (sync != null && p.uid != null) {
+          await sync.removePlayer(t, p);
+        } else {
+          t.players.remove(p);
+          app.changed();
+        }
     }
   }
 }

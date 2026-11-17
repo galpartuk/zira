@@ -62,6 +62,14 @@ class RoundAlarm {
   static Future<void> ring({bool long = false}) async {
     try {
       await _player.stop();
+      // Alarm stream: heard even when media volume is down.
+      await _player.setAudioContext(AudioContext(
+        android: const AudioContextAndroid(
+          contentType: AndroidContentType.sonification,
+          usageType: AndroidUsageType.alarm,
+          audioFocus: AndroidAudioFocus.gainTransientMayDuck,
+        ),
+      ));
       await _player.play(AssetSource('sounds/alarm.wav'), volume: 1);
     } catch (_) {}
     for (var i = 0; i < (long ? 6 : 3); i++) {
@@ -93,7 +101,11 @@ class KeepAwake {
 /// leaving the screen or closing the app. The screen stays on while it runs.
 class RoundTimer extends StatefulWidget {
   final Tournament t;
-  const RoundTimer({super.key, required this.t});
+
+  /// Players see the host's clock but can't run it, and it stays silent
+  /// (their cue is the on-screen [TimeNotice]).
+  final bool readOnly;
+  const RoundTimer({super.key, required this.t, this.readOnly = false});
 
   @override
   State<RoundTimer> createState() => _RoundTimerState();
@@ -109,7 +121,7 @@ class _RoundTimerState extends State<RoundTimer> {
     _tick = Timer.periodic(const Duration(milliseconds: 250), (_) {
       if (!mounted) return;
       final c = clockOf(widget.t);
-      RoundAlarm.check(widget.t, c);
+      if (!widget.readOnly) RoundAlarm.check(widget.t, c); // only the host's phone rings
       _keepAwake(c.running && c.phase != ClockPhase.over);
       if (c.running) setState(() {});
     });
@@ -129,12 +141,12 @@ class _RoundTimerState extends State<RoundTimer> {
   }
 
   void _openBig() =>
-      Navigator.push(context, MaterialPageRoute(fullscreenDialog: true, builder: (_) => _BigTimer(t: widget.t)));
+      Navigator.push(context, MaterialPageRoute(fullscreenDialog: true, builder: (_) => _BigTimer(t: widget.t, readOnly: widget.readOnly)));
 
   @override
   Widget build(BuildContext context) {
     final t = widget.t;
-    final app = context.read<AppState>();
+    final app = widget.readOnly ? null : context.read<AppState>();
     final c = clockOf(t);
     final (label, color, bg) = switch (c.phase) {
       ClockPhase.main => (
@@ -163,15 +175,17 @@ class _RoundTimerState extends State<RoundTimer> {
             ),
           ),
           IconButton(tooltip: S.t.fullScreen, onPressed: _openBig, icon: const Icon(Icons.fullscreen)),
-          IconButton(tooltip: S.t.addMinute, onPressed: () => app.addTimerMinutes(t, 1), icon: const Icon(Icons.more_time)),
-          IconButton(tooltip: S.t.reset, onPressed: () => app.resetTimer(t), icon: const Icon(Icons.replay)),
-          const SizedBox(width: 4),
-          IconButton.filled(
-            iconSize: 30,
-            style: IconButton.styleFrom(backgroundColor: Z.gold, foregroundColor: Z.ink, fixedSize: const Size(56, 56)),
-            onPressed: () => c.running ? app.pauseTimer(t) : app.startTimer(t),
-            icon: Icon(c.running ? Icons.pause_rounded : Icons.play_arrow_rounded),
-          ),
+          if (app != null) ...[
+            IconButton(tooltip: S.t.addMinute, onPressed: () => app.addTimerMinutes(t, 1), icon: const Icon(Icons.more_time)),
+            IconButton(tooltip: S.t.reset, onPressed: () => app.resetTimer(t), icon: const Icon(Icons.replay)),
+            const SizedBox(width: 4),
+            IconButton.filled(
+              iconSize: 30,
+              style: IconButton.styleFrom(backgroundColor: Z.gold, foregroundColor: Z.ink, fixedSize: const Size(56, 56)),
+              onPressed: () => c.running ? app.pauseTimer(t) : app.startTimer(t),
+              icon: Icon(c.running ? Icons.pause_rounded : Icons.play_arrow_rounded),
+            ),
+          ],
         ]),
       ),
     );
@@ -181,7 +195,8 @@ class _RoundTimerState extends State<RoundTimer> {
 /// Full-screen clock for showing the room.
 class _BigTimer extends StatefulWidget {
   final Tournament t;
-  const _BigTimer({required this.t});
+  final bool readOnly;
+  const _BigTimer({required this.t, this.readOnly = false});
 
   @override
   State<_BigTimer> createState() => _BigTimerState();
@@ -196,7 +211,7 @@ class _BigTimerState extends State<_BigTimer> {
     KeepAwake.acquire();
     _tick = Timer.periodic(const Duration(milliseconds: 250), (_) {
       if (!mounted) return;
-      RoundAlarm.check(widget.t, clockOf(widget.t));
+      if (!widget.readOnly) RoundAlarm.check(widget.t, clockOf(widget.t));
       setState(() {});
     });
   }
@@ -211,11 +226,11 @@ class _BigTimerState extends State<_BigTimer> {
   @override
   Widget build(BuildContext context) {
     final t = widget.t;
-    final app = context.watch<AppState>();
+    final app = widget.readOnly ? null : context.watch<AppState>();
     final c = clockOf(t);
     final r = t.currentRound;
     final (bg, color, caption) = switch (c.phase) {
-      ClockPhase.main => (Z.ink, Z.text, c.running ? S.t.tapToPause : S.t.tapToStart),
+      ClockPhase.main => (Z.ink, Z.text, widget.readOnly ? S.t.roundClockHost : (c.running ? S.t.tapToPause : S.t.tapToStart)),
       ClockPhase.overtime => (const Color(0xFF3A2620), Z.coral, S.t.overtimeCaption(t.overtimeMinutes)),
       ClockPhase.over => (const Color(0xFF3A1414), Z.danger, S.t.timeUpCaption),
     };
@@ -224,7 +239,7 @@ class _BigTimerState extends State<_BigTimer> {
       appBar: AppBar(backgroundColor: Colors.transparent, title: Text(t.name)),
       body: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () => c.running ? app.pauseTimer(t) : app.startTimer(t),
+        onTap: app == null ? null : () => c.running ? app.pauseTimer(t) : app.startTimer(t),
         child: Center(
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             if (r != null)

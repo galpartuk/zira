@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../engine/models.dart';
 import '../l10n.dart';
 import '../state/app_state.dart';
+import '../state/session.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 
@@ -38,6 +39,19 @@ class _TournamentSettingsSheetState extends State<TournamentSettingsSheet> {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(S.t.tournamentSettings, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
           const SizedBox(height: 8),
+          if (hostSyncOf(context, listen: false) != null)
+            SettingRow(
+              title: S.t.joinModeLabel,
+              child: DropdownButton<String>(
+                value: t.joinMode,
+                onChanged: (v) => _set(() => t.joinMode = v ?? 'open'),
+                items: [
+                  DropdownMenuItem(value: 'open', child: Text(S.t.joinOpen)),
+                  DropdownMenuItem(value: 'approval', child: Text(S.t.joinApproval)),
+                  DropdownMenuItem(value: 'closedOnStart', child: Text(S.t.joinClosedOnStart)),
+                ],
+              ),
+            ),
           SettingRow(
             title: S.t.name,
             child: TextButton.icon(
@@ -61,7 +75,11 @@ class _TournamentSettingsSheetState extends State<TournamentSettingsSheet> {
                 value: t.swissRounds,
                 min: played < 1 ? 1 : played,
                 max: 15,
-                onChanged: locked ? null : (v) => _set(() => t.swissRounds = v),
+                onChanged: locked
+                    ? null
+                    : (v) => _set(() => t
+                      ..swissRounds = v
+                      ..autoRounds = false),
               ),
             )
           else

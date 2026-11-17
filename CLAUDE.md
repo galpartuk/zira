@@ -1,7 +1,31 @@
 # זירה (Zira) — tournament manager
 
-Flutter Android app (English by default, Hebrew/RTL optional; dark). Local-only: all data in SharedPreferences
-(`zira.tournaments.v1`, memory gauge in `zira.memory.v1`). No server, no accounts.
+Flutter Android app (+ web build for iPhone players; English by default, Hebrew/RTL optional; dark).
+Online since 1.4.0 (branch `feature/online-tournaments`, spec/plan in `docs/superpowers/`): Firebase project
+**`tcg-arena-app`** (Spark plan, Firestore `me-west1`, Auth Google + email). Memory gauge stays local (`zira.memory.v1`).
+
+## Online architecture
+- The **host's phone is the only writer** of `tournaments/{tid}` (whole `Tournament` JSON in `data`, minus a draft
+  round, which sits in host-only `private/host`). Players write only `entries/{uid}` (join/drop) and
+  `claims/{matchId}_{uid}` (result reports). `HostSync` (lib/state/host_sync.dart) applies them through the engine.
+- Pure rules for this live in `lib/engine/online.dart` (`resolveClaims`, `applyEntries`, `matchUidsFor`...).
+  Only `lib/cloud/`, `lib/state/host_sync.dart`, `player_session.dart`, `session.dart` import Firebase.
+- `AppState` takes a `TournamentStore`: `PrefsStore` (tests, offline `ZiraApp()`), `CloudStore` once signed in
+  (`CloudGate` in lib/state/session.dart attaches it and migrates old local tournaments once per uid).
+- Rounds made online are drafts (`Round.published == false`) until the host taps "Send to players".
+- Security rules: `firestore.rules`, tests `cd firebase && npm test` (needs JDK 21: portable one in
+  `C:\Users\Owner\tools\jdk-21.0.13+9`, set JAVA_HOME/PATH for the command). Deploy:
+  `firebase deploy --only firestore:rules --project tcg-arena-app`. Firebase CLI 15.36 is global (v13 is broken on Node 22).
+- Google sign-in needs every signing SHA-1/256 registered (release + debug done). If published on Play, also add
+  Play App Signing's SHA-1 (`firebase apps:android:sha:create`).
+- Web build: if a release web build shows a blank page with a `channel-error`, delete `build/web` and
+  `.dart_tool/flutter_build` and rebuild (stale plugin registrant).
+- **Web is live** at https://duel-network.web.app (Firebase Hosting site `duel-network`, players without the APK;
+  the default site tcg-arena-app.web.app is disabled — don't re-enable it). Deploy:
+  `rm -rf build/web .dart_tool/flutter_build && flutter build web --release && firebase deploy --only hosting --project tcg-arena-app`.
+- Display name is **Duel Network** (since 1.5.2: app name, Android label, web title). The package id stays
+  `com.galpartuk.zira` — changing it would make a different app. Release APKs are named `duel-network-x.y.z-<abi>.apk`.
+- Screens for design reviews: `flutter test tool/shots --update-goldens` → `tool/shots/out/*.png` (sample data, he+en).
 
 ## Layout
 - `lib/engine/` — pure Dart, no Flutter imports. Models + JSON, standings/tiebreakers,
@@ -20,6 +44,8 @@ Flutter Android app (English by default, Hebrew/RTL optional; dark). Local-only:
   `S` formats it. Never put user-visible text in `lib/engine/`.
 - `PrizeConfig.unit` is a code (`packs` / `ILS`); `unitFromJson` maps old saves ("₪", "חבילות", "בוסטרים").
 - Widget tests that check overflow load the real Heebo font (`loadHeebo` in `test/l10n_test.dart`).
+- The player's waiting card (`lib/widgets/lobby_card.dart`) animates forever: tests that show it set
+  `lobbyAnimations = false`, or `pumpAndSettle` never returns.
 
 ## Rules implemented (researched from Bandai Digimon event rules)
 - Points: win 3, draw 1, loss 0. Swiss time-out with no winner is reported as a **0-0 draw** (1 each);
@@ -28,7 +54,8 @@ Flutter Android app (English by default, Hebrew/RTL optional; dark). Local-only:
 - Bye → lowest-ranked player without a bye, counts as a win, not an opponent.
 - Swiss rounds by attendance table in `recommendedSwissRounds`. Top cut seeded 1v8, 4v5, 2v7, 3v6.
 - Top-cut time-out procedure text shown in the result sheet (extra turns, then security/deck/...).
-- Memory: crossing to the opponent's side passes the turn; at 0 it doesn't; pass = 3 on opponent side.
+- Memory gauge: the turn changes **only** on End turn (Gal, 2026-11-17: the app can't know whether crossing
+  really ended the turn). A cost that would pass the opponent's 10 can't be paid (`canPay`). No auto-pass and no "pass = 3" button: the player sets the marker and ends the turn.
 
 ## Build / release
 - This PC has ~7.3 GB RAM: `android/gradle.properties` heap is set to 1536m — keep it.
@@ -36,6 +63,9 @@ Flutter Android app (English by default, Hebrew/RTL optional; dark). Local-only:
   `android/key.properties` (git-ignored).
 - **Always** `flutter build apk --release --split-per-abi` (first release was split: arm64 = 2001).
   Bump `version:` in pubspec for every APK. Copies go in `releases/` (git-ignored).
+- The About page shows `appVersion` from `lib/version.dart`: bump it together with pubspec (a test checks).
+  README screenshots live in `docs/screenshots/` (made from `tool/shots/out`, fictional player names only).
+  CI: `.github/workflows/ci.yml` runs analyze + tests on main.
 - Visual check: `flutter build web`, serve `build/web`, screenshot with Playwright (system Chrome,
   `channel="chrome"`), seed localStorage key `flutter.zira.tournaments.v1`.
 

@@ -1,0 +1,74 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{db}/documents {
+    function signedIn() { return request.auth != null; }
+    function me() { return request.auth.uid; }
+
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow write: if signedIn() && me() == uid;
+    }
+
+    // A player's own record: their deck and opponents' decks per tournament.
+    match /users/{uid}/history/{tid} {
+      allow read, write: if signedIn() && me() == uid;
+    }
+
+    match /joinCodes/{code} {
+      allow get: if signedIn();
+      allow create: if signedIn() && request.resource.data.hostUid == me();
+      allow delete: if signedIn() && resource.data.hostUid == me();
+    }
+
+    match /tournaments/{tid} {
+      function t() { return get(/databases/$(db)/documents/tournaments/$(tid)).data; }
+      function isHost() { return signedIn() && t().hostUid == me(); }
+      function isMember() { return signedIn() && me() in t().memberUids; }
+
+      allow get: if signedIn();
+      allow list: if signedIn() && me() in resource.data.memberUids;
+      allow create: if signedIn() && request.resource.data.hostUid == me();
+      allow update: if signedIn() && resource.data.hostUid == me() && request.resource.data.hostUid == me();
+      allow delete: if signedIn() && resource.data.hostUid == me();
+
+      match /private/{doc} {
+        // The host app writes the tournament and this doc in one batch: on
+        // create/update look at the tournament as it will be after the batch
+        // (it may not exist yet); on delete, as it was before.
+        allow read, delete: if isHost();
+        allow create, update: if signedIn()
+          && getAfter(/databases/$(db)/documents/tournaments/$(tid)).data.hostUid == me();
+      }
+
+      match /entries/{uid} {
+        function joinAllowed(status) {
+          return t().status != 'finished'
+            && t().get('acceptsPlayers', true) == true
+            && !(t().joinMode == 'closedOnStart' && t().status != 'registration')
+            && ((t().joinMode == 'approval' && status == 'requested')
+                || (t().joinMode != 'approval' && status == 'joined'));
+        }
+        allow read: if isHost() || isMember() || (signedIn() && me() == uid);
+        allow create: if signedIn() && me() == uid
+          && request.resource.data.keys().hasOnly(['displayName', 'status', 'at'])
+          && joinAllowed(request.resource.data.status);
+        allow update: if signedIn() && (
+            (me() == uid && resource.data.status != 'removed'
+              && request.resource.data.status == 'dropped'
+              && request.resource.data.displayName == resource.data.displayName)
+            || (isHost() && request.resource.data.status in ['joined', 'removed']
+              && request.resource.data.displayName == resource.data.displayName));
+        allow delete: if false;
+      }
+
+      match /claims/{cid} {
+        allow read: if isHost() || isMember();
+        allow create, update: if signedIn()
+          && request.resource.data.uid == me()
+          && cid == request.resource.data.matchId + '_' + me()
+          && me() in t().matchUids.get(request.resource.data.matchId, []);
+        allow delete: if false;
+      }
+    }
+  }
+}

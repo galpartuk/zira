@@ -357,28 +357,38 @@ void main() {
   });
 
   group('memory gauge', () {
-    test('paying past zero passes the turn', () {
+    test('paying past zero moves the memory but never passes the turn by itself', () {
       var m = const MemoryState(); // bottom's turn at 0
       m = m.adjust(Side.bottom, 3); // gains 3 -> +3
       expect(m.value, 3);
-      expect(m.turn, Side.bottom);
-      m = m.adjust(Side.bottom, -3); // pays 3 -> 0
-      expect(m.value, 0);
-      expect(m.turn, Side.bottom);
-      m = m.adjust(Side.bottom, -2); // pays 2 more -> 2 on top's side
+      m = m.adjust(Side.bottom, -5); // pays 5 -> 2 on top's side
       expect(m.value, -2);
-      expect(m.turn, Side.top);
       expect(m.memoryFor(Side.top), 2);
-      expect(m.turnNumber, 2);
+      expect(m.turn, Side.bottom); // still bottom's turn until they end it
+      expect(m.turnNumber, 1);
+      expect(m.setTo(-7).turn, Side.bottom);
     });
 
-    test('pass sets 3 on the opponent side', () {
-      final m = const MemoryState(value: 5).pass();
-      expect(m.value, -3);
+    test('ending the turn hands it over and leaves the memory alone', () {
+      final m = const MemoryState(value: -2).endTurn();
+      expect(m.value, -2);
       expect(m.turn, Side.top);
-      final m2 = m.pass();
-      expect(m2.value, 3);
+      expect(m.turnNumber, 2);
+      final m2 = m.endTurn();
+      expect(m2.value, -2);
       expect(m2.turn, Side.bottom);
+      expect(m2.turnNumber, 3);
+    });
+
+    test('a cost past the opponent\'s 10 cannot be paid', () {
+      const m = MemoryState(value: 3); // bottom has 3
+      expect(m.canPay(Side.bottom, 13), isTrue); // lands exactly on the opponent's 10
+      expect(m.adjust(Side.bottom, -13).value, -10);
+      expect(m.canPay(Side.bottom, 14), isFalse);
+      expect(m.adjust(Side.bottom, -14).value, 3); // illegal: nothing moves
+      // From the top player's seat the same 3 is "3 on the opponent's side": they can pay up to 7.
+      expect(m.canPay(Side.top, 7), isTrue);
+      expect(m.canPay(Side.top, 8), isFalse);
     });
 
     test('gauge is capped at 10', () {

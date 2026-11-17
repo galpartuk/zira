@@ -6,9 +6,17 @@ import '../engine/models.dart';
 import '../engine/pairing.dart';
 import '../l10n.dart';
 import '../state/app_state.dart';
+import '../state/player_session.dart';
+import '../state/session.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import 'about_screen.dart';
+import 'account_sheet.dart';
 import 'create_tournament_screen.dart';
+import 'history_screen.dart';
+import 'join_screen.dart';
+import 'player_tournament_screen.dart';
+import 'sign_in_screen.dart';
 import 'tournament_screen.dart';
 
 class TournamentsScreen extends StatelessWidget {
@@ -17,17 +25,39 @@ class TournamentsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final app = context.watch<AppState>();
+    final auth = authOf(context);
+    if (auth != null && auth.user == null) {
+      return Scaffold(
+        appBar: AppBar(title: Text(S.t.appName), actions: const [LangButton()]),
+        body: EmptyState(
+          icon: Icons.lock_outline,
+          title: S.t.signIn,
+          body: S.t.signInNeeded,
+          action: FilledButton(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SignInScreen())),
+            child: Text(S.t.signIn),
+          ),
+        ),
+      );
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text(S.t.appName),
         actions: [
           const LangButton(),
+          if (auth != null)
+            IconButton(
+              tooltip: S.t.account,
+              icon: const Icon(Icons.account_circle_outlined),
+              onPressed: () => showAccountSheet(context),
+            ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
             onSelected: (v) => _menu(context, app, v),
             itemBuilder: (_) => [
               PopupMenuItem(value: 'export', child: Text(S.t.copyBackup)),
               PopupMenuItem(value: 'import', child: Text(S.t.restoreBackup)),
+              PopupMenuItem(value: 'about', child: Text(S.t.about)),
             ],
           ),
         ],
@@ -39,7 +69,9 @@ class TournamentsScreen extends StatelessWidget {
       ),
       body: !app.loaded
           ? const Center(child: CircularProgressIndicator())
-          : app.tournaments.isEmpty
+          : auth != null
+              ? _OnlineList(uid: auth.user!.uid, hosted: app.tournaments, onCreate: () => _create(context))
+              : app.tournaments.isEmpty
               ? EmptyState(
                   icon: Icons.emoji_events_outlined,
                   title: S.t.noTournaments,
@@ -61,11 +93,14 @@ class TournamentsScreen extends StatelessWidget {
         context, MaterialPageRoute(builder: (_) => const CreateTournamentScreen()));
     if (t == null || !context.mounted) return;
     context.read<AppState>().add(t);
+    hostSyncOf(context, listen: false)?.ensureJoinCode(t);
     Navigator.push(context, MaterialPageRoute(builder: (_) => TournamentScreen(id: t.id)));
   }
 
   void _menu(BuildContext context, AppState app, String v) async {
-    if (v == 'export') {
+    if (v == 'about') {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen()));
+    } else if (v == 'export') {
       await copyText(context, app.exportAll(), S.t.backupWhat);
     } else if (v == 'import') {
       final data = await Clipboard.getData('text/plain');
@@ -131,3 +166,67 @@ class _TournamentCard extends StatelessWidget {
   if (r.stage == Stage.top) return (S.t.topRoundName(topRoundSize(r)), Z.coral);
   return (S.t.roundOf(r.number, t.plannedSwissRounds), Z.gold);
 }
+
+/// Signed in: tournaments I play in (hosted by others, live) and ones I host.
+class _OnlineList extends StatelessWidget {
+  final String uid;
+  final List<Tournament> hosted;
+  final VoidCallback onCreate;
+  const _OnlineList({required this.uid, required this.hosted, required this.onCreate});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder(
+      stream: joinedTournaments(dbOf(context)!, uid),
+      builder: (context, snap) {
+        final playing = snap.data ?? const [];
+        final live = [for (final p in playing) if (p.status != 'finished') p];
+        final done = [for (final p in playing) if (p.status == 'finished') p];
+        final hostingNow = [for (final t in hosted) if (!t.finished) t];
+        final hostedDone = [for (final t in hosted) if (t.finished) t];
+        return ListView(padding: const EdgeInsets.fromLTRB(16, 8, 16, 96), children: [
+          const JoinCard(),
+          if (playing.isEmpty && hosted.isEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 24),
+              child: EmptyState(
+                icon: Icons.emoji_events_outlined,
+                title: S.t.noTournaments,
+                body: S.t.noTournamentsBody,
+                action:
+                    FilledButton.icon(onPressed: onCreate, icon: const Icon(Icons.add), label: Text(S.t.newTournament)),
+              ),
+            ),
+          if (live.isNotEmpty) ...[
+            SectionTitle(S.t.playingNow),
+            for (final p in live) _joinedTile(context, p.tid, p.name, finished: false),
+            const SizedBox(height: 12),
+          ],
+          if (hostingNow.isNotEmpty) ...[
+            SectionTitle(S.t.hosting),
+            for (final t in hostingNow) Padding(padding: const EdgeInsets.only(bottom: 10), child: _TournamentCard(t)),
+            const SizedBox(height: 12),
+          ],
+          if (done.isNotEmpty || hostedDone.isNotEmpty) ...[
+            SectionTitle(S.t.history),
+            for (final t in hostedDone) Padding(padding: const EdgeInsets.only(bottom: 10), child: _TournamentCard(t)),
+            for (final p in done) _joinedTile(context, p.tid, p.name, finished: true),
+          ],
+        ]);
+      },
+    );
+  }
+}
+
+Widget _joinedTile(BuildContext context, String tid, String name, {required bool finished}) => Card(
+      child: ListTile(
+        leading: Icon(finished ? Icons.history_rounded : Icons.sports_esports_outlined,
+            color: finished ? Z.muted : Z.gold),
+        title: Text(name, style: const TextStyle(fontWeight: FontWeight.w700)),
+        trailing: finished ? Pill(S.t.finishedPill) : const Icon(Icons.chevron_right),
+        onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (_) => finished ? TournamentHistoryScreen(tid: tid) : PlayerTournamentScreen(tid: tid))),
+      ),
+    );

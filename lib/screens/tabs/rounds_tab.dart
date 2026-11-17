@@ -2,17 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../engine/models.dart';
+import '../../engine/online.dart';
 import '../../engine/standings.dart';
 import '../../l10n.dart';
 import '../../state/app_state.dart';
+import '../../state/session.dart';
 import '../../theme.dart';
 import '../../widgets/common.dart';
+import '../../widgets/my_match_card.dart';
 import '../../widgets/result_sheet.dart';
 import '../../widgets/round_timer.dart';
 
 class RoundsTab extends StatefulWidget {
   final Tournament t;
-  const RoundsTab({super.key, required this.t});
+
+  /// Shown above the round (the host's own match when they also play).
+  final Widget? header;
+  const RoundsTab({super.key, required this.t, this.header});
 
   @override
   State<RoundsTab> createState() => _RoundsTabState();
@@ -20,6 +26,7 @@ class RoundsTab extends StatefulWidget {
 
 class _RoundsTabState extends State<RoundsTab> {
   int? _selected; // index into t.rounds; null = latest
+  String? _swapPick; // draft: first player tapped for a manual swap
   int _lastCount = 0;
 
   Tournament get t => widget.t;
@@ -43,6 +50,8 @@ class _RoundsTabState extends State<RoundsTab> {
     final idx = (_selected ?? t.rounds.length - 1).clamp(0, t.rounds.length - 1);
     final round = t.rounds[idx];
     final isCurrent = idx == t.rounds.length - 1;
+    final draft = !round.published;
+    final sync = hostSyncOf(context);
     // Points as they stood when this round was paired, not live totals.
     final standings = {for (final s in computeStandings(t, beforeRound: idx)) s.player.id: s};
     final editable = !t.finished && (round.stage == Stage.top ? isCurrent : t.topRoundsList.isEmpty);
@@ -80,7 +89,32 @@ class _RoundsTabState extends State<RoundsTab> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 6, 16, 24),
           children: [
-            if (isCurrent && !t.finished) ...[RoundTimer(t: t), const SizedBox(height: 12)],
+            if (isCurrent && widget.header != null && !draft) widget.header!,
+            if (draft) ...[
+              Card(
+                color: Z.gold.withValues(alpha: .15),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(children: [
+                    Expanded(
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text(S.t.draftBanner, style: const TextStyle(fontWeight: FontWeight.w700)),
+                        const SizedBox(height: 2),
+                        Text(_swapPick == null ? S.t.swapHint : S.t.swapPickSecond(t.nameOf(_swapPick)),
+                            style: const TextStyle(fontSize: 12.5, color: Z.muted)),
+                      ]),
+                    ),
+                    const SizedBox(width: 8),
+                    FilledButton.icon(
+                      onPressed: () => context.read<AppState>().publish(t),
+                      icon: const Icon(Icons.send_rounded, size: 18),
+                      label: Text(S.t.sendToPlayers),
+                    ),
+                  ]),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ] else if (isCurrent && !t.finished) ...[RoundTimer(t: t), const SizedBox(height: 12)],
             Row(children: [
               Text(roundLabel(round), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
               const SizedBox(width: 10),
@@ -91,7 +125,7 @@ class _RoundsTabState extends State<RoundsTab> {
                 icon: const Icon(Icons.copy_rounded),
                 onPressed: () => copyText(context, _pairingsText(round, standings), S.t.pairingsWhat),
               ),
-              if (isCurrent && !round.anyResult && !t.finished)
+              if (isCurrent && !t.finished && (draft || (!round.anyResult && !(sync?.roundHasClaims(t, round) ?? false))))
                 PopupMenuButton<String>(
                   onSelected: (v) async {
                     final app = context.read<AppState>();
@@ -108,6 +142,15 @@ class _RoundsTabState extends State<RoundsTab> {
                       PopupMenuItem(value: 'repair', child: Text(S.t.repair)),
                     PopupMenuItem(value: 'undo', child: Text(S.t.undoRound)),
                   ],
+                )
+              else if (isCurrent && t.rounds.length > 1 && hostSyncOf(context) != null)
+                PopupMenuButton<String>(
+                  onSelected: (_) async {
+                    final ok = await confirm(context, S.t.backOneRoundTitle(roundLabel(round)), S.t.backOneRoundBody,
+                        ok: S.t.backOneRound, danger: true);
+                    if (ok && context.mounted) context.read<AppState>().backOneRound(t);
+                  },
+                  itemBuilder: (_) => [PopupMenuItem(value: 'back', child: Text(S.t.backOneRound))],
                 ),
             ]),
             const SizedBox(height: 6),
@@ -117,7 +160,10 @@ class _RoundsTabState extends State<RoundsTab> {
                 m: m,
                 round: round,
                 standings: standings,
-                onTap: (!editable || m.isBye) ? null : () => _report(round, m),
+                onTap: (!editable || m.isBye || draft) ? null : () => _report(round, m),
+                picked: draft ? _swapPick : null,
+                onPickPlayer: (draft && isCurrent) ? (pid) => _pickForSwap(round, pid) : null,
+                claim: (sync == null || m.result != null || m.isBye) ? null : sync.stateOf(t, m),
                 // Drops apply from the next pairing, so only offer them while
                 // more Swiss rounds can still follow.
                 onDrop: (isCurrent && !t.finished && round.stage == Stage.swiss) ? () => _drop(m) : null,
@@ -128,7 +174,40 @@ class _RoundsTabState extends State<RoundsTab> {
     ]);
   }
 
+  /// Draft only: tap one player, then another, to swap their seats.
+  void _pickForSwap(Round round, String pid) {
+    if (_swapPick == null) {
+      setState(() => _swapPick = pid);
+      return;
+    }
+    if (_swapPick != pid) {
+      swapPlayers(round, _swapPick!, pid);
+      context.read<AppState>().changed();
+    }
+    setState(() => _swapPick = null);
+  }
+
   Future<void> _report(Round round, Match m) async {
+    final st = hostSyncOf(context, listen: false)?.stateOf(t, m);
+    if (st is Disputed && m.result == null) {
+      String who(Claim c) => t.players.firstWhere((p) => p.uid == c.uid).name;
+      final pick = await showDialog<MatchResult>(
+        context: context,
+        builder: (c) => SimpleDialog(title: Text(S.t.chooseResult), children: [
+          for (final cl in [st.a, st.b])
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(c, cl.result),
+              child: Text(S.t.claimedBy(who(cl), S.t.scoreText(cl.result, bestOf: t.bestOfFor(round.stage)))),
+            ),
+          SimpleDialogOption(onPressed: () => Navigator.pop(c), child: Text(S.t.otherResult)),
+        ]),
+      );
+      if (!mounted) return;
+      if (pick != null) {
+        context.read<AppState>().setResult(t, m, pick, by: 'dispute');
+        return;
+      }
+    }
     final r = await showModalBottomSheet<MatchResult>(
       context: context,
       isScrollControlled: true,
@@ -141,6 +220,13 @@ class _RoundsTabState extends State<RoundsTab> {
       ),
     );
     if (r == null || !mounted) return;
+    final sync = hostSyncOf(context, listen: false);
+    if (sync != null && m.result == null && sync.isOwnMatch(t, m) && !identical(r, ResultSheet.clear)) {
+      // The host's own match: a player report the opponent has to confirm.
+      await sync.reportOwn(t, m, r);
+      if (mounted) toast(context, S.t.resultSent(t.nameOf(t.player(m.p1)?.uid == sync.uid ? m.p2 : m.p1)));
+      return;
+    }
     context.read<AppState>().setResult(t, m, identical(r, ResultSheet.clear) ? null : r);
   }
 
@@ -199,7 +285,10 @@ class _RoundsTabState extends State<RoundsTab> {
 class _Score extends StatelessWidget {
   final MatchResult res;
   final int bo;
-  const _Score({required this.res, required this.bo});
+
+  /// A report the opponent has not confirmed yet: smaller, no winner colour.
+  final bool unconfirmed;
+  const _Score({required this.res, required this.bo, this.unconfirmed = false});
 
   @override
   Widget build(BuildContext context) {
@@ -214,7 +303,11 @@ class _Score extends StatelessWidget {
     final a = bo > 1 ? res.g1 : (res.outcome == Outcome.p1 ? 1 : 0);
     final b = bo > 1 ? res.g2 : (res.outcome == Outcome.p2 ? 1 : 0);
     TextStyle st(bool win) => TextStyle(
-        fontSize: 20, fontWeight: FontWeight.w800, color: win ? Z.gold : Z.muted, fontFeatures: Z.tabular);
+        fontSize: unconfirmed ? 17 : 20,
+        fontWeight: FontWeight.w800,
+        fontStyle: unconfirmed ? FontStyle.italic : null,
+        color: unconfirmed ? Z.text : (win ? Z.gold : Z.muted),
+        fontFeatures: Z.tabular);
     return Row(mainAxisAlignment: MainAxisAlignment.center, children: [
       Text('$a', style: st(res.outcome == Outcome.p1)),
       const Padding(
@@ -233,9 +326,22 @@ class _MatchCard extends StatelessWidget {
   final Map<String, Standing> standings;
   final VoidCallback? onTap;
   final VoidCallback? onDrop;
+  final ClaimState? claim;
+
+  /// Draft editing: tap a player to pick them for a swap.
+  final void Function(String pid)? onPickPlayer;
+  final String? picked;
 
   const _MatchCard(
-      {required this.t, required this.m, required this.round, required this.standings, this.onTap, this.onDrop});
+      {required this.t,
+      required this.m,
+      required this.round,
+      required this.standings,
+      this.onTap,
+      this.onDrop,
+      this.claim,
+      this.onPickPlayer,
+      this.picked});
 
   @override
   Widget build(BuildContext context) {
@@ -247,8 +353,25 @@ class _MatchCard extends StatelessWidget {
       final isWinner = w != null && w == id;
       final isLoser = res != null && !m.isBye && w != id;
       final st = id == null ? null : standings[id];
+      final pickable = onPickPlayer != null && id != null;
+      final isPicked = pickable && picked == id;
+      Widget wrap(Widget child) => !pickable
+          ? child
+          : InkWell(
+              borderRadius: BorderRadius.circular(8),
+              onTap: () => onPickPlayer!(id),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isPicked ? Z.gold.withValues(alpha: .25) : null,
+                  border: Border.all(color: isPicked ? Z.gold : Z.line),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: child,
+              ),
+            );
       return Expanded(
-        child: Column(
+        child: wrap(Column(
           crossAxisAlignment: align == TextAlign.start ? CrossAxisAlignment.start : CrossAxisAlignment.end,
           children: [
             Text(
@@ -268,13 +391,28 @@ class _MatchCard extends StatelessWidget {
             if (t.player(id)?.dropped ?? false)
               Padding(padding: const EdgeInsets.only(top: 3), child: Pill(S.t.dropped, color: Z.danger)),
           ],
-        ),
+        )),
       );
     }
 
     final label = m.isBye ? 'BYE' : (m.thirdPlace ? '3' : '${m.table}');
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+    String who(Claim c) => t.players.where((p) => p.uid == c.uid).firstOrNull?.name ?? '?';
+    String says(Claim c) => S.t.claimedBy(who(c), S.t.scoreText(c.result, bestOf: bo));
+    final cl = claim;
+    final pendingRes = (res == null && cl is Pending) ? cl.by.result : null;
+    // Under the card: who put the result in, or what was reported so far.
+    final (String?, Color) note = switch (cl) {
+      _ when res != null => (provenanceText(t, m, viewerUid: null), Z.muted),
+      Pending(by: final c) => (
+          S.t.pendingReport(who(c), t.nameOf(t.player(m.p1)?.uid == c.uid ? m.p2 : m.p1)),
+          Z.gold
+        ),
+      Disputed(a: final a, b: final b) => ('${says(a)} · ${says(b)}', Z.danger),
+      _ => (null, Z.muted),
+    };
+    final source = note.$1;
+    final card = Padding(
+      padding: EdgeInsets.only(bottom: source == null ? 8 : 2),
       child: Material(
         color: Z.surface,
         borderRadius: BorderRadius.circular(14),
@@ -308,9 +446,33 @@ class _MatchCard extends StatelessWidget {
                 SizedBox(
                   width: 74,
                   child: Center(
-                    child: res == null
-                        ? Text(S.t.vs, style: const TextStyle(color: Z.muted, fontWeight: FontWeight.w600))
-                        : _Score(res: res, bo: bo),
+                    child: res != null
+                        ? _Score(res: res, bo: bo)
+                        : switch (claim) {
+                            // Reported by one side only: the score, clearly marked as not final.
+                            Pending() => Column(mainAxisSize: MainAxisSize.min, children: [
+                                Opacity(opacity: .6, child: _Score(res: pendingRes!, bo: bo, unconfirmed: true)),
+                                const SizedBox(height: 3),
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: Z.gold.withValues(alpha: .7)),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                    const Icon(Icons.hourglass_top_rounded, size: 11, color: Z.gold),
+                                    const SizedBox(width: 2),
+                                    Text(S.t.unconfirmed,
+                                        style: const TextStyle(
+                                            fontSize: 10.5, height: 1.1, color: Z.gold, fontWeight: FontWeight.w800)),
+                                  ]),
+                                )),
+                              ]),
+                            Disputed() => Pill(S.t.disputed, color: Z.danger),
+                            _ => Text(S.t.vs, style: const TextStyle(color: Z.muted, fontWeight: FontWeight.w600)),
+                          },
                   ),
                 ),
                 side(m.p2, Z.coral, TextAlign.end),
@@ -333,5 +495,13 @@ class _MatchCard extends StatelessWidget {
         ),
       ),
     );
+    if (source == null) return card;
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      card,
+      Padding(
+        padding: const EdgeInsetsDirectional.only(start: 62, bottom: 8),
+        child: Text(source, style: TextStyle(fontSize: 12, color: note.$2)),
+      ),
+    ]);
   }
 }

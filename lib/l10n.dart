@@ -41,7 +41,7 @@ class S {
   String _(String en, String heb) => he ? heb : en;
 
   // ---------------------------------------------------------------- app
-  String get appName => _('Zira', 'זירה');
+  String get appName => 'Duel Network';
   String get langButton => _('עב', 'EN');
   String get langTooltip => _('עברית', 'English');
   String get tournaments => _('Tournaments', 'טורנירים');
@@ -374,13 +374,13 @@ class S {
   String goesFirst(String name) => _('$name goes first', '$name מתחיל');
   String get newGameRoll => _('New game — roll for who goes first', 'משחק חדש — הגרלה מי מתחיל');
   String newGameFirst(String name) => _('New game — $name goes first', 'משחק חדש — $name מתחיל');
-  String get passManually => _('Pass the turn by hand', 'העברת התור ידנית');
   String get resetWins => _('Reset wins', 'איפוס ניצחונות');
   String rolled(int a, int b, String name) => _('🎲 $a vs $b — $name goes first', '🎲 $a מול $b — $name מתחיל');
-  String gameWonTitle(String name) => _('Did $name win the game?', '$name ניצח במשחק?');
-  String get gameWonBody => _('A win is added and a new game starts. The loser goes first next game.',
-      'יתווסף ניצחון ויתחיל משחק חדש. המפסיד מתחיל במשחק הבא.');
-  String get yesNewGame => _('Yes, new game', 'כן, משחק חדש');
+  String gameWonTitle(String name) => _('$name won the game', '$name ניצח במשחק');
+  String get gameWonBody => _('A win is added and a new game starts. Who goes first?',
+      'יתווסף ניצחון ויתחיל משחק חדש. מי מתחיל?');
+  String get pay => _('Pay', 'לשלם');
+  String get payHowMuch => _('Pay how much?', 'כמה לשלם?');
   String get exit => _('Exit', 'יציאה');
   String get undo => _('Undo', 'ביטול פעולה');
   String get newGame => _('New game', 'משחק חדש');
@@ -392,6 +392,16 @@ class S {
   String get endTurn => _('End turn', 'סיום תור');
 
   // rules links
+  String get about => _('About', 'אודות');
+  String get aboutTagline => _('Tournament manager', 'ניהול טורנירים');
+  String versionLabel(String v) => _('Version $v', 'גרסה $v');
+  String get builtWith => _('Built with', 'נבנה עם');
+  String get sourceCode => _('Source code', 'קוד המקור');
+  String get fanMadeNotice => _(
+      'Duel Network is an independent, fan-made tool. It is not affiliated with or endorsed by Bandai. '
+          'Digimon Card Game is a trademark of its respective owner.',
+      'Duel Network הוא כלי עצמאי שנבנה על ידי מעריץ. הוא אינו קשור ל-Bandai ואינו מטעמה. '
+          'Digimon Card Game הוא סימן מסחרי של בעליו.');
   String get cantOpenLink => _('Couldn\'t open the link', 'לא הצלחנו לפתוח את הקישור');
   String get rulesFooter => _('The documents are in English, from Bandai\'s official site. The links always open the current version.',
       'המסמכים באנגלית, מהאתר הרשמי של Bandai. הקישורים פותחים תמיד את הגרסה העדכנית.');
@@ -411,4 +421,196 @@ class S {
   String get floorRulesBody => _('Conduct and procedures at official events.', 'כללי התנהגות ונהלים בטורנירים רשמיים.');
   String get allRules => _('The full official rules page', 'כל עמוד החוקים הרשמי');
   String get allRulesBody => _('Including Q&A and more documents.', 'כולל Q&A ומסמכים נוספים.');
+
+  // ---------------------------------------------------------------- account
+  String get signIn => _('Sign in', 'התחברות');
+  String get signInGoogle => _('Continue with Google', 'המשך עם Google');
+  String get email => _('Email', 'אימייל');
+  String get password => _('Password', 'סיסמה');
+  String get displayNameLabel => _('Your name', 'השם שלך');
+  String get register => _('Create account', 'יצירת חשבון');
+  String get haveAccount => _('I have an account', 'יש לי חשבון');
+  String get noAccount => _('New here? Create an account', 'חדש כאן? יצירת חשבון');
+  String get forgotPassword => _('Forgot password?', 'שכחתי סיסמה');
+  String get resetSent => _('Reset link sent — check your email', 'נשלח קישור לאיפוס — בדוק את האימייל');
+  String get signInNeeded => _('Sign in to run and join tournaments', 'התחבר כדי לנהל טורנירים ולהצטרף אליהם');
+  String get account => _('Account', 'חשבון');
+  String get signOut => _('Sign out', 'התנתקות');
+  String get deleteAccount => _('Delete account', 'מחיקת חשבון');
+  String get deleteAccountBody => _('Your account is deleted. Your name stays in past tournaments.',
+      'החשבון יימחק. השם שלך יישאר בטורנירים שהיו.');
+  String get signInAgain => _('Please sign in again, then delete.', 'צריך להתחבר שוב ואז למחוק.');
+  String authError(String code) => switch (code) {
+        'invalid-credential' || 'wrong-password' || 'user-not-found' => _('Wrong email or password', 'אימייל או סיסמה שגויים'),
+        'email-already-in-use' => _('This email already has an account', 'לאימייל הזה כבר יש חשבון'),
+        'weak-password' => _('Password must be at least 6 characters', 'סיסמה של 6 תווים לפחות'),
+        'invalid-email' => _('Invalid email', 'אימייל לא תקין'),
+        'network-request-failed' => _('No connection', 'אין חיבור'),
+        _ => _('Sign-in failed ($code)', 'ההתחברות נכשלה ($code)'),
+      };
+  String migrated(int n) => _('$n tournaments moved to your account', '$n טורנירים הועברו לחשבון שלך');
+
+  // ---------------------------------------------------------------- online host
+  String get joinCodeLabel => _('Join code', 'קוד הצטרפות');
+  String get getCode => _('Get code', 'קבל קוד');
+  String shareCodeText(String name, String code) =>
+      _('Join "$name" in Zira with code $code', 'הצטרפו ל"$name" בזירה עם הקוד $code');
+  String get joinModeLabel => _('Who can join', 'מי יכול להצטרף');
+  String get joinOpen => _('Anyone with the code', 'כל מי שיש לו קוד');
+  String get joinApproval => _('Only after I approve', 'רק אחרי אישור שלי');
+  String get joinClosedOnStart => _('Code closes when the event starts', 'הקוד נסגר כשהטורניר מתחיל');
+  String roundCounts(int rep, int total, int pend, int disp) => _(
+      'Reported $rep/$total · Waiting $pend · Disputes $disp',
+      'דווחו $rep/$total · ממתינים לאישור $pend · מחלוקות $disp');
+  String get draftBanner => _('Draft — players can\'t see this round yet', 'טיוטה — השחקנים עוד לא רואים את הסבב');
+  String get sendToPlayers => _('Send to players', 'שלח לשחקנים');
+  String get waitingConfirm => _('Waiting for confirmation', 'ממתין לאישור');
+  String get disputed => _('Disputed', 'במחלוקת');
+  String claimedBy(String name, String score) => _('$name says $score', '$name טוען $score');
+  String get chooseResult => _('Choose the result', 'בחר את התוצאה');
+  String get otherResult => _('Other result…', 'תוצאה אחרת…');
+  String get joinRequests => _('Join requests', 'בקשות הצטרפות');
+  String get approve => _('Approve', 'אישור');
+  String get addMe => _('Add me as a player', 'הוסף אותי כשחקן');
+  String get online => _('Online', 'אונליין');
+  String get guest => _('Guest', 'אורח');
+
+  // ---------------------------------------------------------------- online player
+  String get joinWithCode => _('Join with code', 'הצטרף עם קוד');
+  String get codeHint => _('6-character code from the host', 'קוד של 6 תווים מההוסט');
+  String get join => _('Join', 'הצטרף');
+  String get badCode => _('No tournament with this code', 'אין טורניר עם הקוד הזה');
+  String get joinClosed => _('This tournament is closed for joining', 'הטורניר סגור להצטרפות');
+  String get joinRemoved => _('The host removed you from this tournament', 'ההוסט הסיר אותך מהטורניר');
+  String get requestSent => _('Request sent — waiting for the host', 'הבקשה נשלחה — ממתינים להוסט');
+  String get hosting => _('Hosting', 'מארח');
+  String get playing => _('Playing', 'משחק');
+  String get myMatch => _('My match', 'המשחק שלי');
+  String get youAreIn => _('You\'re in!', 'אתה בפנים!');
+  String get waitingHostStart => _('Waiting for the host to start', 'ממתינים שההוסט יתחיל');
+  String get requestSentTitle => _('Request sent', 'הבקשה נשלחה');
+  String get requestSentBody => _('Waiting for the host to approve', 'ממתינים לאישור ההוסט');
+  String get joiningTitle => _('Joining…', 'מצטרף…');
+  String playersIn(int n) => _(n == 1 ? '1 player in' : '$n players in', n == 1 ? 'שחקן אחד בפנים' : '$n שחקנים בפנים');
+  String get live => _('Live', 'חי');
+  String get unconfirmed => _('Unconfirmed', 'לא אושר');
+  String pendingReport(String by, String other) =>
+      _('Reported by $by · waiting for $other to confirm', 'דווח על ידי $by · ממתין לאישור של $other');
+  String get waitingNextRound => _('Waiting for the next round', 'ממתינים לסבב הבא');
+  String get reportResult => _('Report result', 'דווח תוצאה');
+  String opponentReported(String name, String score) => _('$name reported $score', '$name דיווח $score');
+  String get confirmResult => _('Confirm', 'אשר');
+  String get disputeResult => _('Dispute', 'ערער');
+  String get youReported => _('You reported — waiting for your opponent', 'דיווחת — ממתין ליריב');
+  String get disputeSent => _('Disputed — the host will decide', 'במחלוקת — ההוסט יכריע');
+  String get dropFromEvent => _('Drop from the tournament', 'פרישה מהטורניר');
+  String get dropFromEventBody => _('You won\'t be paired from the next round.', 'לא תשובץ החל מהסבב הבא.');
+  String get youDropped => _('You dropped from this tournament', 'פרשת מהטורניר');
+  String get notInEventYet => _('Waiting for the host to add you', 'ממתינים שההוסט יוסיף אותך');
+  String get tournamentGone => _('The host deleted this tournament', 'ההוסט מחק את הטורניר');
+
+  // ---------------------------------------------------------------- my match status
+  /// "my–their" score kept left-to-right inside Hebrew text; without the
+  /// isolate the bidi algorithm flips it ("הפסדת 1–2" would show as 2–1).
+  String _score(int a, int b) => '\u2066$a–$b\u2069';
+  String youWon(int a, int b) => _('You won ${_score(a, b)}', 'ניצחת ${_score(a, b)}');
+  String youLost(int a, int b) => _('You lost ${_score(a, b)}', 'הפסדת ${_score(a, b)}');
+  String myDraw(int a, int b) => _('Draw ${_score(a, b)}', 'תיקו ${_score(a, b)}');
+  String get byeAutoWin => _('Bye — automatic win', 'BYE — ניצחון אוטומטי');
+  String get resultFinal => _('Result recorded', 'התוצאה נרשמה');
+  String waitingFor(String name) => _('Waiting for $name to confirm', 'ממתין לאישור של $name');
+  String youReportedScore(String r) => _('You reported: $r', 'דיווחת: $r');
+  String get change => _('Change', 'שינוי');
+  String opponentReportedTitle(String name) => _('$name reported a result', '$name דיווח תוצאה');
+  String get disputeBody => _('The two reports differ. Tell the host.', 'הדיווחים שונים. פנה להוסט.');
+  String resultSent(String name) => _('Result sent — $name will be asked to confirm', 'התוצאה נשלחה — $name יתבקש לאשר');
+  String get confirmQuestion => _('Is this the result?', 'זו התוצאה?');
+  String get later => _('Later', 'אחר כך');
+  String get roundClockHost => _('The host runs the clock', 'ההוסט מפעיל את השעון');
+
+  // ---------------------------------------------------------------- joining / history
+  String get joinClosedLate =>
+      _('Registration is closed — no more rounds to pair you into', 'ההרשמה נסגרה — אין יותר סבבים לשבץ אותך אליהם');
+  String playerJoined(String name) => _('$name joined the tournament', '$name הצטרף לטורניר');
+  String joinRequestFrom(String name) => _('$name asks to join — see Players', '$name מבקש להצטרף — ראה שחקנים');
+  String get playingNow => _('Playing now', 'משחק עכשיו');
+  String get history => _('History', 'היסטוריה');
+  String get finishedPill => _('Finished', 'הסתיים');
+  String get tournamentOverFinal => _('Tournament over — final standings', 'הטורניר הסתיים — דירוג סופי');
+
+  // ---------------------------------------------------------------- history & stats
+  String get stats => _('Stats', 'סטטיסטיקה');
+  String get myDecks => _('My decks', 'הדקים שלי');
+  String get matchups => _('Matchups', 'מאצ\'אפים');
+  String get allMyDecks => _('All my decks', 'כל הדקים שלי');
+  String get deck => _('Deck', 'דק');
+  String get opponentDeck => _('Opponent deck', 'דק יריב');
+  String get unmarked => _('Not recorded', 'לא סומן');
+  String get whichDeck => _('Which deck did you play?', 'איזה דק שיחקת?');
+  String get myDeckHint => _('e.g. Xros Heart', 'למשל Xros Heart');
+  String get oppDeckHint => _('Opponent\'s deck', 'הדק של היריב');
+  String get myRounds => _('My rounds', 'הסיבובים שלי');
+  String get noStatsYet => _('No finished tournaments yet', 'עוד אין טורנירים שהסתיימו');
+  String get noStatsBody => _('Play a tournament, then open it from History and record the decks.',
+      'שחק טורניר, ואז פתח אותו מההיסטוריה וסמן את הדקים.');
+  String get tournamentsShort => _('Events', 'טורנירים');
+  String get wld => _('W-L-D', 'נ-ה-ת');
+  String get winRate => _('Win %', 'ניצחון %');
+  String get myRecord => _('My record', 'התיעוד שלי');
+
+  // ---------------------------------------------------------------- open-first flow
+  String get openAndGetCode => _('Open tournament and get a code', 'פתח טורניר וקבל קוד');
+  String get setupGuideTitle => _('While players join', 'בזמן שהשחקנים מצטרפים');
+  String get setupGuide1 => _('Share the code at the top — players join from their phones',
+      'שתף את הקוד למעלה — שחקנים מצטרפים מהטלפון');
+  String get setupGuide2 => _('Players without the app: add them by name here', 'שחקנים בלי האפליקציה: הוסף אותם כאן בשם');
+  String get setupGuide3 => _('Rounds, time and top cut: the ⚙ button at the top', 'סיבובים, זמן וטופ קאט: כפתור ⚙ למעלה');
+
+  // ---------------------------------------------------------------- who reported
+  String get byHost => _('Recorded by the host', 'נרשם על ידי ההוסט');
+  String get byDispute => _('Disputed — decided by the host', 'במחלוקת — הוכרע על ידי ההוסט');
+  String get byYouVsGuest => _('Reported by you (opponent without the app)', 'דווח על ידך (יריב בלי האפליקציה)');
+  String byPlayer(String n) => _('Reported by $n', 'דווח על ידי $n');
+  String byYouAcceptedBy(String n) => _('Reported by you, accepted by $n', 'דווח על ידך, אושר על ידי $n');
+  String byThemAcceptedByYou(String n) => _('Reported by $n, accepted by you', 'דווח על ידי $n, אושר על ידך');
+  String byAccepted(String a, String b) => _('Reported by $a, accepted by $b', 'דווח על ידי $a, אושר על ידי $b');
+
+  // ---------------------------------------------------------------- player time notices
+  String get overtimeNotice => _('Overtime — finish your turns, then report the result',
+      'תורות נוספים — סיימו את התורות ודווחו תוצאה');
+  String get timeUpNotice => _('Time is up — report your result now', 'הזמן נגמר — דווחו את התוצאה עכשיו');
+
+  // ---------------------------------------------------------------- join card
+  String get joinTournament => _('Join a tournament', 'הצטרפות לטורניר');
+  String get joinTournamentBody => _('Enter the 6-character code from the host', 'הקלד את הקוד בן 6 התווים מההוסט');
+
+  // ---------------------------------------------------------------- memory gauge win button
+  String get winShort => _('Win', 'ניצחון');
+
+  // ---------------------------------------------------------------- results / accepting / back a round
+  String get sendResults => _('Send results to players', 'שלח תוצאות לשחקנים');
+  String get sendResultsHint => _('Players see final standings and prizes', 'השחקנים יראו דירוג סופי ופרסים');
+  String get finalResults => _('Results', 'תוצאות');
+  String get waitingFinalResults => _('Tournament over — waiting for the final results', 'הטורניר הסתיים — ממתינים לתוצאות הסופיות');
+  String nextAcceptingPending(int n) =>
+      _(n == 1 ? 'Continue · accept 1 report' : 'Continue · accept $n reports', n == 1 ? 'המשך · קבל דיווח 1' : 'המשך · קבל $n דיווחים');
+  String get acceptPendingHint => _('Unconfirmed reports count as reported', 'דיווחים שלא אושרו ייחשבו כמדווחים');
+  String acceptPendingTitle(int n) => _('Accept $n unconfirmed reports?', 'לקבל $n דיווחים שלא אושרו?');
+  String get acceptPendingBody => _(
+      'The reported results become final; the opponents can no longer confirm or dispute them.',
+      'התוצאות שדווחו יהפכו לסופיות, והיריבים כבר לא יוכלו לאשר או לערער עליהן.');
+  String get backOneRound => _('Back one round', 'חזרה סיבוב אחד אחורה');
+  String backOneRoundTitle(String round) => _('Delete $round?', 'למחוק את $round?');
+  String get backOneRoundBody => _(
+      'This round and its results are deleted; the round before becomes current so you can fix it and pair again.',
+      'הסיבוב והתוצאות שלו יימחקו; הסיבוב הקודם יחזור להיות הנוכחי, כדי שתוכל לתקן אותו ולשבץ שוב.');
+  String get byYouUnconfirmed => _('Reported by you (accepted without confirmation)', 'דווח על ידך (התקבל בלי אישור)');
+  String byUnconfirmed(String n) => _('Reported by $n (accepted without confirmation)', 'דווח על ידי $n (התקבל בלי אישור)');
+
+  // ---------------------------------------------------------------- manual pairing
+  String get swapHint => _('Tap two players to swap them', 'הקש על שני שחקנים כדי להחליף ביניהם');
+  String swapPickSecond(String name) => _('Now tap who swaps with $name', 'עכשיו הקש על מי שיתחלף עם $name');
+
+  // ---------------------------------------------------------------- review fixes
+  String get joinAlreadyDropped => _('You dropped from this tournament', 'פרשת מהטורניר הזה');
 }
