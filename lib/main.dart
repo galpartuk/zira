@@ -18,19 +18,22 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.light,
-    systemNavigationBarColor: Z.surface,
-  ));
+  await Looks.instance.load();
+  Looks.instance.addListener(applySystemBars);
+  applySystemBars();
   Lang.instance.load();
   final db = FirebaseFirestore.instance;
   final auth = AuthService(FirebaseAuth.instance, db);
-  runApp(MultiProvider(providers: [
-    ChangeNotifierProvider(create: (_) => AppState()), // loaded by CloudGate on sign-in
-    ChangeNotifierProvider<AuthService?>.value(value: auth),
-    Provider<FirebaseFirestore?>.value(value: db),
-  ], child: const ZiraApp(online: true)));
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AppState()), // loaded by CloudGate on sign-in
+        ChangeNotifierProvider<AuthService?>.value(value: auth),
+        Provider<FirebaseFirestore?>.value(value: db),
+      ],
+      child: const ZiraApp(online: true),
+    ),
+  );
 }
 
 class ZiraApp extends StatelessWidget {
@@ -42,7 +45,7 @@ class ZiraApp extends StatelessWidget {
   Widget build(BuildContext context) {
     // English by default; Hebrew flips the whole app to right-to-left.
     final app = ListenableBuilder(
-      listenable: Lang.instance,
+      listenable: Listenable.merge([Lang.instance, Looks.instance]),
       builder: (context, _) => MaterialApp(
         title: S.t.appName,
         scaffoldMessengerKey: messengerKey,
@@ -55,10 +58,24 @@ class ZiraApp extends StatelessWidget {
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
-        // Keyed so every string is rebuilt in the new language.
-        home: HomeScreen(key: ValueKey(Lang.instance.code)),
+        // Keyed so every string and colour is rebuilt in the new language / look.
+        home: HomeScreen(key: ValueKey('${Lang.instance.code}-${Looks.instance.light}')),
       ),
     );
     return online ? CloudGate(child: app) : app;
   }
+}
+
+/// Status and navigation bar icons that read on the current look.
+void applySystemBars() {
+  final light = Looks.instance.light;
+  SystemChrome.setSystemUIOverlayStyle(
+    SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: light ? Brightness.dark : Brightness.light,
+      statusBarBrightness: light ? Brightness.light : Brightness.dark,
+      systemNavigationBarColor: Z.surface,
+      systemNavigationBarIconBrightness: light ? Brightness.dark : Brightness.light,
+    ),
+  );
 }

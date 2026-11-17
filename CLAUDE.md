@@ -43,7 +43,12 @@ Online since 1.4.0 (branch `feature/online-tournaments`, spec/plan in `docs/supe
 - The engine is language-free: it returns data (`topRoundSize`, `MatchResult`, preset percent lists);
   `S` formats it. Never put user-visible text in `lib/engine/`.
 - `PrizeConfig.unit` is a code (`packs` / `ILS`); `unitFromJson` maps old saves ("₪", "חבילות", "בוסטרים").
-- Widget tests that check overflow load the real Heebo font (`loadHeebo` in `test/l10n_test.dart`).
+- Widget tests that check overflow load the real Rubik font (`loadHeebo` in `test/l10n_test.dart`).
+- Look (1.6.0, Gal picked direction "B / arena"): dark by default, light optional (`Looks` in `lib/theme.dart`,
+  prefs key `zira.theme`, sun/moon `LookButton` on the tools tab + the tournaments menu). `Z.xxx` colours are
+  **getters** that follow the look, so they can't be used in `const` expressions. Roles: `Z.accent` = primary action
+  (white on dark, ink on light), `Z.blue` = me / live, `Z.coral` = opponent, `Z.amber` = waiting / unconfirmed.
+  Fonts: Rubik (text, has Hebrew) and Barlow Condensed (`Z.digits`, big numbers only). No gold.
 - The player's waiting card (`lib/widgets/lobby_card.dart`) animates forever: tests that show it set
   `lobbyAnimations = false`, or `pumpAndSettle` never returns.
 

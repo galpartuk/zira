@@ -76,20 +76,27 @@ class _TournamentScreenState extends State<TournamentScreen> with TickerProvider
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 0,
-        title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(t.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-          const SizedBox(height: 2),
-          Row(children: [
-            Pill(status, color: color),
-            const SizedBox(width: 8),
-            Flexible(
-              child: Text(S.t.active(t.activePlayers.length),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 12.5, color: Z.muted)),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(t.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+            const SizedBox(height: 2),
+            Row(
+              children: [
+                Pill(status, color: color),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    S.t.active(t.activePlayers.length),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12.5, color: Z.muted),
+                  ),
+                ),
+              ],
             ),
-          ]),
-        ]),
+          ],
+        ),
         toolbarHeight: 68,
         actions: [
           if (!t.finished)
@@ -110,7 +117,10 @@ class _TournamentScreenState extends State<TournamentScreen> with TickerProvider
             tooltip: S.t.settings,
             icon: const Icon(Icons.tune),
             onPressed: () => showModalBottomSheet(
-                context: context, isScrollControlled: true, builder: (_) => TournamentSettingsSheet(t: t)),
+              context: context,
+              isScrollControlled: true,
+              builder: (_) => TournamentSettingsSheet(t: t),
+            ),
           ),
         ],
         bottom: TabBar(
@@ -119,21 +129,30 @@ class _TournamentScreenState extends State<TournamentScreen> with TickerProvider
           tabs: [for (final k in _keys) Tab(text: labels[k])],
         ),
       ),
-      body: _withHostPrompt(context, t, Column(children: [
-        if (sync != null && !t.finished) HostStrip(t: t, sync: sync),
-        Expanded(
-          child: TabBarView(controller: _tabs, children: [
-        for (final k in _keys)
-          switch (k) {
-            'players' => PlayersTab(t: t),
-            'rounds' => RoundsTab(t: t, header: _hostMatch(context, t)),
-            'standings' => StandingsTab(t: t),
-            'bracket' => BracketTab(t: t),
-            _ => PrizesTab(t: t),
-          }
-          ]),
+      body: _withHostPrompt(
+        context,
+        t,
+        Column(
+          children: [
+            if (sync != null && !t.finished) HostStrip(t: t, sync: sync),
+            Expanded(
+              child: TabBarView(
+                controller: _tabs,
+                children: [
+                  for (final k in _keys)
+                    switch (k) {
+                      'players' => PlayersTab(t: t),
+                      'rounds' => RoundsTab(t: t, header: _hostMatch(context, t)),
+                      'standings' => StandingsTab(t: t),
+                      'bracket' => BracketTab(t: t),
+                      _ => PrizesTab(t: t),
+                    },
+                ],
+              ),
+            ),
+          ],
         ),
-      ])),
+      ),
       bottomNavigationBar: _NextStepBar(t: t, goTo: _goTo),
     );
   }
@@ -152,8 +171,11 @@ Widget _withHostPrompt(BuildContext context, Tournament t, Widget child) {
     state: info == null ? const NoClaims() : sync.stateOf(t, info.match),
     onReport: (res) => info == null
         ? Future.value()
-        : writeClaim(db, t.id,
-            Claim(matchId: info.match.id, uid: uid, result: res, atMs: DateTime.now().millisecondsSinceEpoch)),
+        : writeClaim(
+            db,
+            t.id,
+            Claim(matchId: info.match.id, uid: uid, result: res, atMs: DateTime.now().millisecondsSinceEpoch),
+          ),
     child: child,
   );
 }
@@ -176,7 +198,10 @@ Widget? _hostMatch(BuildContext context, Tournament t) {
       uid: uid,
       state: sync.stateOf(t, m),
       onReport: (res) => writeClaim(
-          db, t.id, Claim(matchId: m.id, uid: uid, result: res, atMs: DateTime.now().millisecondsSinceEpoch)),
+        db,
+        t.id,
+        Claim(matchId: m.id, uid: uid, result: res, atMs: DateTime.now().millisecondsSinceEpoch),
+      ),
     ),
   );
 }
@@ -288,32 +313,28 @@ class _NextStepBar extends StatelessWidget {
         top: false,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-          child: Row(children: [
-            Expanded(
-              flex: 3,
-              child: waiting
-                  ? OutlinedButton.icon(
-                      onPressed: action,
-                      icon: Icon(icon, size: 20),
-                      label: Text(label),
-                    )
-                  : FilledButton.icon(
-                      onPressed: action,
-                      icon: Icon(icon),
-                      label: Text(label),
-                    ),
-            ),
-            if (hint != null) ...[
-              const SizedBox(width: 12),
-              Flexible(
-                flex: 2,
-                child: Text(hint,
+          child: Row(
+            children: [
+              Expanded(
+                flex: 3,
+                child: waiting
+                    ? OutlinedButton.icon(onPressed: action, icon: Icon(icon, size: 20), label: Text(label))
+                    : FilledButton.icon(onPressed: action, icon: Icon(icon), label: Text(label)),
+              ),
+              if (hint != null) ...[
+                const SizedBox(width: 12),
+                Flexible(
+                  flex: 2,
+                  child: Text(
+                    hint,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Z.muted, fontSize: 13, fontWeight: FontWeight.w600)),
-              ),
+                    style: TextStyle(color: Z.muted, fontSize: 13, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
             ],
-          ]),
+          ),
         ),
       ),
     );

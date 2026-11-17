@@ -13,11 +13,18 @@ Future<(FakeFirebaseFirestore, AppState, HostSync, Tournament)> host({TFormat fo
   final db = FakeFirebaseFirestore();
   final app = AppState(store: CloudStore(db, 'host'), draftRounds: true);
   await app.load();
-  final t = Tournament(id: 't1', name: 'T', joinCode: 'ABC234', format: format, swissRounds: 3, players: [
-    Player(id: 'g', name: 'Gal', tieRand: 0), // a guest already called Gal
-    Player(id: 'b', name: 'Bob', uid: 'bob', tieRand: 1),
-    Player(id: 'c', name: 'Cid', uid: 'cid', tieRand: 2),
-  ]);
+  final t = Tournament(
+    id: 't1',
+    name: 'T',
+    joinCode: 'ABC234',
+    format: format,
+    swissRounds: 3,
+    players: [
+      Player(id: 'g', name: 'Gal', tieRand: 0), // a guest already called Gal
+      Player(id: 'b', name: 'Bob', uid: 'bob', tieRand: 1),
+      Player(id: 'c', name: 'Cid', uid: 'cid', tieRand: 2),
+    ],
+  );
   app.add(t);
   await db.doc('joinCodes/ABC234').set({'tid': 't1', 'hostUid': 'host'});
   final sync = HostSync(db, app, 'host');
@@ -47,9 +54,11 @@ void main() {
   });
 
   test('#2 round robin: no joins once round 1 exists, even as a draft', () {
-    final t = Tournament(name: 'RR', format: TFormat.roundRobin, players: [
-      for (var i = 0; i < 4; i++) Player(id: 'p$i', name: 'P$i', tieRand: i),
-    ]);
+    final t = Tournament(
+      name: 'RR',
+      format: TFormat.roundRobin,
+      players: [for (var i = 0; i < 4; i++) Player(id: 'p$i', name: 'P$i', tieRand: i)],
+    );
     expect(t.acceptsNewPlayers, isTrue);
     final app = AppState(draftRounds: true)..add(t);
     app.start(t);
@@ -80,7 +89,12 @@ void main() {
   test('#4 re-entering the code while waiting for approval just opens it; after dropping says so', () async {
     final db = FakeFirebaseFirestore();
     await db.doc('joinCodes/ABC234').set({'tid': 't1', 'hostUid': 'host'});
-    await db.doc('tournaments/t1').set({'hostUid': 'host', 'status': 'registration', 'joinMode': 'approval', 'data': {}});
+    await db.doc('tournaments/t1').set({
+      'hostUid': 'host',
+      'status': 'registration',
+      'joinMode': 'approval',
+      'data': {},
+    });
     await writeEntry(db, 't1', const Entry(uid: 'eve', displayName: 'Eve', status: EntryStatus.requested));
     expect((await joinWithCode(db, uid: 'eve', name: 'Eve', code: 'ABC234')).$1, JoinResult.requested);
     await db.doc('tournaments/t1/entries/eve').update({'status': 'dropped'});
@@ -104,7 +118,9 @@ void main() {
     t.players.add(Player(id: 'd', name: 'Dan', uid: 'dan', tieRand: 3));
     app.start(t);
     app.publish(t);
-    final m = t.currentRound!.matches.firstWhere((m) => !m.isBye && t.player(m.p1)!.uid != null && t.player(m.p2)?.uid != null);
+    final m = t.currentRound!.matches.firstWhere(
+      (m) => !m.isBye && t.player(m.p1)!.uid != null && t.player(m.p2)?.uid != null,
+    );
     for (final u in [t.player(m.p1)!.uid!, t.player(m.p2)!.uid!]) {
       await writeClaim(db, 't1', Claim(matchId: m.id, uid: u, result: const MatchResult(Outcome.p1, 2, 0), atMs: 1));
     }

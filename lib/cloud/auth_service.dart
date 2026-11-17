@@ -26,8 +26,10 @@ class AuthService extends ChangeNotifier {
   Future<void> _profile() async {
     final u = auth.currentUser;
     if (u == null) return;
-    await db.doc('users/${u.uid}').set(
-        {'displayName': displayName, 'createdAt': FieldValue.serverTimestamp()}, SetOptions(merge: true));
+    await db.doc('users/${u.uid}').set({
+      'displayName': displayName,
+      'createdAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
   }
 
   Future<void> signInGoogle() async {

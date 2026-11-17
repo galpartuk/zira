@@ -41,7 +41,10 @@ class HostSync extends ChangeNotifier {
     for (final t in app.tournaments) {
       if (t.finished && t.joinCode != null) _releaseCodeIfFinished(t);
     }
-    final live = {for (final t in app.tournaments) if (!t.finished) t.id};
+    final live = {
+      for (final t in app.tournaments)
+        if (!t.finished) t.id,
+    };
     for (final id in _subs.keys.toList()) {
       if (!live.contains(id)) {
         for (final s in _subs.remove(id)!) {
@@ -169,19 +172,18 @@ class HostSync extends ChangeNotifier {
 
   /// The host also plays in [m]: their own result goes through the opponent's
   /// confirmation like any player's, not straight into the standings.
-  bool isOwnMatch(Tournament t, Match m) =>
-      !m.isBye && (t.player(m.p1)?.uid == uid || t.player(m.p2)?.uid == uid);
+  bool isOwnMatch(Tournament t, Match m) => !m.isBye && (t.player(m.p1)?.uid == uid || t.player(m.p2)?.uid == uid);
 
-  Future<void> reportOwn(Tournament t, Match m, MatchResult r) => writeClaim(
-      db, t.id, Claim(matchId: m.id, uid: uid, result: r, atMs: DateTime.now().millisecondsSinceEpoch));
+  Future<void> reportOwn(Tournament t, Match m, MatchResult r) =>
+      writeClaim(db, t.id, Claim(matchId: m.id, uid: uid, result: r, atMs: DateTime.now().millisecondsSinceEpoch));
 
   /// Matches of [r] still without a result whose only report waits for the
   /// opponent's confirmation (no dispute, not unreported).
   List<(Match, Claim)> pendingOnly(Tournament t, Round r) => [
-        for (final m in r.matches)
-          if (!m.isBye && m.result == null)
-            if (stateOf(t, m) case Pending(by: final c)) (m, c),
-      ];
+    for (final m in r.matches)
+      if (!m.isBye && m.result == null)
+        if (stateOf(t, m) case Pending(by: final c)) (m, c),
+  ];
 
   /// Moving on: an unconfirmed report counts as reported. After this the
   /// opponent can no longer confirm or dispute it.

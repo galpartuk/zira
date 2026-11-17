@@ -28,10 +28,7 @@ class PlayerTournamentScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final db = dbOf(context)!;
     final uid = authOf(context, listen: false)!.user!.uid;
-    return ChangeNotifierProvider(
-      create: (_) => PlayerSession(db, tid, uid),
-      child: const _PlayerView(),
-    );
+    return ChangeNotifierProvider(create: (_) => PlayerSession(db, tid, uid), child: const _PlayerView());
   }
 }
 
@@ -44,8 +41,9 @@ class _PlayerView extends StatelessWidget {
     final t = s.t;
     if (s.gone) {
       return Scaffold(
-          appBar: AppBar(),
-          body: EmptyState(icon: Icons.event_busy, title: S.t.tournamentGone, body: ''));
+        appBar: AppBar(),
+        body: EmptyState(icon: Icons.event_busy, title: S.t.tournamentGone, body: ''),
+      );
     }
     if (t == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final r = t.currentRound;
@@ -62,11 +60,13 @@ class _PlayerView extends StatelessWidget {
       initialIndex: 0, // finished + sent: the results tab is first
       child: Scaffold(
         appBar: AppBar(
-          title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(t.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-            if (r != null)
-              Text(S.t.roundLabel(r), style: const TextStyle(fontSize: 12.5, color: Z.muted)),
-          ]),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(t.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+              if (r != null) Text(S.t.roundLabel(r), style: TextStyle(fontSize: 12.5, color: Z.muted)),
+            ],
+          ),
           actions: [
             if (!t.finished)
               IconButton(
@@ -85,7 +85,13 @@ class _PlayerView extends StatelessWidget {
             if (canDrop)
               PopupMenuButton<String>(
                 onSelected: (_) async {
-                  final ok = await confirm(context, S.t.dropFromEvent, S.t.dropFromEventBody, ok: S.t.drop, danger: true);
+                  final ok = await confirm(
+                    context,
+                    S.t.dropFromEvent,
+                    S.t.dropFromEventBody,
+                    ok: S.t.drop,
+                    danger: true,
+                  );
                   if (!ok) return;
                   try {
                     await s.drop();
@@ -98,17 +104,21 @@ class _PlayerView extends StatelessWidget {
           ],
           bottom: PreferredSize(
             preferredSize: Size.fromHeight(t.finished ? 82 : 46),
-            child: Column(children: [
-              if (t.finished)
-                Container(
-                  width: double.infinity,
-                  color: Z.win.withValues(alpha: .15),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
-                  child: Text(t.resultsPublished ? S.t.tournamentOverFinal : S.t.waitingFinalResults,
-                      style: const TextStyle(color: Z.win, fontWeight: FontWeight.w800)),
-                ),
-              TabBar(isScrollable: true, tabs: [for (final x in tabs) Tab(text: x.$1)]),
-            ]),
+            child: Column(
+              children: [
+                if (t.finished)
+                  Container(
+                    width: double.infinity,
+                    color: Z.win.withValues(alpha: .15),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+                    child: Text(
+                      t.resultsPublished ? S.t.tournamentOverFinal : S.t.waitingFinalResults,
+                      style: TextStyle(color: Z.win, fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                TabBar(isScrollable: true, tabs: [for (final x in tabs) Tab(text: x.$1)]),
+              ],
+            ),
           ),
         ),
         body: ClaimPrompt(
@@ -116,10 +126,12 @@ class _PlayerView extends StatelessWidget {
           uid: s.uid,
           state: s.myState,
           onReport: s.report,
-          child: Column(children: [
-            TimeNotice(t: t, uid: s.uid, state: s.myState),
-            Expanded(child: TabBarView(children: [for (final x in tabs) x.$2])),
-          ]),
+          child: Column(
+            children: [
+              TimeNotice(t: t, uid: s.uid, state: s.myState),
+              Expanded(child: TabBarView(children: [for (final x in tabs) x.$2])),
+            ],
+          ),
         ),
       ),
     );
@@ -139,34 +151,40 @@ class _MyMatchTab extends StatelessWidget {
     Widget? lobby;
     if (me == null && s.myStatus == EntryStatus.requested) {
       lobby = LobbyCard(
-          t: t,
-          uid: s.uid,
-          icon: Icons.hourglass_top_rounded,
-          color: Z.gold,
-          title: S.t.requestSentTitle,
-          subtitle: S.t.requestSentBody);
+        t: t,
+        uid: s.uid,
+        icon: Icons.hourglass_top_rounded,
+        color: Z.accent,
+        title: S.t.requestSentTitle,
+        subtitle: S.t.requestSentBody,
+      );
     } else if (me == null && !t.finished && t.acceptsNewPlayers && s.myStatus == EntryStatus.joined) {
       lobby = LobbyCard(
-          t: t,
-          uid: s.uid,
-          icon: Icons.sync_rounded,
-          color: Z.blue,
-          title: S.t.joiningTitle,
-          subtitle: S.t.notInEventYet);
+        t: t,
+        uid: s.uid,
+        icon: Icons.sync_rounded,
+        color: Z.blue,
+        title: S.t.joiningTitle,
+        subtitle: S.t.notInEventYet,
+      );
     } else if (me != null && !me.dropped && !t.finished && MyMatchInfo.of(t, s.uid) == null) {
       lobby = LobbyCard(
-          t: t,
-          uid: s.uid,
-          icon: Icons.check_rounded,
-          color: Z.win,
-          title: S.t.youAreIn,
-          subtitle: t.underway ? S.t.waitingNextRound : S.t.waitingHostStart,
-          showPlayers: !t.underway);
+        t: t,
+        uid: s.uid,
+        icon: Icons.check_rounded,
+        color: Z.win,
+        title: S.t.youAreIn,
+        subtitle: t.underway ? S.t.waitingNextRound : S.t.waitingHostStart,
+        showPlayers: !t.underway,
+      );
     }
-    return ListView(padding: const EdgeInsets.all(16), children: [
-      if (r != null && !t.finished) ...[RoundTimer(t: t, readOnly: true), const SizedBox(height: 12)],
-      lobby ?? MyMatchCard(t: t, uid: s.uid, state: s.myState, onReport: s.report),
-    ]);
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        if (r != null && !t.finished) ...[RoundTimer(t: t, readOnly: true), const SizedBox(height: 12)],
+        lobby ?? MyMatchCard(t: t, uid: s.uid, state: s.myState, onReport: s.report),
+      ],
+    );
   }
 }
 
@@ -179,19 +197,31 @@ class _Pairings extends StatelessWidget {
   Widget build(BuildContext context) {
     final r = t.currentRound;
     if (r == null) return EmptyState(icon: Icons.shuffle_rounded, title: S.t.waitingNextRound, body: '');
-    final matches = [...r.matches]..sort((a, b) => a.isBye == b.isBye ? a.table.compareTo(b.table) : (a.isBye ? 1 : -1));
-    return ListView(padding: const EdgeInsets.fromLTRB(16, 12, 16, 24), children: [
-      for (final m in matches)
-        Card(
-          color: myId != null && m.involves(myId!) ? Z.gold.withValues(alpha: .18) : null,
-          child: ListTile(
-            leading: Text(m.isBye ? 'BYE' : '${m.table}',
-                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, fontFeatures: Z.tabular)),
-            title: Text(m.isBye ? t.nameOf(m.p1) : '${t.nameOf(m.p1)}  ${S.t.vs}  ${t.nameOf(m.p2)}'),
-            trailing: m.result == null ? null : Text(S.t.scoreText(m.result!, bestOf: t.bestOfFor(r.stage))),
+    final matches = [...r.matches]
+      ..sort((a, b) => a.isBye == b.isBye ? a.table.compareTo(b.table) : (a.isBye ? 1 : -1));
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+      children: [
+        for (final m in matches)
+          Card(
+            color: myId != null && m.involves(myId!) ? Z.blue.withValues(alpha: .18) : null,
+            child: ListTile(
+              leading: Text(
+                m.isBye ? 'BYE' : '${m.table}',
+                style: TextStyle(
+                  fontFamily: Z.digits,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 24,
+                  height: 1,
+                  color: Z.muted,
+                ),
+              ),
+              title: Text(m.isBye ? t.nameOf(m.p1) : '${t.nameOf(m.p1)}  ${S.t.vs}  ${t.nameOf(m.p2)}'),
+              trailing: m.result == null ? null : Text(S.t.scoreText(m.result!, bestOf: t.bestOfFor(r.stage))),
+            ),
           ),
-        ),
-    ]);
+      ],
+    );
   }
 }
 
@@ -209,28 +239,37 @@ class _Results extends StatelessWidget {
       for (final l in prizes.lines)
         if (l.playerId != null && l.amount > 0) l.playerId!: S.t.amount(t.prizes.unit, l.amount),
     };
-    return ListView(padding: const EdgeInsets.fromLTRB(16, 12, 16, 24), children: [
-      for (final p in placements)
-        Card(
-          color: p.playerId == myId ? Z.gold.withValues(alpha: .18) : null,
-          child: ListTile(
-            leading: SizedBox(
-              width: 44,
-              child: Text(p.groupFrom == p.groupTo ? '${p.groupFrom}' : '${p.groupFrom}-${p.groupTo}',
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+      children: [
+        for (final p in placements)
+          Card(
+            color: p.playerId == myId ? Z.blue.withValues(alpha: .18) : null,
+            child: ListTile(
+              leading: SizedBox(
+                width: 44,
+                child: Text(
+                  p.groupFrom == p.groupTo ? '${p.groupFrom}' : '${p.groupFrom}-${p.groupTo}',
                   textAlign: TextAlign.center,
                   textDirection: TextDirection.ltr,
                   style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: p.place == 1 ? Z.gold : Z.text,
-                      fontFeatures: Z.tabular)),
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: p.place == 1 ? Z.accent : Z.text,
+                    fontFeatures: Z.tabular,
+                  ),
+                ),
+              ),
+              title: Text(t.nameOf(p.playerId), style: const TextStyle(fontWeight: FontWeight.w600)),
+              trailing: prizeOf[p.playerId] == null
+                  ? null
+                  : Text(
+                      prizeOf[p.playerId]!,
+                      style: TextStyle(color: Z.win, fontWeight: FontWeight.w700),
+                    ),
             ),
-            title: Text(t.nameOf(p.playerId), style: const TextStyle(fontWeight: FontWeight.w700)),
-            trailing: prizeOf[p.playerId] == null
-                ? null
-                : Text(prizeOf[p.playerId]!, style: const TextStyle(color: Z.win, fontWeight: FontWeight.w800)),
           ),
-        ),
-    ]);
+      ],
+    );
   }
 }

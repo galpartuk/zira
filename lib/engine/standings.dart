@@ -90,14 +90,10 @@ List<Standing> computeStandings(Tournament t, {int? beforeRound}) {
     s.mwp = raw < floor ? floor : raw;
   }
   for (final s in map.values) {
-    s.omw = s.opponents.isEmpty
-        ? 0
-        : s.opponents.map((o) => map[o]!.mwp).reduce((x, y) => x + y) / s.opponents.length;
+    s.omw = s.opponents.isEmpty ? 0 : s.opponents.map((o) => map[o]!.mwp).reduce((x, y) => x + y) / s.opponents.length;
   }
   for (final s in map.values) {
-    s.oomw = s.opponents.isEmpty
-        ? 0
-        : s.opponents.map((o) => map[o]!.omw).reduce((x, y) => x + y) / s.opponents.length;
+    s.oomw = s.opponents.isEmpty ? 0 : s.opponents.map((o) => map[o]!.omw).reduce((x, y) => x + y) / s.opponents.length;
   }
 
   final list = map.values.toList()..sort(compareStandings);

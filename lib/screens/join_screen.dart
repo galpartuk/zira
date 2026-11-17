@@ -34,20 +34,23 @@ class _JoinScreenState extends State<JoinScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(S.t.joinWithCode)),
-      body: ListView(padding: const EdgeInsets.all(20), children: [
-        TextField(
-          controller: _code,
-          autofocus: true,
-          maxLength: 6,
-          textCapitalization: TextCapitalization.characters,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800, letterSpacing: 6),
-          decoration: InputDecoration(hintText: 'ABC234', helperText: S.t.codeHint),
-          onSubmitted: (_) => _join(),
-        ),
-        const SizedBox(height: 16),
-        FilledButton(onPressed: _busy ? null : _join, child: Text(S.t.join)),
-      ]),
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          TextField(
+            controller: _code,
+            autofocus: true,
+            maxLength: 6,
+            textCapitalization: TextCapitalization.characters,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w700, letterSpacing: 6),
+            decoration: InputDecoration(hintText: 'ABC234', helperText: S.t.codeHint),
+            onSubmitted: (_) => _join(),
+          ),
+          const SizedBox(height: 16),
+          FilledButton(onPressed: _busy ? null : _join, child: Text(S.t.join)),
+        ],
+      ),
     );
   }
 }
@@ -115,38 +118,45 @@ class _JoinCardState extends State<JoinCard> {
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Z.gold.withValues(alpha: .6), width: 1.5),
+        side: BorderSide(color: Z.line),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Row(children: [
-            const Icon(Icons.login_rounded, color: Z.gold),
-            const SizedBox(width: 10),
-            Text(S.t.joinTournament, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-          ]),
-          const SizedBox(height: 4),
-          Text(S.t.joinTournamentBody, style: const TextStyle(color: Z.muted, fontSize: 13.5)),
-          const SizedBox(height: 12),
-          Row(children: [
-            Expanded(
-              child: TextField(
-                controller: _code,
-                maxLength: 6,
-                textCapitalization: TextCapitalization.characters,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: 4),
-                decoration: const InputDecoration(hintText: 'ABC234', counterText: ''),
-                onSubmitted: (_) => _join(),
-              ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.login_rounded, color: Z.muted),
+                const SizedBox(width: 10),
+                Text(S.t.joinTournament, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+              ],
             ),
-            const SizedBox(width: 10),
-            SizedBox(
-              height: 52,
-              child: FilledButton(onPressed: _busy ? null : _join, child: Text(S.t.join)),
+            const SizedBox(height: 4),
+            Text(S.t.joinTournamentBody, style: TextStyle(color: Z.muted, fontSize: 13.5)),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _code,
+                    maxLength: 6,
+                    textCapitalization: TextCapitalization.characters,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: 4),
+                    decoration: const InputDecoration(hintText: 'ABC234', counterText: ''),
+                    onSubmitted: (_) => _join(),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                SizedBox(
+                  height: 52,
+                  child: FilledButton(onPressed: _busy ? null : _join, child: Text(S.t.join)),
+                ),
+              ],
             ),
-          ]),
-        ]),
+          ],
+        ),
       ),
     );
   }

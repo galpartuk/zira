@@ -36,7 +36,7 @@ class _BracketPainter extends CustomPainter {
     final s = size.width;
     Offset p(double x, double y) => Offset(x * s, y * s);
     final line = Paint()
-      ..color = Z.gold
+      ..color = Z.accent
       ..style = PaintingStyle.stroke
       ..strokeWidth = s * .075
       ..strokeJoin = StrokeJoin.miter;
@@ -65,7 +65,7 @@ class _BracketPainter extends CustomPainter {
       line,
     );
     canvas.drawLine(p(.6, .5), p(.8, .5), line);
-    canvas.drawCircle(p(.86, .5), s * .12, Paint()..color = Z.gold);
+    canvas.drawCircle(p(.86, .5), s * .12, Paint()..color = Z.accent);
   }
 
   @override

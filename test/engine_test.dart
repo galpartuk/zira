@@ -34,14 +34,26 @@ void main() {
     test('points, OMW and OOMW with a hand-checked example', () {
       final t = makeT(4, rounds: 2);
       // R1: p0 beats p1, p2 beats p3. R2: p0 beats p2, p1 beats p3.
-      t.rounds.add(Round(number: 1, stage: Stage.swiss, matches: [
-        Match(table: 1, p1: 'p0', p2: 'p1', result: const MatchResult(Outcome.p1, 1, 0)),
-        Match(table: 2, p1: 'p2', p2: 'p3', result: const MatchResult(Outcome.p1, 1, 0)),
-      ]));
-      t.rounds.add(Round(number: 2, stage: Stage.swiss, matches: [
-        Match(table: 1, p1: 'p0', p2: 'p2', result: const MatchResult(Outcome.p1, 1, 0)),
-        Match(table: 2, p1: 'p1', p2: 'p3', result: const MatchResult(Outcome.p1, 1, 0)),
-      ]));
+      t.rounds.add(
+        Round(
+          number: 1,
+          stage: Stage.swiss,
+          matches: [
+            Match(table: 1, p1: 'p0', p2: 'p1', result: const MatchResult(Outcome.p1, 1, 0)),
+            Match(table: 2, p1: 'p2', p2: 'p3', result: const MatchResult(Outcome.p1, 1, 0)),
+          ],
+        ),
+      );
+      t.rounds.add(
+        Round(
+          number: 2,
+          stage: Stage.swiss,
+          matches: [
+            Match(table: 1, p1: 'p0', p2: 'p2', result: const MatchResult(Outcome.p1, 1, 0)),
+            Match(table: 2, p1: 'p1', p2: 'p3', result: const MatchResult(Outcome.p1, 1, 0)),
+          ],
+        ),
+      );
       final s = {for (final x in computeStandings(t)) x.player.id: x};
       expect(s['p0']!.points, 6);
       expect(s['p1']!.points, 3);
@@ -58,14 +70,26 @@ void main() {
 
     test('standings before a round ignore that round and later ones', () {
       final t = makeT(3, rounds: 2);
-      t.rounds.add(Round(number: 1, stage: Stage.swiss, matches: [
-        Match(table: 1, p1: 'p0', p2: 'p1', result: const MatchResult(Outcome.p1, 1, 0)),
-        Match(table: 0, p1: 'p2'),
-      ]));
-      t.rounds.add(Round(number: 2, stage: Stage.swiss, matches: [
-        Match(table: 1, p1: 'p0', p2: 'p2'),
-        Match(table: 0, p1: 'p1'), // the round-1 loser gets the bye
-      ]));
+      t.rounds.add(
+        Round(
+          number: 1,
+          stage: Stage.swiss,
+          matches: [
+            Match(table: 1, p1: 'p0', p2: 'p1', result: const MatchResult(Outcome.p1, 1, 0)),
+            Match(table: 0, p1: 'p2'),
+          ],
+        ),
+      );
+      t.rounds.add(
+        Round(
+          number: 2,
+          stage: Stage.swiss,
+          matches: [
+            Match(table: 1, p1: 'p0', p2: 'p2'),
+            Match(table: 0, p1: 'p1'), // the round-1 loser gets the bye
+          ],
+        ),
+      );
       final before2 = {for (final s in computeStandings(t, beforeRound: 1)) s.player.id: s};
       expect(before2['p1']!.points, 0);
       expect(before2['p1']!.record, '0-1');
@@ -77,27 +101,41 @@ void main() {
 
     test('double loss gives no points to either player', () {
       final t = makeT(2, rounds: 1);
-      t.rounds.add(Round(number: 1, stage: Stage.swiss, matches: [
-        Match(table: 1, p1: 'p0', p2: 'p1', result: const MatchResult(Outcome.doubleLoss)),
-      ]));
+      t.rounds.add(
+        Round(
+          number: 1,
+          stage: Stage.swiss,
+          matches: [Match(table: 1, p1: 'p0', p2: 'p1', result: const MatchResult(Outcome.doubleLoss))],
+        ),
+      );
       final s = computeStandings(t);
       expect(s.every((x) => x.points == 0 && x.losses == 1), isTrue);
     });
 
     test('draw is 1 point each', () {
       final t = makeT(2, rounds: 1);
-      t.rounds.add(Round(number: 1, stage: Stage.swiss, matches: [
-        Match(table: 1, p1: 'p0', p2: 'p1', result: const MatchResult(Outcome.draw, 1, 1)),
-      ]));
+      t.rounds.add(
+        Round(
+          number: 1,
+          stage: Stage.swiss,
+          matches: [Match(table: 1, p1: 'p0', p2: 'p1', result: const MatchResult(Outcome.draw, 1, 1))],
+        ),
+      );
       expect(computeStandings(t).every((x) => x.points == 1 && x.draws == 1), isTrue);
     });
 
     test('bye is a win worth 3 and not counted as an opponent', () {
       final t = makeT(3, rounds: 1);
-      t.rounds.add(Round(number: 1, stage: Stage.swiss, matches: [
-        Match(table: 1, p1: 'p0', p2: 'p1', result: const MatchResult(Outcome.p1, 1, 0)),
-        Match(table: 0, p1: 'p2'),
-      ]));
+      t.rounds.add(
+        Round(
+          number: 1,
+          stage: Stage.swiss,
+          matches: [
+            Match(table: 1, p1: 'p0', p2: 'p1', result: const MatchResult(Outcome.p1, 1, 0)),
+            Match(table: 0, p1: 'p2'),
+          ],
+        ),
+      );
       final s = {for (final x in computeStandings(t)) x.player.id: x};
       expect(s['p2']!.points, 3);
       expect(s['p2']!.opponents, isEmpty);
@@ -321,7 +359,14 @@ void main() {
     });
 
     test('packs: whole numbers that add up exactly', () {
-      final c = PrizeConfig(unit: PrizeConfig.packs, entryFee: 0, extra: 24, step: 1, splitTies: false, percents: [40, 25, 17.5, 17.5]);
+      final c = PrizeConfig(
+        unit: PrizeConfig.packs,
+        entryFee: 0,
+        extra: 24,
+        step: 1,
+        splitTies: false,
+        percents: [40, 25, 17.5, 17.5],
+      );
       final r = computePrizes(c, 10);
       expect(r.lines.every((l) => l.amount == l.amount.roundToDouble()), isTrue);
       expect(r.distributed, 24);

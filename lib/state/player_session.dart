@@ -10,8 +10,12 @@ import '../engine/online.dart';
 
 enum JoinResult { ok, requested, badCode, closed, removed, dropped }
 
-Future<(JoinResult, String?)> joinWithCode(FirebaseFirestore db,
-    {required String uid, required String name, required String code}) async {
+Future<(JoinResult, String?)> joinWithCode(
+  FirebaseFirestore db, {
+  required String uid,
+  required String name,
+  required String code,
+}) async {
   final tid = await lookupJoinCode(db, code);
   if (tid == null) return (JoinResult.badCode, null);
   final doc = (await db.doc('tournaments/$tid').get()).data();
@@ -23,33 +27,37 @@ Future<(JoinResult, String?)> joinWithCode(FirebaseFirestore db,
   if (mine?['status'] == 'dropped') return (JoinResult.dropped, tid);
   final mode = doc['joinMode'] as String? ?? 'open';
   final status = doc['status'] as String? ?? 'registration';
-  if (status == 'finished' ||
-      doc['acceptsPlayers'] == false ||
-      (mode == 'closedOnStart' && status != 'registration')) {
+  if (status == 'finished' || doc['acceptsPlayers'] == false || (mode == 'closedOnStart' && status != 'registration')) {
     return (JoinResult.closed, null);
   }
   final approval = mode == 'approval';
-  await writeEntry(db, tid,
-      Entry(uid: uid, displayName: name, status: approval ? EntryStatus.requested : EntryStatus.joined));
+  await writeEntry(
+    db,
+    tid,
+    Entry(uid: uid, displayName: name, status: approval ? EntryStatus.requested : EntryStatus.joined),
+  );
   return (approval ? JoinResult.requested : JoinResult.ok, tid);
 }
 
 Stream<List<({String tid, String name, String status, Tournament? t})>> joinedTournaments(
-        FirebaseFirestore db, String uid) =>
-    db
+  FirebaseFirestore db,
+  String uid,
+) => db
     .collection('tournaments')
     .where('memberUids', arrayContains: uid)
     .snapshots()
-    .map((s) => [
-          for (final d in s.docs)
-            if (d.data()['hostUid'] != uid)
-              (
-                tid: d.id,
-                name: d.data()['name'] as String? ?? '?',
-                status: d.data()['status'] as String? ?? '',
-                t: _published(d.data()['data']),
-              )
-        ]);
+    .map(
+      (s) => [
+        for (final d in s.docs)
+          if (d.data()['hostUid'] != uid)
+            (
+              tid: d.id,
+              name: d.data()['name'] as String? ?? '?',
+              status: d.data()['status'] as String? ?? '',
+              t: _published(d.data()['data']),
+            ),
+      ],
+    );
 
 /// The published tournament inside a tournament document, when it can be read.
 Tournament? _published(Object? data) {
@@ -79,25 +87,29 @@ class PlayerSession extends ChangeNotifier {
   PlayerSession(this.db, this.tid, this.uid) {
     final ref = db.doc('tournaments/$tid');
     _subs
-      ..add(ref.snapshots().listen((s) {
-        final d = s.data();
-        if (d == null) {
-          gone = s.metadata.isFromCache == false;
+      ..add(
+        ref.snapshots().listen((s) {
+          final d = s.data();
+          if (d == null) {
+            gone = s.metadata.isFromCache == false;
+            notifyListeners();
+            return;
+          }
+          gone = false;
+          hostUid = d['hostUid'] as String?;
+          t = Tournament.fromJson(Map<String, dynamic>.from(d['data'] as Map));
+          final members = (d['memberUids'] as List?)?.cast<String>() ?? const <String>[];
+          if (members.contains(uid)) _listenClaims();
           notifyListeners();
-          return;
-        }
-        gone = false;
-        hostUid = d['hostUid'] as String?;
-        t = Tournament.fromJson(Map<String, dynamic>.from(d['data'] as Map));
-        final members = (d['memberUids'] as List?)?.cast<String>() ?? const <String>[];
-        if (members.contains(uid)) _listenClaims();
-        notifyListeners();
-      }))
-      ..add(ref.collection('entries').doc(uid).snapshots().listen((s) {
-        final d = s.data();
-        myStatus = d == null ? null : Entry.fromJson(uid, d).status;
-        notifyListeners();
-      }));
+        }),
+      )
+      ..add(
+        ref.collection('entries').doc(uid).snapshots().listen((s) {
+          final d = s.data();
+          myStatus = d == null ? null : Entry.fromJson(uid, d).status;
+          notifyListeners();
+        }),
+      );
   }
 
   StreamSubscription? _claimsSub;
@@ -113,17 +125,23 @@ class PlayerSession extends ChangeNotifier {
 
   void _listenClaims() {
     if (_claimsSub != null || _disposed) return;
-    _claimsSub = db.collection('tournaments/$tid/claims').snapshots().listen((s) {
-      _claims = [for (final d in s.docs) Claim.fromJson(d.data())];
-      notifyListeners();
-    }, onError: (Object e) {
-      debugPrint('claims $tid: $e');
-      _claimsSub?.cancel();
-      _claimsSub = null;
-      Future.delayed(retryDelay, () {
-        if (!_disposed && t != null) _listenClaims();
-      });
-    });
+    _claimsSub = db
+        .collection('tournaments/$tid/claims')
+        .snapshots()
+        .listen(
+          (s) {
+            _claims = [for (final d in s.docs) Claim.fromJson(d.data())];
+            notifyListeners();
+          },
+          onError: (Object e) {
+            debugPrint('claims $tid: $e');
+            _claimsSub?.cancel();
+            _claimsSub = null;
+            Future.delayed(retryDelay, () {
+              if (!_disposed && t != null) _listenClaims();
+            });
+          },
+        );
   }
 
   Player? get me {

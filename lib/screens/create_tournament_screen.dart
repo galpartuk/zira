@@ -65,7 +65,7 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
         children: [
           TextField(
             controller: _name,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
             decoration: InputDecoration(labelText: S.t.tournamentName),
           ),
           SectionTitle(S.t.format),
@@ -82,10 +82,10 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
             padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
             child: Text(
               rr ? S.t.rrExplain : S.t.swissExplain,
-              style: const TextStyle(color: Z.muted, fontSize: 13, height: 1.4),
+              style: TextStyle(color: Z.muted, fontSize: 13, height: 1.4),
             ),
           ),
-          SectionTitle(S.t.playersTitle, trailing: Pill('$n', color: n >= 2 ? Z.gold : Z.muted)),
+          SectionTitle(S.t.playersTitle, trailing: Pill('$n', color: n >= 2 ? Z.accent : Z.muted)),
           TextField(
             controller: _players,
             minLines: 5,
@@ -96,76 +96,85 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
           Card(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              child: Column(children: [
-                if (!rr)
-                  SettingRow(
-                    title: S.t.swissRounds,
-                    subtitle: S.t.recommendedFor(n, recommendedSwissRounds(n)),
-                    child: Stepper2(
+              child: Column(
+                children: [
+                  if (!rr)
+                    SettingRow(
+                      title: S.t.swissRounds,
+                      subtitle: S.t.recommendedFor(n, recommendedSwissRounds(n)),
+                      child: Stepper2(
                         value: _rounds,
                         min: 1,
                         max: 15,
                         onChanged: (v) => setState(() {
-                              _rounds = v;
-                              _roundsTouched = true;
-                            })),
-                  )
-                else
-                  SettingRow(
-                    title: S.t.rounds,
-                    subtitle: S.t.setByPlayers,
-                    child: Text('${rrRoundCount(n)}',
-                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, fontFeatures: Z.tabular)),
-                  ),
-                const Divider(),
-                SettingRow(
-                  title: S.t.topCut,
-                  subtitle: recommendedTopCut(n) > 0 ? S.t.topCutUsual(n, recommendedTopCut(n)) : S.t.topCutExplain,
-                  child: DropdownButton<int>(
-                    value: _top,
-                    underline: const SizedBox(),
-                    borderRadius: BorderRadius.circular(12),
-                    items: [0, 2, 4, 8, 16, 32]
-                        .map((v) => DropdownMenuItem(value: v, child: Text(v == 0 ? S.t.none : S.t.top(v))))
-                        .toList(),
-                    onChanged: (v) => setState(() => _top = v!),
-                  ),
-                ),
-                const Divider(),
-                SettingRow(
-                  title: S.t.gamesPerRound,
-                  child: _boPicker(_swissBo, (v) => setState(() => _swissBo = v)),
-                ),
-                if (_top > 0) ...[
-                  const Divider(),
-                  SettingRow(title: S.t.gamesPerTop, child: _boPicker(_topBo, (v) => setState(() => _topBo = v))),
+                          _rounds = v;
+                          _roundsTouched = true;
+                        }),
+                      ),
+                    )
+                  else
+                    SettingRow(
+                      title: S.t.rounds,
+                      subtitle: S.t.setByPlayers,
+                      child: Text(
+                        '${rrRoundCount(n)}',
+                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, fontFeatures: Z.tabular),
+                      ),
+                    ),
                   const Divider(),
                   SettingRow(
-                    title: S.t.thirdPlaceMatch,
-                    child: Switch(value: _third, onChanged: (v) => setState(() => _third = v)),
+                    title: S.t.topCut,
+                    subtitle: recommendedTopCut(n) > 0 ? S.t.topCutUsual(n, recommendedTopCut(n)) : S.t.topCutExplain,
+                    child: DropdownButton<int>(
+                      value: _top,
+                      underline: const SizedBox(),
+                      borderRadius: BorderRadius.circular(12),
+                      items: [
+                        0,
+                        2,
+                        4,
+                        8,
+                        16,
+                        32,
+                      ].map((v) => DropdownMenuItem(value: v, child: Text(v == 0 ? S.t.none : S.t.top(v)))).toList(),
+                      onChanged: (v) => setState(() => _top = v!),
+                    ),
                   ),
-                ],
-                const Divider(),
-                SettingRow(
-                  title: S.t.roundTime,
-                  child: Stepper2(
+                  const Divider(),
+                  SettingRow(title: S.t.gamesPerRound, child: _boPicker(_swissBo, (v) => setState(() => _swissBo = v))),
+                  if (_top > 0) ...[
+                    const Divider(),
+                    SettingRow(title: S.t.gamesPerTop, child: _boPicker(_topBo, (v) => setState(() => _topBo = v))),
+                    const Divider(),
+                    SettingRow(
+                      title: S.t.thirdPlaceMatch,
+                      child: Switch(value: _third, onChanged: (v) => setState(() => _third = v)),
+                    ),
+                  ],
+                  const Divider(),
+                  SettingRow(
+                    title: S.t.roundTime,
+                    child: Stepper2(
                       value: _minutes,
                       min: 5,
                       max: 120,
                       format: (v) => '$v′',
-                      onChanged: (v) => setState(() => _minutes = v)),
-                ),
-                const Divider(),
-                SettingRow(
-                  title: S.t.overtime,
-                  subtitle: S.t.overtimeExplain,
-                  child: Stepper2(
+                      onChanged: (v) => setState(() => _minutes = v),
+                    ),
+                  ),
+                  const Divider(),
+                  SettingRow(
+                    title: S.t.overtime,
+                    subtitle: S.t.overtimeExplain,
+                    child: Stepper2(
                       value: _overtime,
                       max: 30,
                       format: (v) => '$v′',
-                      onChanged: (v) => setState(() => _overtime = v)),
-                ),
-              ]),
+                      onChanged: (v) => setState(() => _overtime = v),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -183,15 +192,15 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
   }
 
   Widget _boPicker(int v, ValueChanged<int> on) => SegmentedButton<int>(
-        showSelectedIcon: false,
-        style: const ButtonStyle(visualDensity: VisualDensity.compact),
-        segments: const [
-          ButtonSegment(value: 1, label: Text('BO1')),
-          ButtonSegment(value: 3, label: Text('BO3')),
-        ],
-        selected: {v},
-        onSelectionChanged: (s) => on(s.first),
-      );
+    showSelectedIcon: false,
+    style: const ButtonStyle(visualDensity: VisualDensity.compact),
+    segments: const [
+      ButtonSegment(value: 1, label: Text('BO1')),
+      ButtonSegment(value: 3, label: Text('BO3')),
+    ],
+    selected: {v},
+    onSelectionChanged: (s) => on(s.first),
+  );
 
   void _create() {
     final t = Tournament(

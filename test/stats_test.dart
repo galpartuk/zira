@@ -4,15 +4,39 @@ import 'package:zira/engine/stats.dart';
 
 /// Me ('me') against three opponents over three Swiss rounds + a bye round.
 Tournament event(String id, List<(String opp, Outcome o, bool iAmP1)> games, {bool bye = false}) {
-  final t = Tournament(id: id, name: id, players: [Player(id: 'me', name: 'Me', uid: 'u', tieRand: 0)]);
+  final t = Tournament(
+    id: id,
+    name: id,
+    players: [Player(id: 'me', name: 'Me', uid: 'u', tieRand: 0)],
+  );
   var n = 0;
   for (final (opp, o, p1) in games) {
     if (t.player(opp) == null) t.players.add(Player(id: opp, name: opp, tieRand: ++n));
-    t.rounds.add(Round(number: t.rounds.length + 1, stage: Stage.swiss, matches: [
-      Match(id: '$id-r${t.rounds.length + 1}', table: 1, p1: p1 ? 'me' : opp, p2: p1 ? opp : 'me', result: MatchResult(o, 2, 1)),
-    ]));
+    t.rounds.add(
+      Round(
+        number: t.rounds.length + 1,
+        stage: Stage.swiss,
+        matches: [
+          Match(
+            id: '$id-r${t.rounds.length + 1}',
+            table: 1,
+            p1: p1 ? 'me' : opp,
+            p2: p1 ? opp : 'me',
+            result: MatchResult(o, 2, 1),
+          ),
+        ],
+      ),
+    );
   }
-  if (bye) t.rounds.add(Round(number: t.rounds.length + 1, stage: Stage.swiss, matches: [Match(id: '$id-bye', table: 0, p1: 'me')]));
+  if (bye) {
+    t.rounds.add(
+      Round(
+        number: t.rounds.length + 1,
+        stage: Stage.swiss,
+        matches: [Match(id: '$id-bye', table: 0, p1: 'me')],
+      ),
+    );
+  }
   t.finished = true;
   return t;
 }
@@ -40,7 +64,9 @@ void main() {
   });
 
   test('a tournament without my deck goes under the empty key', () {
-    final s = computeDeckStats([PlayedTournament(t: event('a', [('x', Outcome.p1, true)]), uid: 'u')]);
+    final s = computeDeckStats([
+      PlayedTournament(t: event('a', [('x', Outcome.p1, true)]), uid: 'u'),
+    ]);
     expect(s.byDeck['']!.wins, 1);
   });
 

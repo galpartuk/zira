@@ -53,6 +53,7 @@ class S {
   String get save => _('Save', 'שמירה');
   String copied(String what) => _('$what copied — ready to paste in WhatsApp', '$what הועתק — אפשר להדביק בוואטסאפ');
   String get vs => _('vs', 'נגד');
+  String get opponent => _('Opponent', 'היריב');
   String get dropped => _('Dropped', 'פרש');
   String get none => _('None', 'בלי');
   String top(int n) => _('Top $n', 'טופ $n');
@@ -71,11 +72,11 @@ class S {
 
   /// Bracket round by how many players are in it.
   String topRoundName(int players) => switch (players) {
-        2 => _('Final', 'גמר'),
-        4 => _('Semifinals', 'חצי גמר'),
-        8 => _('Quarterfinals', 'רבע גמר'),
-        _ => top(players),
-      };
+    2 => _('Final', 'גמר'),
+    4 => _('Semifinals', 'חצי גמר'),
+    8 => _('Quarterfinals', 'רבע גמר'),
+    _ => top(players),
+  };
 
   /// Round label for chips, headers and copied text.
   String roundLabel(Round r) => r.stage == Stage.swiss ? round(r.number) : topRoundName(topRoundSize(r));
@@ -102,15 +103,19 @@ class S {
   String get restoreBackup => _('Restore a backup from the clipboard', 'שחזור גיבוי מהלוח');
   String get newTournament => _('New tournament', 'טורניר חדש');
   String get noTournaments => _('No tournaments yet', 'עוד אין טורנירים');
-  String get noTournamentsBody => _('Open a tournament, add players, and the app pairs, ranks and works out the prizes.',
-      'פתחו טורניר, הוסיפו שחקנים, והאפליקציה תזווג, תדרג ותחשב פרסים.');
+  String get noTournamentsBody => _(
+    'Open a tournament, add players, and the app pairs, ranks and works out the prizes.',
+    'פתחו טורניר, הוסיפו שחקנים, והאפליקציה תזווג, תדרג ותחשב פרסים.',
+  );
   String get backupWhat => _('Backup', 'הגיבוי');
   String restored(int n) => _(n == 1 ? 'Restored 1 tournament' : 'Restored $n tournaments', 'שוחזרו $n טורנירים');
-  String get badBackup => _('The clipboard has no valid backup. Copy a backup from the app first.',
-      'בלוח אין גיבוי תקין. העתיקו קודם גיבוי מהאפליקציה.');
+  String get badBackup => _(
+    'The clipboard has no valid backup. Copy a backup from the app first.',
+    'בלוח אין גיבוי תקין. העתיקו קודם גיבוי מהאפליקציה.',
+  );
   String deleteTitle(String name) => _('Delete "$name"?', 'למחוק את "$name"?');
-  String get deleteBody => _('All rounds and results will be deleted. This cannot be undone.',
-      'כל הסיבובים והתוצאות יימחקו. אי אפשר לבטל.');
+  String get deleteBody =>
+      _('All rounds and results will be deleted. This cannot be undone.', 'כל הסיבובים והתוצאות יימחקו. אי אפשר לבטל.');
   String get delete => _('Delete', 'מחיקה');
   String get statusFinished => _('Finished', 'הסתיים');
   String get statusRegistration => _('Registration', 'הרשמה');
@@ -118,19 +123,27 @@ class S {
   // ---------------------------------------------------------------- create
   String defaultTournamentName(int day, int month) => _('Tournament $day.$month', 'טורניר $day.$month');
   String get format => _('Format', 'שיטה');
-  String get rrExplain => _('Everyone plays everyone else once. Good for small groups (up to ~10).',
-      'כל שחקן משחק נגד כל השאר פעם אחת. מתאים לקבוצות קטנות (עד ~10).');
-  String get swissExplain => _('Each round you play someone on the same points, never the same opponent twice. The Bandai event system.',
-      'בכל סיבוב משחקים מול שחקנים עם אותו ניקוד, בלי משחק חוזר. השיטה של טורנירי Bandai.');
+  String get rrExplain => _(
+    'Everyone plays everyone else once. Good for small groups (up to ~10).',
+    'כל שחקן משחק נגד כל השאר פעם אחת. מתאים לקבוצות קטנות (עד ~10).',
+  );
+  String get swissExplain => _(
+    'Each round you play someone on the same points, never the same opponent twice. The Bandai event system.',
+    'בכל סיבוב משחקים מול שחקנים עם אותו ניקוד, בלי משחק חוזר. השיטה של טורנירי Bandai.',
+  );
   String get playersTitle => _('Players', 'שחקנים');
-  String get playersHint => _('One name per line (you can paste a list)\nPlayers can also be added later',
-      'שם בכל שורה (אפשר להדביק רשימה)\nאפשר להוסיף שחקנים גם אחר כך');
+  String get playersHint => _(
+    'One name per line (you can paste a list)\nPlayers can also be added later',
+    'שם בכל שורה (אפשר להדביק רשימה)\nאפשר להוסיף שחקנים גם אחר כך',
+  );
   String get swissRounds => _('Swiss rounds', 'סיבובי סוויס');
   String recommendedFor(int n, int r) => _('Recommended for $n players: $r', 'מומלץ ל-$n שחקנים: $r');
   String get rounds => _('Rounds', 'סיבובים');
   String get setByPlayers => _('Set by the number of players', 'נקבע לפי מספר השחקנים');
-  String topCutUsual(int n, int top) => _('Knockout between the leaders. Usual for $n players: Top $top',
-      'נוקאאוט בין המובילים. מקובל ל-$n שחקנים: טופ $top');
+  String topCutUsual(int n, int top) => _(
+    'Knockout between the leaders. Usual for $n players: Top $top',
+    'נוקאאוט בין המובילים. מקובל ל-$n שחקנים: טופ $top',
+  );
   String get topCutExplain => _('Knockout between the leaders after the rounds', 'נוקאאוט בין המובילים אחרי הסיבובים');
   String get gamesPerRound => _('Games per match', 'משחקים בסיבוב');
   String get gamesPerTop => _('Games per top-cut match', 'משחקים בטופ קאט');
@@ -152,7 +165,8 @@ class S {
   String champion(String name) => _('Champion: $name', 'אלוף: $name');
   String get needTwoPlayers => _('At least 2 players needed', 'צריך לפחות 2 שחקנים');
   String get startTournament => _('Start the tournament · Round 1', 'התחלת הטורניר · סיבוב 1');
-  String missingResults(int n) => n == 1 ? _('1 result missing', 'חסרה תוצאה אחת') : _('$n results missing', 'חסרות $n תוצאות');
+  String missingResults(int n) =>
+      n == 1 ? _('1 result missing', 'חסרה תוצאה אחת') : _('$n results missing', 'חסרות $n תוצאות');
   String pairRound(int n) => _('Pair round $n', 'זיווג סיבוב $n');
   String startTop(int n) => _('Start top $n', 'התחלת טופ $n');
   String create(String what) => _('Create $what', 'יצירת $what');
@@ -168,29 +182,35 @@ class S {
   String get tournamentFinishedLocked => _('The tournament has finished', 'הטורניר הסתיים');
   String get omwFloor => _('OMW% floor', 'רצפה ל-OMW%');
   String get omwFloorExplain => _(
-      'The lowest win rate counted for a weak opponent when working out the tiebreaker. Default 33%.',
-      'אחוז הנצחונות המינימלי שנספר ליריב חלש בחישוב שובר השוויון. ברירת מחדל 33%.');
+    'The lowest win rate counted for a weak opponent when working out the tiebreaker. Default 33%.',
+    'אחוז הנצחונות המינימלי שנספר ליריב חלש בחישוב שובר השוויון. ברירת מחדל 33%.',
+  );
   String get tiebreakExplain => _(
-      'Tiebreakers in order: points → OMW% (opponents\' average win rate) → OOMW% (opponents\' average OMW) → random draw. Win 3, draw (including 0-0) 1, loss 0, a BYE counts as a win.',
-      'שוברי שוויון לפי סדר: נקודות ← OMW% (ממוצע אחוזי הנצחון של היריבים) ← OOMW% (ממוצע ה-OMW של היריבים) ← הגרלה. נצחון 3, תיקו (כולל 0-0) 1, הפסד 0, BYE נחשב נצחון.');
+    'Tiebreakers in order: points → OMW% (opponents\' average win rate) → OOMW% (opponents\' average OMW) → random draw. Win 3, draw (including 0-0) 1, loss 0, a BYE counts as a win.',
+    'שוברי שוויון לפי סדר: נקודות ← OMW% (ממוצע אחוזי הנצחון של היריבים) ← OOMW% (ממוצע ה-OMW של היריבים) ← הגרלה. נצחון 3, תיקו (כולל 0-0) 1, הפסד 0, BYE נחשב נצחון.',
+  );
 
   // ---------------------------------------------------------------- rounds tab
   String get notStarted => _('The tournament hasn\'t started yet', 'הטורניר עוד לא התחיל');
   String get notStartedBody => _(
-      'When all the players are registered, tap "Start the tournament" below and the round 1 pairings appear here.',
-      'כשכל השחקנים רשומים, לחצו על "התחלת הטורניר" למטה והזיווג של סיבוב 1 יופיע כאן.');
+    'When all the players are registered, tap "Start the tournament" below and the round 1 pairings appear here.',
+    'כשכל השחקנים רשומים, לחצו על "התחלת הטורניר" למטה והזיווג של סיבוב 1 יופיע כאן.',
+  );
   String get complete => _('Complete', 'הושלם');
   String openMatches(int n) => _('$n open', '$n פתוחים');
   String get copyPairings => _('Copy pairings', 'העתקת זיווגים');
   String get pairingsWhat => _('Pairings', 'הזיווג');
   String get repaired => _('Round paired again', 'הסיבוב זווג מחדש');
   String undoTitle(String round) => _('Undo $round?', 'לבטל את $round?');
-  String get undoBody => _('The pairings will be deleted and you can create them again.', 'הזיווג יימחק ותוכלו ליצור אותו שוב.');
+  String get undoBody =>
+      _('The pairings will be deleted and you can create them again.', 'הזיווג יימחק ותוכלו ליצור אותו שוב.');
   String get repair => _('Pair again', 'זיווג מחדש');
   String get undoRound => _('Undo the round', 'ביטול הסיבוב');
   String get dropTitle => _('Drop before the next round', 'פרישה לפני הסיבוב הבא');
-  String get dropBody => _('The player finishes the current round (the result is kept) and won\'t be paired again.',
-      'השחקן מסיים את הסיבוב הנוכחי (התוצאה נשמרת) ולא יזווג יותר.');
+  String get dropBody => _(
+    'The player finishes the current round (the result is kept) and won\'t be paired again.',
+    'השחקן מסיים את הסיבוב הנוכחי (התוצאה נשמרת) ולא יזווג יותר.',
+  );
   String get droppedNotPaired => _('Dropped — won\'t be paired next round', 'פרש — לא יזווג בסיבוב הבא');
   String get stillPlaying => _('Still in the tournament', 'ממשיך בטורניר');
   String get thirdPlaceTag => _('3rd place', 'מקום 3');
@@ -199,45 +219,59 @@ class S {
   String get drop => _('Drop', 'פרישה');
 
   // ---------------------------------------------------------------- players tab
-  String get lateEntry => _('Late entry — joins from the next round on 0 points', 'נוסף באיחור — ישתתף מהסיבוב הבא עם 0 נקודות');
+  String get lateEntry =>
+      _('Late entry — joins from the next round on 0 points', 'נוסף באיחור — ישתתף מהסיבוב הבא עם 0 נקודות');
   String get add => _('Add', 'הוספה');
   String get noPlayers => _('No players yet', 'אין עדיין שחקנים');
-  String get noPlayersBody => _('Type a name and tap Add. You can also paste a list, one name per line.',
-      'הקלידו שם ולחצו הוספה. אפשר גם להדביק רשימה, שם בכל שורה.');
+  String get noPlayersBody => _(
+    'Type a name and tap Add. You can also paste a list, one name per line.',
+    'הקלידו שם ולחצו הוספה. אפשר גם להדביק רשימה, שם בכל שורה.',
+  );
   String get rename => _('Rename', 'שינוי שם');
   String get undrop => _('Back into the tournament', 'החזרה לטורניר');
   String get dropFromTournament => _('Drop from the tournament', 'פרישה מהטורניר');
   String get remove => _('Remove', 'הסרה');
   String dropPlayerTitle(String name) => _('Drop $name', 'פרישה של $name');
   String get dropPlayerBody => _(
-      'The player won\'t be paired in later rounds. Results already reported stay and count towards the opponents\' tiebreakers.',
-      'השחקן לא יזווג בסיבובים הבאים. התוצאות שכבר נרשמו נשארות ונספרות לשוברי השוויון של היריבים.');
+    'The player won\'t be paired in later rounds. Results already reported stay and count towards the opponents\' tiebreakers.',
+    'השחקן לא יזווג בסיבובים הבאים. התוצאות שכבר נרשמו נשארות ונספרות לשוברי השוויון של היריבים.',
+  );
 
   // ---------------------------------------------------------------- standings
   String get noStandings => _('No standings yet', 'אין דירוג עדיין');
   String get noStandingsBody => _('Add players and start a round.', 'הוסיפו שחקנים והתחילו סיבוב.');
   String get beforeRound1 => _('Before round 1', 'לפני סיבוב 1');
-  String afterRounds(int n, bool last) =>
-      _('After ${n == 1 ? '1 round' : '$n rounds'}${last ? ' (final)' : ''}', 'אחרי $n סיבובים${last ? ' (סופי)' : ''}');
+  String afterRounds(int n, bool last) => _(
+    'After ${n == 1 ? '1 round' : '$n rounds'}${last ? ' (final)' : ''}',
+    'אחרי $n סיבובים${last ? ' (סופי)' : ''}',
+  );
   String get copyStandings => _('Copy standings', 'העתקת דירוג');
   String get standingsWhat => _('Standings', 'הדירוג');
-  String cutMarked(int n) =>
-      _('Marked in yellow: would make the top $n if the event ended now', 'מסומנים בצהוב: עולים לטופ $n אם הטורניר היה נגמר עכשיו');
+  String cutMarked(int n) => _(
+    'Marked in yellow: would make the top $n if the event ended now',
+    'מסומנים בצהוב: עולים לטופ $n אם הטורניר היה נגמר עכשיו',
+  );
   String get colPlayer => _('Player', 'שחקן');
   String get colPts => _('Pts', 'נק׳');
   String get colRecord => _('W-L', 'מאזן');
-  String get standingsLegend => _('Order: points → OMW% → OOMW% → fixed random draw. Win 3 · draw 1 · loss 0 · BYE = win.',
-      'סדר הדירוג: נקודות ← OMW% ← OOMW% ← הגרלה קבועה. נצחון 3 · תיקו 1 · הפסד 0 · BYE = נצחון.');
+  String get standingsLegend => _(
+    'Order: points → OMW% → OOMW% → fixed random draw. Win 3 · draw 1 · loss 0 · BYE = win.',
+    'סדר הדירוג: נקודות ← OMW% ← OOMW% ← הגרלה קבועה. נצחון 3 · תיקו 1 · הפסד 0 · BYE = נצחון.',
+  );
   String standingsHeader(String name) => _('$name — standings', '$name — דירוג');
   String get droppedTag => _('[dropped]', '[פרש]');
 
   // ---------------------------------------------------------------- bracket
   String get noTopCut => _('No top cut', 'אין טופ קאט');
-  String get noTopCutBody => _('You can turn on a top cut in the settings (the sliders icon at the top).',
-      'אפשר להפעיל טופ קאט בהגדרות (סמל המחוונים למעלה).');
+  String get noTopCutBody => _(
+    'You can turn on a top cut in the settings (the sliders icon at the top).',
+    'אפשר להפעיל טופ קאט בהגדרות (סמל המחוונים למעלה).',
+  );
   String get tournamentChampion => _('Tournament champion', 'אלוף הטורניר');
-  String get bracketPreview => _('Preview from the current standings. The pairings are set when you start the top cut.',
-      'תצוגה מקדימה לפי הדירוג הנוכחי. הזיווג ייקבע כשתתחילו את הטופ קאט.');
+  String get bracketPreview => _(
+    'Preview from the current standings. The pairings are set when you start the top cut.',
+    'תצוגה מקדימה לפי הדירוג הנוכחי. הזיווג ייקבע כשתתחילו את הטופ קאט.',
+  );
 
   // ---------------------------------------------------------------- prizes
   String get prizePool => _('Prize pool', 'קופת הפרסים');
@@ -252,8 +286,10 @@ class S {
   String get rounding => _('Round amounts', 'עיגול סכומים');
   String roundTo(String amount) => _('To $amount', 'לכל $amount');
   String get splitTies => _('Equal split in the top cut', 'חלוקה שווה בטופ קאט');
-  String get splitTiesExplain => _('Players knocked out at the same stage (3-4, 5-8) get the same amount',
-      'מי שהודחו באותו שלב (3-4, 5-8) מקבלים אותו סכום');
+  String get splitTiesExplain => _(
+    'Players knocked out at the same stage (3-4, 5-8) get the same amount',
+    'מי שהודחו באותו שלב (3-4, 5-8) מקבלים אותו סכום',
+  );
   String poolFormula(int players, String fee) => _('$players players × $fee', '$players שחקנים × $fee');
   String get toHandOut => _('to hand out', 'לחלוקה');
   String get split => _('Split', 'חלוקה');
@@ -261,8 +297,10 @@ class S {
   String get presetWinnerTakesAll => _('Winner takes all', 'מנצח לוקח הכל');
   String presetEven(int n) => _('Even ×$n', 'שווה ×$n');
   String presetStepped(int n) => _('Stepped ×$n', 'מדורג ×$n');
-  String get over100 => _('The percentages add up to more than 100% — the amounts exceed the pool.',
-      'האחוזים עוברים את 100% — הסכומים גדולים מהקופה.');
+  String get over100 => _(
+    'The percentages add up to more than 100% — the amounts exceed the pool.',
+    'האחוזים עוברים את 100% — הסכומים גדולים מהקופה.',
+  );
   String leftUnsplit(String pct) => _('$pct% left unassigned.', 'נשארו $pct% שלא מחולקים.');
   String get balance => _('Balance to 100%', 'איזון ל-100%');
   String get colPlace => _('Place', 'מקום');
@@ -270,11 +308,16 @@ class S {
   String get colAmount => _('Amount', 'סכום');
   String get place => _('Place', 'מקום');
   String notHandedOut(String amount) => _('Not handed out: $amount', 'לא חולק: $amount');
-  String get standaloneNote => _('Standalone calculator. Inside a tournament the table fills in names from the final standings.',
-      'מחשבון עצמאי. בתוך טורניר הטבלה מתמלאת בשמות לפי הדירוג הסופי.');
-  String get finalNote => _('Standings are final. The names in the table are the winners.', 'הדירוג סופי. השמות בטבלה הם הזוכים.');
-  String get liveNote => _('Names follow the current standings and update until the event ends.',
-      'השמות לפי המצב הנוכחי ויתעדכנו עד סוף הטורניר.');
+  String get standaloneNote => _(
+    'Standalone calculator. Inside a tournament the table fills in names from the final standings.',
+    'מחשבון עצמאי. בתוך טורניר הטבלה מתמלאת בשמות לפי הדירוג הסופי.',
+  );
+  String get finalNote =>
+      _('Standings are final. The names in the table are the winners.', 'הדירוג סופי. השמות בטבלה הם הזוכים.');
+  String get liveNote => _(
+    'Names follow the current standings and update until the event ends.',
+    'השמות לפי המצב הנוכחי ויתעדכנו עד סוף הטורניר.',
+  );
   String get copyPrizes => _('Copy the prize table', 'העתקת טבלת הפרסים');
   String get prizesWhat => _('Prize table', 'טבלת הפרסים');
   String get prizeSplitHeader => _('Prize split', 'חלוקת פרסים');
@@ -291,11 +334,14 @@ class S {
   // ---------------------------------------------------------------- result sheet
   String won(String name) => _('$name won', '$name ניצח');
   String drawScore(String score) => _('Draw $score', 'תיקו $score');
-  String get drawNote => _('Draw = a point each. 0-0 when time ran out and no game was decided.',
-      'תיקו = נקודה לכל שחקן. 0-0 כשנגמר הזמן ואף משחק לא הוכרע.');
+  String get drawNote => _(
+    'Draw = a point each. 0-0 when time ran out and no game was decided.',
+    'תיקו = נקודה לכל שחקן. 0-0 כשנגמר הזמן ואף משחק לא הוכרע.',
+  );
   String get topTimeoutRule => _(
-      'Top cut: when time runs out — turn 0 plus one more turn (if on the first player\'s turn) or two (if on the second player\'s). Then decide by: more security cards → more cards in deck → more Digimon in play → more cards in hand → random.',
-      'טופ קאט: כשהזמן נגמר — תור 0 ועוד תור (אם בתור הראשון) או שניים (אם בתור השני). אחר כך מכריעים לפי: יותר קלפי סקיוריטי ← יותר קלפים בחפיסה ← יותר דיג׳ימונים בשטח ← יותר קלפים ביד ← הגרלה.');
+    'Top cut: when time runs out — turn 0 plus one more turn (if on the first player\'s turn) or two (if on the second player\'s). Then decide by: more security cards → more cards in deck → more Digimon in play → more cards in hand → random.',
+    'טופ קאט: כשהזמן נגמר — תור 0 ועוד תור (אם בתור הראשון) או שניים (אם בתור השני). אחר כך מכריעים לפי: יותר קלפי סקיוריטי ← יותר קלפים בחפיסה ← יותר דיג׳ימונים בשטח ← יותר קלפים ביד ← הגרלה.',
+  );
   String get clearResult => _('Clear the result', 'מחיקת התוצאה');
 
   // ---------------------------------------------------------------- timer
@@ -313,8 +359,10 @@ class S {
 
   // ---------------------------------------------------------------- tools
   String get memoryGauge => _('Memory gauge', 'מד זיכרון');
-  String get memoryGaugeBody => _('Digimon memory gauge for two players, with the phone lying between you.',
-      'Memory gauge לדיג׳ימון לשני שחקנים, כשהטלפון מונח ביניכם.');
+  String get memoryGaugeBody => _(
+    'Digimon memory gauge for two players, with the phone lying between you.',
+    'Memory gauge לדיג׳ימון לשני שחקנים, כשהטלפון מונח ביניכם.',
+  );
   String get dice => _('Dice', 'קוביות');
   String get diceBody => _('Includes "who goes first"', 'כולל "מי מתחיל"');
   String get coin => _('Coin', 'מטבע');
@@ -324,8 +372,10 @@ class S {
   String get prizeCalculator => _('Prize calculator', 'מחשבון פרסים');
   String get prizeCalculatorBody => _('Without a tournament', 'בלי טורניר');
   String get digimonRules => _('Digimon rules', 'חוקי דיג׳ימון');
-  String get digimonRulesBody => _('Rule manual, Comprehensive Rules, glossary and the banned card list.',
-      'חוברת החוקים, Comprehensive Rules, מילון מונחים ורשימת הקלפים האסורים.');
+  String get digimonRulesBody => _(
+    'Rule manual, Comprehensive Rules, glossary and the banned card list.',
+    'חוברת החוקים, Comprehensive Rules, מילון מונחים ורשימת הקלפים האסורים.',
+  );
 
   // dice
   String get tieRollAgain => _('Tie — roll again', 'שוויון — מטילים שוב');
@@ -338,7 +388,8 @@ class S {
   String get tapToRoll => _('Tap anywhere to roll', 'הקישו בכל מקום להטלה');
   String get blue => _('Blue', 'כחול');
   String get orange => _('Orange', 'כתום');
-  String get firstRollHelp => _('Each player rolls a die. The higher one goes first.', 'כל שחקן מקבל קובייה. הגבוהה מתחילה.');
+  String get firstRollHelp =>
+      _('Each player rolls a die. The higher one goes first.', 'כל שחקן מקבל קובייה. הגבוהה מתחילה.');
 
   // coin
   String get heads => _('Heads', 'עץ');
@@ -350,7 +401,8 @@ class S {
 
   // rock paper scissors
   List<String> get hands => he ? const ['אבן', 'נייר', 'מספריים'] : const ['Rock', 'Paper', 'Scissors'];
-  List<String> get countdown => he ? const ['אבן...', 'נייר...', 'מספריים!'] : const ['Rock...', 'Paper...', 'Scissors!'];
+  List<String> get countdown =>
+      he ? const ['אבן...', 'נייר...', 'מספריים!'] : const ['Rock...', 'Paper...', 'Scissors!'];
   String get you => _('You', 'אתם');
   String get phone => _('Phone', 'הטלפון');
   String get resetScore => _('Reset score', 'איפוס ניקוד');
@@ -358,7 +410,8 @@ class S {
   String get vsPhone => _('Against the phone', 'נגד הטלפון');
   String draws(int n) => _('Draws $n', 'תיקו $n');
   String get pickHand => _('Pick a hand', 'בחרו יד');
-  String pickSecret(String who) => _('$who\'s turn to pick — don\'t let the other player see', 'תור $who לבחור — בלי שהשני יראה');
+  String pickSecret(String who) =>
+      _('$who\'s turn to pick — don\'t let the other player see', 'תור $who לבחור — בלי שהשני יראה');
   String passPhone(String a, String b) => _('$a has picked. Pass the phone to $b.', '$a בחר. מעבירים את הטלפון ל$b.');
   String iAm(String b) => _('I\'m $b — continue', 'אני $b — להמשיך');
   String get drawBang => _('Draw!', 'תיקו!');
@@ -377,8 +430,8 @@ class S {
   String get resetWins => _('Reset wins', 'איפוס ניצחונות');
   String rolled(int a, int b, String name) => _('🎲 $a vs $b — $name goes first', '🎲 $a מול $b — $name מתחיל');
   String gameWonTitle(String name) => _('$name won the game', '$name ניצח במשחק');
-  String get gameWonBody => _('A win is added and a new game starts. Who goes first?',
-      'יתווסף ניצחון ויתחיל משחק חדש. מי מתחיל?');
+  String get gameWonBody =>
+      _('A win is added and a new game starts. Who goes first?', 'יתווסף ניצחון ויתחיל משחק חדש. מי מתחיל?');
   String get pay => _('Pay', 'לשלם');
   String get payHowMuch => _('Pay how much?', 'כמה לשלם?');
   String get exit => _('Exit', 'יציאה');
@@ -392,31 +445,42 @@ class S {
   String get endTurn => _('End turn', 'סיום תור');
 
   // rules links
+  String get lightLook => _('Light theme', 'ערכה בהירה');
+  String get darkLook => _('Dark theme', 'ערכה כהה');
   String get about => _('About', 'אודות');
   String get aboutTagline => _('Tournament manager', 'ניהול טורנירים');
   String versionLabel(String v) => _('Version $v', 'גרסה $v');
   String get builtWith => _('Built with', 'נבנה עם');
   String get sourceCode => _('Source code', 'קוד המקור');
   String get fanMadeNotice => _(
-      'Duel Network is an independent, fan-made tool. It is not affiliated with or endorsed by Bandai. '
-          'Digimon Card Game is a trademark of its respective owner.',
-      'Duel Network הוא כלי עצמאי שנבנה על ידי מעריץ. הוא אינו קשור ל-Bandai ואינו מטעמה. '
-          'Digimon Card Game הוא סימן מסחרי של בעליו.');
+    'Duel Network is an independent, fan-made tool. It is not affiliated with or endorsed by Bandai. '
+        'Digimon Card Game is a trademark of its respective owner.',
+    'Duel Network הוא כלי עצמאי שנבנה על ידי מעריץ. הוא אינו קשור ל-Bandai ואינו מטעמה. '
+        'Digimon Card Game הוא סימן מסחרי של בעליו.',
+  );
   String get cantOpenLink => _('Couldn\'t open the link', 'לא הצלחנו לפתוח את הקישור');
-  String get rulesFooter => _('The documents are in English, from Bandai\'s official site. The links always open the current version.',
-      'המסמכים באנגלית, מהאתר הרשמי של Bandai. הקישורים פותחים תמיד את הגרסה העדכנית.');
+  String get rulesFooter => _(
+    'The documents are in English, from Bandai\'s official site. The links always open the current version.',
+    'המסמכים באנגלית, מהאתר הרשמי של Bandai. הקישורים פותחים תמיד את הגרסה העדכנית.',
+  );
   String get ruleManual => _('Rule Manual', 'Rule Manual — חוברת החוקים');
-  String get ruleManualBody => _('The basic rules in plain language, with examples. Good for beginners.',
-      'החוקים הבסיסיים בצורה פשוטה, עם דוגמאות. מתאים למתחילים.');
+  String get ruleManualBody => _(
+    'The basic rules in plain language, with examples. Good for beginners.',
+    'החוקים הבסיסיים בצורה פשוטה, עם דוגמאות. מתאים למתחילים.',
+  );
   String get comprehensive => 'Comprehensive Rules';
-  String get comprehensiveBody => _('The full, exact rules for every situation — for judges and disputes.',
-      'החוקים המלאים והמדויקים לכל מצב — לשופטים ולמחלוקות.');
+  String get comprehensiveBody => _(
+    'The full, exact rules for every situation — for judges and disputes.',
+    'החוקים המלאים והמדויקים לכל מצב — לשופטים ולמחלוקות.',
+  );
   String get glossary => _('Glossary', 'Glossary — מילון מונחים');
-  String get glossaryBody => _('Terms and keyword effects explained.', 'הסבר על מונחים ומילות מפתח של אפקטים (Keyword effects).');
+  String get glossaryBody =>
+      _('Terms and keyword effects explained.', 'הסבר על מונחים ומילות מפתח של אפקטים (Keyword effects).');
   String get banned => _('Banned & restricted cards', 'קלפים אסורים ומוגבלים');
   String get bannedBody => _('The current Banned / Restricted list.', 'רשימת ה-Banned / Restricted העדכנית.');
   String get ruleChanges => _('Rule changes', 'שינויי חוקים');
-  String get ruleChangesBody => _('Official announcements of rulings and rule changes.', 'הודעות רשמיות על שינויי פסיקה וחוקים.');
+  String get ruleChangesBody =>
+      _('Official announcements of rulings and rule changes.', 'הודעות רשמיות על שינויי פסיקה וחוקים.');
   String get floorRules => 'Floor Rules';
   String get floorRulesBody => _('Conduct and procedures at official events.', 'כללי התנהגות ונהלים בטורנירים רשמיים.');
   String get allRules => _('The full official rules page', 'כל עמוד החוקים הרשמי');
@@ -437,17 +501,19 @@ class S {
   String get account => _('Account', 'חשבון');
   String get signOut => _('Sign out', 'התנתקות');
   String get deleteAccount => _('Delete account', 'מחיקת חשבון');
-  String get deleteAccountBody => _('Your account is deleted. Your name stays in past tournaments.',
-      'החשבון יימחק. השם שלך יישאר בטורנירים שהיו.');
+  String get deleteAccountBody =>
+      _('Your account is deleted. Your name stays in past tournaments.', 'החשבון יימחק. השם שלך יישאר בטורנירים שהיו.');
   String get signInAgain => _('Please sign in again, then delete.', 'צריך להתחבר שוב ואז למחוק.');
   String authError(String code) => switch (code) {
-        'invalid-credential' || 'wrong-password' || 'user-not-found' => _('Wrong email or password', 'אימייל או סיסמה שגויים'),
-        'email-already-in-use' => _('This email already has an account', 'לאימייל הזה כבר יש חשבון'),
-        'weak-password' => _('Password must be at least 6 characters', 'סיסמה של 6 תווים לפחות'),
-        'invalid-email' => _('Invalid email', 'אימייל לא תקין'),
-        'network-request-failed' => _('No connection', 'אין חיבור'),
-        _ => _('Sign-in failed ($code)', 'ההתחברות נכשלה ($code)'),
-      };
+    'invalid-credential' ||
+    'wrong-password' ||
+    'user-not-found' => _('Wrong email or password', 'אימייל או סיסמה שגויים'),
+    'email-already-in-use' => _('This email already has an account', 'לאימייל הזה כבר יש חשבון'),
+    'weak-password' => _('Password must be at least 6 characters', 'סיסמה של 6 תווים לפחות'),
+    'invalid-email' => _('Invalid email', 'אימייל לא תקין'),
+    'network-request-failed' => _('No connection', 'אין חיבור'),
+    _ => _('Sign-in failed ($code)', 'ההתחברות נכשלה ($code)'),
+  };
   String migrated(int n) => _('$n tournaments moved to your account', '$n טורנירים הועברו לחשבון שלך');
 
   // ---------------------------------------------------------------- online host
@@ -523,7 +589,8 @@ class S {
   String get change => _('Change', 'שינוי');
   String opponentReportedTitle(String name) => _('$name reported a result', '$name דיווח תוצאה');
   String get disputeBody => _('The two reports differ. Tell the host.', 'הדיווחים שונים. פנה להוסט.');
-  String resultSent(String name) => _('Result sent — $name will be asked to confirm', 'התוצאה נשלחה — $name יתבקש לאשר');
+  String resultSent(String name) =>
+      _('Result sent — $name will be asked to confirm', 'התוצאה נשלחה — $name יתבקש לאשר');
   String get confirmQuestion => _('Is this the result?', 'זו התוצאה?');
   String get later => _('Later', 'אחר כך');
   String get roundClockHost => _('The host runs the clock', 'ההוסט מפעיל את השעון');
@@ -550,8 +617,10 @@ class S {
   String get oppDeckHint => _('Opponent\'s deck', 'הדק של היריב');
   String get myRounds => _('My rounds', 'הסיבובים שלי');
   String get noStatsYet => _('No finished tournaments yet', 'עוד אין טורנירים שהסתיימו');
-  String get noStatsBody => _('Play a tournament, then open it from History and record the decks.',
-      'שחק טורניר, ואז פתח אותו מההיסטוריה וסמן את הדקים.');
+  String get noStatsBody => _(
+    'Play a tournament, then open it from History and record the decks.',
+    'שחק טורניר, ואז פתח אותו מההיסטוריה וסמן את הדקים.',
+  );
   String get tournamentsShort => _('Events', 'טורנירים');
   String get wld => _('W-L-D', 'נ-ה-ת');
   String get winRate => _('Win %', 'ניצחון %');
@@ -560,10 +629,12 @@ class S {
   // ---------------------------------------------------------------- open-first flow
   String get openAndGetCode => _('Open tournament and get a code', 'פתח טורניר וקבל קוד');
   String get setupGuideTitle => _('While players join', 'בזמן שהשחקנים מצטרפים');
-  String get setupGuide1 => _('Share the code at the top — players join from their phones',
-      'שתף את הקוד למעלה — שחקנים מצטרפים מהטלפון');
-  String get setupGuide2 => _('Players without the app: add them by name here', 'שחקנים בלי האפליקציה: הוסף אותם כאן בשם');
-  String get setupGuide3 => _('Rounds, time and top cut: the ⚙ button at the top', 'סיבובים, זמן וטופ קאט: כפתור ⚙ למעלה');
+  String get setupGuide1 =>
+      _('Share the code at the top — players join from their phones', 'שתף את הקוד למעלה — שחקנים מצטרפים מהטלפון');
+  String get setupGuide2 =>
+      _('Players without the app: add them by name here', 'שחקנים בלי האפליקציה: הוסף אותם כאן בשם');
+  String get setupGuide3 =>
+      _('Rounds, time and top cut: the ⚙ button at the top', 'סיבובים, זמן וטופ קאט: כפתור ⚙ למעלה');
 
   // ---------------------------------------------------------------- who reported
   String get byHost => _('Recorded by the host', 'נרשם על ידי ההוסט');
@@ -575,8 +646,8 @@ class S {
   String byAccepted(String a, String b) => _('Reported by $a, accepted by $b', 'דווח על ידי $a, אושר על ידי $b');
 
   // ---------------------------------------------------------------- player time notices
-  String get overtimeNotice => _('Overtime — finish your turns, then report the result',
-      'תורות נוספים — סיימו את התורות ודווחו תוצאה');
+  String get overtimeNotice =>
+      _('Overtime — finish your turns, then report the result', 'תורות נוספים — סיימו את התורות ודווחו תוצאה');
   String get timeUpNotice => _('Time is up — report your result now', 'הזמן נגמר — דווחו את התוצאה עכשיו');
 
   // ---------------------------------------------------------------- join card
@@ -590,21 +661,27 @@ class S {
   String get sendResults => _('Send results to players', 'שלח תוצאות לשחקנים');
   String get sendResultsHint => _('Players see final standings and prizes', 'השחקנים יראו דירוג סופי ופרסים');
   String get finalResults => _('Results', 'תוצאות');
-  String get waitingFinalResults => _('Tournament over — waiting for the final results', 'הטורניר הסתיים — ממתינים לתוצאות הסופיות');
-  String nextAcceptingPending(int n) =>
-      _(n == 1 ? 'Continue · accept 1 report' : 'Continue · accept $n reports', n == 1 ? 'המשך · קבל דיווח 1' : 'המשך · קבל $n דיווחים');
+  String get waitingFinalResults =>
+      _('Tournament over — waiting for the final results', 'הטורניר הסתיים — ממתינים לתוצאות הסופיות');
+  String nextAcceptingPending(int n) => _(
+    n == 1 ? 'Continue · accept 1 report' : 'Continue · accept $n reports',
+    n == 1 ? 'המשך · קבל דיווח 1' : 'המשך · קבל $n דיווחים',
+  );
   String get acceptPendingHint => _('Unconfirmed reports count as reported', 'דיווחים שלא אושרו ייחשבו כמדווחים');
   String acceptPendingTitle(int n) => _('Accept $n unconfirmed reports?', 'לקבל $n דיווחים שלא אושרו?');
   String get acceptPendingBody => _(
-      'The reported results become final; the opponents can no longer confirm or dispute them.',
-      'התוצאות שדווחו יהפכו לסופיות, והיריבים כבר לא יוכלו לאשר או לערער עליהן.');
+    'The reported results become final; the opponents can no longer confirm or dispute them.',
+    'התוצאות שדווחו יהפכו לסופיות, והיריבים כבר לא יוכלו לאשר או לערער עליהן.',
+  );
   String get backOneRound => _('Back one round', 'חזרה סיבוב אחד אחורה');
   String backOneRoundTitle(String round) => _('Delete $round?', 'למחוק את $round?');
   String get backOneRoundBody => _(
-      'This round and its results are deleted; the round before becomes current so you can fix it and pair again.',
-      'הסיבוב והתוצאות שלו יימחקו; הסיבוב הקודם יחזור להיות הנוכחי, כדי שתוכל לתקן אותו ולשבץ שוב.');
+    'This round and its results are deleted; the round before becomes current so you can fix it and pair again.',
+    'הסיבוב והתוצאות שלו יימחקו; הסיבוב הקודם יחזור להיות הנוכחי, כדי שתוכל לתקן אותו ולשבץ שוב.',
+  );
   String get byYouUnconfirmed => _('Reported by you (accepted without confirmation)', 'דווח על ידך (התקבל בלי אישור)');
-  String byUnconfirmed(String n) => _('Reported by $n (accepted without confirmation)', 'דווח על ידי $n (התקבל בלי אישור)');
+  String byUnconfirmed(String n) =>
+      _('Reported by $n (accepted without confirmation)', 'דווח על ידי $n (התקבל בלי אישור)');
 
   // ---------------------------------------------------------------- manual pairing
   String get swapHint => _('Tap two players to swap them', 'הקש על שני שחקנים כדי להחליף ביניהם');

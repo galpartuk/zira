@@ -14,11 +14,11 @@ class Claim {
   Map<String, dynamic> toJson() => {'matchId': matchId, 'uid': uid, 'r': result.toJson(), 'at': atMs};
 
   factory Claim.fromJson(Map<String, dynamic> j) => Claim(
-        matchId: j['matchId'] as String,
-        uid: j['uid'] as String,
-        result: MatchResult.fromJson(Map<String, dynamic>.from(j['r'] as Map)),
-        atMs: j['at'] as int? ?? 0,
-      );
+    matchId: j['matchId'] as String,
+    uid: j['uid'] as String,
+    result: MatchResult.fromJson(Map<String, dynamic>.from(j['r'] as Map)),
+    atMs: j['at'] as int? ?? 0,
+  );
 }
 
 bool sameResult(MatchResult a, MatchResult b) => a.outcome == b.outcome && a.g1 == b.g1 && a.g2 == b.g2;
@@ -84,10 +84,10 @@ class Entry {
   Map<String, dynamic> toJson() => {'displayName': displayName, 'status': status.name};
 
   factory Entry.fromJson(String uid, Map<String, dynamic> j) => Entry(
-        uid: uid,
-        displayName: j['displayName'] as String? ?? '?',
-        status: EntryStatus.values.firstWhere((s) => s.name == j['status'], orElse: () => EntryStatus.requested),
-      );
+    uid: uid,
+    displayName: j['displayName'] as String? ?? '?',
+    status: EntryStatus.values.firstWhere((s) => s.name == j['status'], orElse: () => EntryStatus.requested),
+  );
 }
 
 /// Same naming rule as adding players by hand: "Gal", "Gal 2", "Gal 3".
@@ -156,7 +156,10 @@ Round? draftRound(Tournament t) {
 /// What players may see: everything except a draft round.
 Map<String, dynamic> publishedJson(Tournament t) {
   final j = t.toJson();
-  j['rounds'] = [for (final r in t.rounds) if (r.published) r.toJson()];
+  j['rounds'] = [
+    for (final r in t.rounds)
+      if (r.published) r.toJson(),
+  ];
   return j;
 }
 

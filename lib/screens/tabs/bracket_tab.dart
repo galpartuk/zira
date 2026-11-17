@@ -80,82 +80,107 @@ class BracketTab extends StatelessWidget {
             margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: Z.gold.withValues(alpha: .12),
+              color: Z.accent.withValues(alpha: .12),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Z.gold, width: 1.5),
+              border: Border.all(color: Z.accent, width: 1.5),
             ),
-            child: Row(children: [
-              const Icon(Icons.emoji_events, color: Z.gold, size: 38),
-              const SizedBox(width: 12),
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(S.t.tournamentChampion, style: const TextStyle(color: Z.muted, fontWeight: FontWeight.w700)),
-                Text(t.nameOf(champion), style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: Z.gold)),
-              ]),
-            ]),
+            child: Row(
+              children: [
+                Icon(Icons.emoji_events, color: Z.accent, size: 38),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      S.t.tournamentChampion,
+                      style: TextStyle(color: Z.muted, fontWeight: FontWeight.w600),
+                    ),
+                    Text(
+                      t.nameOf(champion),
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: Z.accent),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         if (preview)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-            child: Text(S.t.bracketPreview, style: const TextStyle(color: Z.muted, fontSize: 13)),
+            child: Text(S.t.bracketPreview, style: TextStyle(color: Z.muted, fontSize: 13)),
           ),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            for (var c = 0; c < columns.length; c++) ...[
-              SizedBox(
-                width: _colW,
-                child: Column(children: [
-                  Text(names[c], style: const TextStyle(fontWeight: FontWeight.w800, color: Z.muted)),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    height: height,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        for (final m in columns[c])
-                          _BracketMatch(
-                            t: t,
-                            m: m,
-                            seeds: seeds,
-                            height: _cardH,
-                            preview: preview,
-                            editable: !readOnly && !preview && !t.finished && c == tops.length - 1,
-                          ),
-                      ],
-                    ),
-                  ),
-                ]),
-              ),
-              if (c < columns.length - 1)
-                Padding(
-                  padding: const EdgeInsets.only(top: 30),
-                  child: CustomPaint(
-                    size: Size(_link, height),
-                    painter: _Connector(columns[c].length, Directionality.of(context)),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (var c = 0; c < columns.length; c++) ...[
+                SizedBox(
+                  width: _colW,
+                  child: Column(
+                    children: [
+                      Text(
+                        names[c],
+                        style: TextStyle(fontWeight: FontWeight.w700, color: Z.muted),
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        height: height,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            for (final m in columns[c])
+                              _BracketMatch(
+                                t: t,
+                                m: m,
+                                seeds: seeds,
+                                height: _cardH,
+                                preview: preview,
+                                editable: !readOnly && !preview && !t.finished && c == tops.length - 1,
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+                if (c < columns.length - 1)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 30),
+                    child: CustomPaint(
+                      size: Size(_link, height),
+                      painter: _Connector(columns[c].length, Directionality.of(context)),
+                    ),
+                  ),
+              ],
             ],
-          ]),
+          ),
         ),
         if (third != null || (t.thirdPlace && size >= 4))
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 18, 16, 0),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(S.t.thirdPlaceMatch, style: const TextStyle(fontWeight: FontWeight.w800, color: Z.muted)),
-              const SizedBox(height: 8),
-              SizedBox(
-                width: _colW,
-                child: _BracketMatch(
-                  t: t,
-                  m: third,
-                  seeds: seeds,
-                  height: _cardH,
-                  preview: preview,
-                  editable: !readOnly && third != null && !t.finished && tops.last.matches.contains(third),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  S.t.thirdPlaceMatch,
+                  style: TextStyle(fontWeight: FontWeight.w700, color: Z.muted),
                 ),
-              ),
-            ]),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: _colW,
+                  child: _BracketMatch(
+                    t: t,
+                    m: third,
+                    seeds: seeds,
+                    height: _cardH,
+                    preview: preview,
+                    editable: !readOnly && third != null && !t.finished && tops.last.matches.contains(third),
+                  ),
+                ),
+              ],
+            ),
           ),
       ],
     );
@@ -189,27 +214,38 @@ class _BracketMatch extends StatelessWidget {
       String score = '';
       if (res != null && t.topBestOf > 1) score = '${top ? res.g1 : res.g2}';
       return Expanded(
-        child: Row(children: [
-          SizedBox(
-            width: 22,
-            child: Text(id == null ? '' : '${seeds[id] ?? ''}',
-                style: const TextStyle(fontSize: 11.5, color: Z.muted, fontFeatures: Z.tabular)),
-          ),
-          Expanded(
-            child: Text(
-              id == null ? '—' : t.nameOf(id),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontWeight: won ? FontWeight.w800 : FontWeight.w600,
-                color: id == null || lost ? Z.muted : (won ? Z.gold : Z.text),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 22,
+              child: Text(
+                id == null ? '' : '${seeds[id] ?? ''}',
+                style: TextStyle(fontSize: 11.5, color: Z.muted, fontFeatures: Z.tabular),
               ),
             ),
-          ),
-          if (score.isNotEmpty)
-            Text(score, style: TextStyle(fontWeight: FontWeight.w800, color: won ? Z.gold : Z.muted, fontFeatures: Z.tabular)),
-          if (won) const Padding(padding: EdgeInsetsDirectional.only(start: 4), child: Icon(Icons.check, size: 16, color: Z.gold)),
-        ]),
+            Expanded(
+              child: Text(
+                id == null ? '—' : t.nameOf(id),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontWeight: won ? FontWeight.w700 : FontWeight.w600,
+                  color: id == null || lost ? Z.muted : (won ? Z.accent : Z.text),
+                ),
+              ),
+            ),
+            if (score.isNotEmpty)
+              Text(
+                score,
+                style: TextStyle(fontWeight: FontWeight.w700, color: won ? Z.accent : Z.muted, fontFeatures: Z.tabular),
+              ),
+            if (won)
+              Padding(
+                padding: EdgeInsetsDirectional.only(start: 4),
+                child: Icon(Icons.check, size: 16, color: Z.accent),
+              ),
+          ],
+        ),
       );
     }
 
@@ -220,7 +256,7 @@ class _BracketMatch extends StatelessWidget {
         // Material asserts when given both a borderRadius and a shape.
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: editable && m != null && !m.done ? Z.gold.withValues(alpha: .6) : Z.line),
+          side: BorderSide(color: editable && m != null && !m.done ? Z.accent.withValues(alpha: .6) : Z.line),
         ),
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
@@ -249,11 +285,7 @@ class _BracketMatch extends StatelessWidget {
                 },
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            child: Column(children: [
-              slot(m?.p1, true),
-              const Divider(height: 1),
-              slot(m?.p2, false),
-            ]),
+            child: Column(children: [slot(m?.p1, true), const Divider(height: 1), slot(m?.p2, false)]),
           ),
         ),
       ),

@@ -20,7 +20,15 @@ class PrizeResult {
   final double percentSum; // of the configured table
   final List<PrizeLine> lines;
 
-  const PrizeResult(this.gross, this.houseAmount, this.net, this.distributed, this.leftover, this.percentSum, this.lines);
+  const PrizeResult(
+    this.gross,
+    this.houseAmount,
+    this.net,
+    this.distributed,
+    this.leftover,
+    this.percentSum,
+    this.lines,
+  );
 }
 
 /// Splits the prize pool according to the percentage table.
@@ -88,7 +96,8 @@ PrizeResult computePrizes(PrizeConfig c, int players, {List<Placement>? placemen
   var left = totalUnits - units.fold<int>(0, (a, b) => a + b);
 
   // Largest remainder, group by group so tied players stay equal.
-  final order = [...groups]..sort((a, b) {
+  final order = [...groups]
+    ..sort((a, b) {
       final fa = want[a.first] - units[a.first], fb = want[b.first] - units[b.first];
       final d = fb.compareTo(fa);
       return d != 0 ? d : a.first.compareTo(b.first);
@@ -108,11 +117,26 @@ PrizeResult computePrizes(PrizeConfig c, int players, {List<Placement>? placemen
   final lines = <PrizeLine>[];
   for (var k = 0; k < count; k++) {
     final amount = double.parse((units[k] * step).toStringAsFixed(2));
-    lines.add(PrizeLine(k + 1, labels[k] ?? '${k + 1}',
-        placements != null && k < placements.length ? placements[k].playerId : null, eff[k], amount));
+    lines.add(
+      PrizeLine(
+        k + 1,
+        labels[k] ?? '${k + 1}',
+        placements != null && k < placements.length ? placements[k].playerId : null,
+        eff[k],
+        amount,
+      ),
+    );
   }
   final distributed = lines.fold<double>(0, (a, l) => a + l.amount);
-  return PrizeResult(gross, house, net, distributed, double.parse((net - distributed).toStringAsFixed(2)), pctSum, lines);
+  return PrizeResult(
+    gross,
+    house,
+    net,
+    distributed,
+    double.parse((net - distributed).toStringAsFixed(2)),
+    pctSum,
+    lines,
+  );
 }
 
 /// Ready-made percentage tables. The UI names them (e.g. "Top 2 · 65/35").
@@ -125,8 +149,7 @@ const prizePresets = <List<double>>[
 ];
 
 /// Even split across [places].
-List<double> flatPercents(int places) =>
-    List.filled(places, double.parse((100 / places).toStringAsFixed(4)));
+List<double> flatPercents(int places) => List.filled(places, double.parse((100 / places).toStringAsFixed(4)));
 
 /// Each place gets [ratio] of the one above it, normalised to 100%.
 List<double> steppedPercents(int places, {double ratio = 0.65}) {

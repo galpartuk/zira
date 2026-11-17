@@ -63,11 +63,13 @@ class CloudStore implements TournamentStore {
         'data': publishedJson(t),
       });
       batch.set(ref.collection('private').doc('host'), {'draftRound': draftRound(t)?.toJson()});
-      pending.add(batch.commit().catchError((Object e) {
-        // Not saved: forget the signature so the next change tries again.
-        if (_lastSaved[t.id] == sig) _lastSaved.remove(t.id);
-        debugPrint('save ${t.id} failed: $e');
-      }));
+      pending.add(
+        batch.commit().catchError((Object e) {
+          // Not saved: forget the signature so the next change tries again.
+          if (_lastSaved[t.id] == sig) _lastSaved.remove(t.id);
+          debugPrint('save ${t.id} failed: $e');
+        }),
+      );
     }
     await Future.wait(pending);
   }

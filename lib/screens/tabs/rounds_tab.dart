@@ -36,11 +36,7 @@ class _RoundsTabState extends State<RoundsTab> {
   @override
   Widget build(BuildContext context) {
     if (!t.started) {
-      return EmptyState(
-        icon: Icons.shuffle_rounded,
-        title: S.t.notStarted,
-        body: S.t.notStartedBody,
-      );
+      return EmptyState(icon: Icons.shuffle_rounded, title: S.t.notStarted, body: S.t.notStartedBody);
     }
     // Jump to the newest round whenever one is added.
     if (t.rounds.length != _lastCount) {
@@ -56,122 +52,146 @@ class _RoundsTabState extends State<RoundsTab> {
     final standings = {for (final s in computeStandings(t, beforeRound: idx)) s.player.id: s};
     final editable = !t.finished && (round.stage == Stage.top ? isCurrent : t.topRoundsList.isEmpty);
 
-    final matches = [...round.matches]..sort((a, b) {
+    final matches = [...round.matches]
+      ..sort((a, b) {
         if (a.isBye != b.isBye) return a.isBye ? 1 : -1;
         if (a.thirdPlace != b.thirdPlace) return a.thirdPlace ? 1 : -1;
         return a.table.compareTo(b.table);
       });
 
-    return Column(children: [
-      SizedBox(
-        height: 54,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
-          itemCount: t.rounds.length,
-          separatorBuilder: (_, _) => const SizedBox(width: 8),
-          itemBuilder: (c, i) {
-            final r = t.rounds[i];
-            final sel = i == idx;
-            return ChoiceChip(
-              label: Text(roundLabel(r)),
-              selected: sel,
-              showCheckmark: false,
-              selectedColor: Z.gold,
-              labelStyle: TextStyle(color: sel ? Z.ink : Z.text, fontWeight: FontWeight.w700),
-              avatar: r.complete ? Icon(Icons.check_circle, size: 16, color: sel ? Z.ink : Z.win) : null,
-              onSelected: (_) => setState(() => _selected = i),
-            );
-          },
+    return Column(
+      children: [
+        SizedBox(
+          height: 54,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
+            itemCount: t.rounds.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 8),
+            itemBuilder: (c, i) {
+              final r = t.rounds[i];
+              final sel = i == idx;
+              return ChoiceChip(
+                label: Text(roundLabel(r)),
+                selected: sel,
+                showCheckmark: false,
+                selectedColor: Z.accent,
+                labelStyle: TextStyle(color: sel ? Z.ink : Z.text, fontWeight: FontWeight.w600),
+                avatar: r.complete ? Icon(Icons.check_circle, size: 16, color: sel ? Z.ink : Z.win) : null,
+                onSelected: (_) => setState(() => _selected = i),
+              );
+            },
+          ),
         ),
-      ),
-      Expanded(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 6, 16, 24),
-          children: [
-            if (isCurrent && widget.header != null && !draft) widget.header!,
-            if (draft) ...[
-              Card(
-                color: Z.gold.withValues(alpha: .15),
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(children: [
-                    Expanded(
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(S.t.draftBanner, style: const TextStyle(fontWeight: FontWeight.w700)),
-                        const SizedBox(height: 2),
-                        Text(_swapPick == null ? S.t.swapHint : S.t.swapPickSecond(t.nameOf(_swapPick)),
-                            style: const TextStyle(fontSize: 12.5, color: Z.muted)),
-                      ]),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 6, 16, 24),
+            children: [
+              if (isCurrent && widget.header != null && !draft) widget.header!,
+              if (draft) ...[
+                Card(
+                  color: Z.accent.withValues(alpha: .15),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(S.t.draftBanner, style: const TextStyle(fontWeight: FontWeight.w600)),
+                              const SizedBox(height: 2),
+                              Text(
+                                _swapPick == null ? S.t.swapHint : S.t.swapPickSecond(t.nameOf(_swapPick)),
+                                style: TextStyle(fontSize: 12.5, color: Z.muted),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        FilledButton.icon(
+                          onPressed: () => context.read<AppState>().publish(t),
+                          icon: const Icon(Icons.send_rounded, size: 18),
+                          label: Text(S.t.sendToPlayers),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    FilledButton.icon(
-                      onPressed: () => context.read<AppState>().publish(t),
-                      icon: const Icon(Icons.send_rounded, size: 18),
-                      label: Text(S.t.sendToPlayers),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ] else if (isCurrent && !t.finished) ...[
+                RoundTimer(t: t),
+                const SizedBox(height: 12),
+              ],
+              Row(
+                children: [
+                  Text(roundLabel(round), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                  const SizedBox(width: 10),
+                  round.complete
+                      ? Pill(S.t.complete, color: Z.win)
+                      : Pill(S.t.openMatches(round.pending), color: Z.amber),
+                  const Spacer(),
+                  IconButton(
+                    tooltip: S.t.copyPairings,
+                    icon: const Icon(Icons.copy_rounded),
+                    onPressed: () => copyText(context, _pairingsText(round, standings), S.t.pairingsWhat),
+                  ),
+                  if (isCurrent &&
+                      !t.finished &&
+                      (draft || (!round.anyResult && !(sync?.roundHasClaims(t, round) ?? false))))
+                    PopupMenuButton<String>(
+                      onSelected: (v) async {
+                        final app = context.read<AppState>();
+                        if (v == 'repair') {
+                          app.repair(t);
+                          if (context.mounted) toast(context, S.t.repaired);
+                        } else if (v == 'undo') {
+                          final ok = await confirm(context, S.t.undoTitle(roundLabel(round)), S.t.undoBody);
+                          if (ok) app.undoRound(t);
+                        }
+                      },
+                      itemBuilder: (_) => [
+                        if (round.stage == Stage.swiss && t.format == TFormat.swiss)
+                          PopupMenuItem(value: 'repair', child: Text(S.t.repair)),
+                        PopupMenuItem(value: 'undo', child: Text(S.t.undoRound)),
+                      ],
+                    )
+                  else if (isCurrent && t.rounds.length > 1 && hostSyncOf(context) != null)
+                    PopupMenuButton<String>(
+                      onSelected: (_) async {
+                        final ok = await confirm(
+                          context,
+                          S.t.backOneRoundTitle(roundLabel(round)),
+                          S.t.backOneRoundBody,
+                          ok: S.t.backOneRound,
+                          danger: true,
+                        );
+                        if (ok && context.mounted) context.read<AppState>().backOneRound(t);
+                      },
+                      itemBuilder: (_) => [PopupMenuItem(value: 'back', child: Text(S.t.backOneRound))],
                     ),
-                  ]),
+                ],
+              ),
+              const SizedBox(height: 6),
+              for (final m in matches)
+                _MatchCard(
+                  t: t,
+                  m: m,
+                  round: round,
+                  standings: standings,
+                  onTap: (!editable || m.isBye || draft) ? null : () => _report(round, m),
+                  picked: draft ? _swapPick : null,
+                  onPickPlayer: (draft && isCurrent) ? (pid) => _pickForSwap(round, pid) : null,
+                  claim: (sync == null || m.result != null || m.isBye) ? null : sync.stateOf(t, m),
+                  // Drops apply from the next pairing, so only offer them while
+                  // more Swiss rounds can still follow.
+                  onDrop: (isCurrent && !t.finished && round.stage == Stage.swiss) ? () => _drop(m) : null,
                 ),
-              ),
-              const SizedBox(height: 12),
-            ] else if (isCurrent && !t.finished) ...[RoundTimer(t: t), const SizedBox(height: 12)],
-            Row(children: [
-              Text(roundLabel(round), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-              const SizedBox(width: 10),
-              round.complete ? Pill(S.t.complete, color: Z.win) : Pill(S.t.openMatches(round.pending), color: Z.gold),
-              const Spacer(),
-              IconButton(
-                tooltip: S.t.copyPairings,
-                icon: const Icon(Icons.copy_rounded),
-                onPressed: () => copyText(context, _pairingsText(round, standings), S.t.pairingsWhat),
-              ),
-              if (isCurrent && !t.finished && (draft || (!round.anyResult && !(sync?.roundHasClaims(t, round) ?? false))))
-                PopupMenuButton<String>(
-                  onSelected: (v) async {
-                    final app = context.read<AppState>();
-                    if (v == 'repair') {
-                      app.repair(t);
-                      if (context.mounted) toast(context, S.t.repaired);
-                    } else if (v == 'undo') {
-                      final ok = await confirm(context, S.t.undoTitle(roundLabel(round)), S.t.undoBody);
-                      if (ok) app.undoRound(t);
-                    }
-                  },
-                  itemBuilder: (_) => [
-                    if (round.stage == Stage.swiss && t.format == TFormat.swiss)
-                      PopupMenuItem(value: 'repair', child: Text(S.t.repair)),
-                    PopupMenuItem(value: 'undo', child: Text(S.t.undoRound)),
-                  ],
-                )
-              else if (isCurrent && t.rounds.length > 1 && hostSyncOf(context) != null)
-                PopupMenuButton<String>(
-                  onSelected: (_) async {
-                    final ok = await confirm(context, S.t.backOneRoundTitle(roundLabel(round)), S.t.backOneRoundBody,
-                        ok: S.t.backOneRound, danger: true);
-                    if (ok && context.mounted) context.read<AppState>().backOneRound(t);
-                  },
-                  itemBuilder: (_) => [PopupMenuItem(value: 'back', child: Text(S.t.backOneRound))],
-                ),
-            ]),
-            const SizedBox(height: 6),
-            for (final m in matches)
-              _MatchCard(
-                t: t,
-                m: m,
-                round: round,
-                standings: standings,
-                onTap: (!editable || m.isBye || draft) ? null : () => _report(round, m),
-                picked: draft ? _swapPick : null,
-                onPickPlayer: (draft && isCurrent) ? (pid) => _pickForSwap(round, pid) : null,
-                claim: (sync == null || m.result != null || m.isBye) ? null : sync.stateOf(t, m),
-                // Drops apply from the next pairing, so only offer them while
-                // more Swiss rounds can still follow.
-                onDrop: (isCurrent && !t.finished && round.stage == Stage.swiss) ? () => _drop(m) : null,
-              ),
-          ],
+            ],
+          ),
         ),
-      ),
-    ]);
+      ],
+    );
   }
 
   /// Draft only: tap one player, then another, to swap their seats.
@@ -193,14 +213,17 @@ class _RoundsTabState extends State<RoundsTab> {
       String who(Claim c) => t.players.firstWhere((p) => p.uid == c.uid).name;
       final pick = await showDialog<MatchResult>(
         context: context,
-        builder: (c) => SimpleDialog(title: Text(S.t.chooseResult), children: [
-          for (final cl in [st.a, st.b])
-            SimpleDialogOption(
-              onPressed: () => Navigator.pop(c, cl.result),
-              child: Text(S.t.claimedBy(who(cl), S.t.scoreText(cl.result, bestOf: t.bestOfFor(round.stage)))),
-            ),
-          SimpleDialogOption(onPressed: () => Navigator.pop(c), child: Text(S.t.otherResult)),
-        ]),
+        builder: (c) => SimpleDialog(
+          title: Text(S.t.chooseResult),
+          children: [
+            for (final cl in [st.a, st.b])
+              SimpleDialogOption(
+                onPressed: () => Navigator.pop(c, cl.result),
+                child: Text(S.t.claimedBy(who(cl), S.t.scoreText(cl.result, bestOf: t.bestOfFor(round.stage)))),
+              ),
+            SimpleDialogOption(onPressed: () => Navigator.pop(c), child: Text(S.t.otherResult)),
+          ],
+        ),
       );
       if (!mounted) return;
       if (pick != null) {
@@ -238,26 +261,30 @@ class _RoundsTabState extends State<RoundsTab> {
         builder: (c, setSheet) => SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              Text(S.t.dropTitle, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-              const SizedBox(height: 4),
-              Text(S.t.dropBody, style: const TextStyle(color: Z.muted, fontSize: 13)),
-              const SizedBox(height: 10),
-              for (final id in ids)
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(t.nameOf(id), style: const TextStyle(fontWeight: FontWeight.w700)),
-                  subtitle: Text(t.player(id)!.dropped ? S.t.droppedNotPaired : S.t.stillPlaying),
-                  value: t.player(id)!.dropped,
-                  activeThumbColor: Z.ink,
-                  activeTrackColor: Z.danger,
-                  onChanged: (v) {
-                    t.player(id)!.dropped = v;
-                    context.read<AppState>().changed();
-                    setSheet(() {});
-                  },
-                ),
-            ]),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(S.t.dropTitle, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 4),
+                Text(S.t.dropBody, style: TextStyle(color: Z.muted, fontSize: 13)),
+                const SizedBox(height: 10),
+                for (final id in ids)
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(t.nameOf(id), style: const TextStyle(fontWeight: FontWeight.w600)),
+                    subtitle: Text(t.player(id)!.dropped ? S.t.droppedNotPaired : S.t.stillPlaying),
+                    value: t.player(id)!.dropped,
+                    activeThumbColor: Z.ink,
+                    activeTrackColor: Z.danger,
+                    onChanged: (v) {
+                      t.player(id)!.dropped = v;
+                      context.read<AppState>().changed();
+                      setSheet(() {});
+                    },
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -271,8 +298,10 @@ class _RoundsTabState extends State<RoundsTab> {
         b.writeln('BYE: ${t.nameOf(m.p1)}');
       } else {
         final tag = m.thirdPlace ? S.t.thirdPlaceTag : S.t.table(m.table);
-        b.writeln('$tag: ${t.nameOf(m.p1)} (${st[m.p1]?.points ?? 0}) ${S.t.vs} ${t.nameOf(m.p2)} (${st[m.p2]?.points ?? 0})'
-            '${m.result != null ? '  ✓ ${S.t.scoreText(m.result!, bestOf: t.bestOfFor(round.stage))}' : ''}');
+        b.writeln(
+          '$tag: ${t.nameOf(m.p1)} (${st[m.p1]?.points ?? 0}) ${S.t.vs} ${t.nameOf(m.p2)} (${st[m.p2]?.points ?? 0})'
+          '${m.result != null ? '  ✓ ${S.t.scoreText(m.result!, bestOf: t.bestOfFor(round.stage))}' : ''}',
+        );
       }
     }
     return b.toString();
@@ -293,29 +322,41 @@ class _Score extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (res.outcome == Outcome.doubleLoss) {
-      return Text(S.t.doubleLossShort,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12, height: 1.15, color: Z.danger));
+      return Text(
+        S.t.doubleLossShort,
+        textAlign: TextAlign.center,
+        style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12, height: 1.15, color: Z.danger),
+      );
     }
     if (res.outcome == Outcome.draw && bo == 1) {
-      return Text(S.t.draw, style: const TextStyle(fontWeight: FontWeight.w800, color: Z.muted));
+      return Text(
+        S.t.draw,
+        style: TextStyle(fontWeight: FontWeight.w700, color: Z.muted),
+      );
     }
     final a = bo > 1 ? res.g1 : (res.outcome == Outcome.p1 ? 1 : 0);
     final b = bo > 1 ? res.g2 : (res.outcome == Outcome.p2 ? 1 : 0);
     TextStyle st(bool win) => TextStyle(
-        fontSize: unconfirmed ? 17 : 20,
-        fontWeight: FontWeight.w800,
-        fontStyle: unconfirmed ? FontStyle.italic : null,
-        color: unconfirmed ? Z.text : (win ? Z.gold : Z.muted),
-        fontFeatures: Z.tabular);
-    return Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-      Text('$a', style: st(res.outcome == Outcome.p1)),
-      const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 6),
-        child: Text(':', style: TextStyle(color: Z.muted, fontWeight: FontWeight.w800)),
-      ),
-      Text('$b', style: st(res.outcome == Outcome.p2)),
-    ]);
+      fontSize: unconfirmed ? 17 : 20,
+      fontWeight: FontWeight.w700,
+      fontStyle: unconfirmed ? FontStyle.italic : null,
+      color: unconfirmed ? Z.text : (win ? Z.accent : Z.muted),
+      fontFeatures: Z.tabular,
+    );
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text('$a', style: st(res.outcome == Outcome.p1)),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 6),
+          child: Text(
+            ':',
+            style: TextStyle(color: Z.muted, fontWeight: FontWeight.w700),
+          ),
+        ),
+        Text('$b', style: st(res.outcome == Outcome.p2)),
+      ],
+    );
   }
 }
 
@@ -332,16 +373,17 @@ class _MatchCard extends StatelessWidget {
   final void Function(String pid)? onPickPlayer;
   final String? picked;
 
-  const _MatchCard(
-      {required this.t,
-      required this.m,
-      required this.round,
-      required this.standings,
-      this.onTap,
-      this.onDrop,
-      this.claim,
-      this.onPickPlayer,
-      this.picked});
+  const _MatchCard({
+    required this.t,
+    required this.m,
+    required this.round,
+    required this.standings,
+    this.onTap,
+    this.onDrop,
+    this.claim,
+    this.onPickPlayer,
+    this.picked,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -363,35 +405,42 @@ class _MatchCard extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                 decoration: BoxDecoration(
-                  color: isPicked ? Z.gold.withValues(alpha: .25) : null,
-                  border: Border.all(color: isPicked ? Z.gold : Z.line),
+                  color: isPicked ? Z.accent.withValues(alpha: .25) : null,
+                  border: Border.all(color: isPicked ? Z.accent : Z.line),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: child,
               ),
             );
       return Expanded(
-        child: wrap(Column(
-          crossAxisAlignment: align == TextAlign.start ? CrossAxisAlignment.start : CrossAxisAlignment.end,
-          children: [
-            Text(
-              t.nameOf(id),
-              textAlign: align,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 16.5,
-                fontWeight: isWinner ? FontWeight.w800 : FontWeight.w600,
-                color: id == null ? Z.muted : (isLoser ? Z.muted : (isWinner ? color : Z.text)),
+        child: wrap(
+          Column(
+            crossAxisAlignment: align == TextAlign.start ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+            children: [
+              Text(
+                t.nameOf(id),
+                textAlign: align,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 16.5,
+                  fontWeight: isWinner ? FontWeight.w700 : FontWeight.w600,
+                  color: id == null ? Z.muted : (isLoser ? Z.muted : (isWinner ? color : Z.text)),
+                ),
               ),
-            ),
-            if (st != null && round.stage == Stage.swiss)
-              Text('${S.t.pts(st.points)} · ${st.record}',
-                  style: const TextStyle(fontSize: 12, color: Z.muted, fontFeatures: Z.tabular)),
-            if (t.player(id)?.dropped ?? false)
-              Padding(padding: const EdgeInsets.only(top: 3), child: Pill(S.t.dropped, color: Z.danger)),
-          ],
-        )),
+              if (st != null && round.stage == Stage.swiss)
+                Text(
+                  '${S.t.pts(st.points)} · ${st.record}',
+                  style: TextStyle(fontSize: 12, color: Z.muted, fontFeatures: Z.tabular),
+                ),
+              if (t.player(id)?.dropped ?? false)
+                Padding(
+                  padding: const EdgeInsets.only(top: 3),
+                  child: Pill(S.t.dropped, color: Z.danger),
+                ),
+            ],
+          ),
+        ),
       );
     }
 
@@ -404,9 +453,9 @@ class _MatchCard extends StatelessWidget {
     final (String?, Color) note = switch (cl) {
       _ when res != null => (provenanceText(t, m, viewerUid: null), Z.muted),
       Pending(by: final c) => (
-          S.t.pendingReport(who(c), t.nameOf(t.player(m.p1)?.uid == c.uid ? m.p2 : m.p1)),
-          Z.gold
-        ),
+        S.t.pendingReport(who(c), t.nameOf(t.player(m.p1)?.uid == c.uid ? m.p2 : m.p1)),
+        Z.amber,
+      ),
       Disputed(a: final a, b: final b) => ('${says(a)} · ${says(b)}', Z.danger),
       _ => (null, Z.muted),
     };
@@ -421,87 +470,114 @@ class _MatchCard extends StatelessWidget {
           onTap: onTap,
           child: Padding(
             padding: EdgeInsetsDirectional.fromSTEB(12, 12, onDrop != null ? 4 : 12, 12),
-            child: Row(children: [
-              Container(
-                width: 38,
-                height: 38,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: m.done ? Z.win.withValues(alpha: .14) : Z.raised,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(label,
+            child: Row(
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: m.done ? Z.win.withValues(alpha: .14) : Z.raised,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    label,
                     style: TextStyle(
-                        fontWeight: FontWeight.w800,
-                        fontSize: m.isBye ? 11 : 16,
-                        color: m.done ? Z.win : Z.text,
-                        fontFeatures: Z.tabular)),
-              ),
-              const SizedBox(width: 12),
-              if (m.isBye) ...[
-                side(m.p1, Z.blue, TextAlign.start),
-                Text(S.t.autoWin, style: const TextStyle(color: Z.muted, fontSize: 13)),
-              ] else ...[
-                side(m.p1, Z.blue, TextAlign.start),
-                SizedBox(
-                  width: 74,
-                  child: Center(
-                    child: res != null
-                        ? _Score(res: res, bo: bo)
-                        : switch (claim) {
-                            // Reported by one side only: the score, clearly marked as not final.
-                            Pending() => Column(mainAxisSize: MainAxisSize.min, children: [
-                                Opacity(opacity: .6, child: _Score(res: pendingRes!, bo: bo, unconfirmed: true)),
-                                const SizedBox(height: 3),
-                                FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(color: Z.gold.withValues(alpha: .7)),
-                                    borderRadius: BorderRadius.circular(8),
+                      fontWeight: FontWeight.w700,
+                      fontSize: m.isBye ? 11 : 16,
+                      color: m.done ? Z.win : Z.text,
+                      fontFeatures: Z.tabular,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                if (m.isBye) ...[
+                  side(m.p1, Z.blue, TextAlign.start),
+                  Text(S.t.autoWin, style: TextStyle(color: Z.muted, fontSize: 13)),
+                ] else ...[
+                  side(m.p1, Z.blue, TextAlign.start),
+                  SizedBox(
+                    width: 74,
+                    child: Center(
+                      child: res != null
+                          ? _Score(res: res, bo: bo)
+                          : switch (claim) {
+                              // Reported by one side only: the score, clearly marked as not final.
+                              Pending() => Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Opacity(
+                                    opacity: .6,
+                                    child: _Score(res: pendingRes!, bo: bo, unconfirmed: true),
                                   ),
-                                  child: Row(mainAxisSize: MainAxisSize.min, children: [
-                                    const Icon(Icons.hourglass_top_rounded, size: 11, color: Z.gold),
-                                    const SizedBox(width: 2),
-                                    Text(S.t.unconfirmed,
-                                        style: const TextStyle(
-                                            fontSize: 10.5, height: 1.1, color: Z.gold, fontWeight: FontWeight.w800)),
-                                  ]),
-                                )),
-                              ]),
-                            Disputed() => Pill(S.t.disputed, color: Z.danger),
-                            _ => Text(S.t.vs, style: const TextStyle(color: Z.muted, fontWeight: FontWeight.w600)),
-                          },
+                                  const SizedBox(height: 3),
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        border: Border.all(color: Z.amber.withValues(alpha: .7)),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.hourglass_top_rounded, size: 11, color: Z.amber),
+                                          const SizedBox(width: 2),
+                                          Text(
+                                            S.t.unconfirmed,
+                                            style: TextStyle(
+                                              fontSize: 10.5,
+                                              height: 1.1,
+                                              color: Z.amber,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Disputed() => Pill(S.t.disputed, color: Z.danger),
+                              _ => Text(
+                                S.t.vs,
+                                style: TextStyle(color: Z.muted, fontWeight: FontWeight.w600),
+                              ),
+                            },
+                    ),
                   ),
-                ),
-                side(m.p2, Z.coral, TextAlign.end),
+                  side(m.p2, Z.coral, TextAlign.end),
+                ],
+                if (onDrop != null)
+                  SizedBox(
+                    width: 34,
+                    child: IconButton(
+                      tooltip: S.t.drop,
+                      padding: EdgeInsets.zero,
+                      visualDensity: VisualDensity.compact,
+                      iconSize: 20,
+                      color: Z.muted,
+                      onPressed: onDrop,
+                      icon: const Icon(Icons.person_remove_outlined),
+                    ),
+                  ),
               ],
-              if (onDrop != null)
-                SizedBox(
-                  width: 34,
-                  child: IconButton(
-                    tooltip: S.t.drop,
-                    padding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
-                    iconSize: 20,
-                    color: Z.muted,
-                    onPressed: onDrop,
-                    icon: const Icon(Icons.person_remove_outlined),
-                  ),
-                ),
-            ]),
+            ),
           ),
         ),
       ),
     );
     if (source == null) return card;
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      card,
-      Padding(
-        padding: const EdgeInsetsDirectional.only(start: 62, bottom: 8),
-        child: Text(source, style: TextStyle(fontSize: 12, color: note.$2)),
-      ),
-    ]);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        card,
+        Padding(
+          padding: const EdgeInsetsDirectional.only(start: 62, bottom: 8),
+          child: Text(source, style: TextStyle(fontSize: 12, color: note.$2)),
+        ),
+      ],
+    );
   }
 }

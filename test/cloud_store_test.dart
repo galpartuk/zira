@@ -7,12 +7,22 @@ import 'package:zira/engine/models.dart';
 import 'package:zira/engine/online.dart';
 
 Tournament t2() {
-  final t = Tournament(id: 't1', name: 'T', players: [
-    Player(id: 'a', name: 'A', uid: 'host', tieRand: 1),
-    Player(id: 'b', name: 'B', uid: 'bob', tieRand: 2),
-    Player(id: 'c', name: 'Guest', tieRand: 3),
-  ]);
-  t.rounds.add(Round(number: 1, stage: Stage.swiss, matches: [Match(id: 'm1', table: 1, p1: 'a', p2: 'b')]));
+  final t = Tournament(
+    id: 't1',
+    name: 'T',
+    players: [
+      Player(id: 'a', name: 'A', uid: 'host', tieRand: 1),
+      Player(id: 'b', name: 'B', uid: 'bob', tieRand: 2),
+      Player(id: 'c', name: 'Guest', tieRand: 3),
+    ],
+  );
+  t.rounds.add(
+    Round(
+      number: 1,
+      stage: Stage.swiss,
+      matches: [Match(id: 'm1', table: 1, p1: 'a', p2: 'b')],
+    ),
+  );
   return t;
 }
 
@@ -21,7 +31,14 @@ void main() {
     final db = FakeFirebaseFirestore();
     final store = CloudStore(db, 'host');
     final t = t2()..joinCode = 'ABC234';
-    t.rounds.add(Round(number: 2, stage: Stage.swiss, matches: [Match(id: 'm2', table: 1, p1: 'a', p2: 'c')], published: false));
+    t.rounds.add(
+      Round(
+        number: 2,
+        stage: Stage.swiss,
+        matches: [Match(id: 'm2', table: 1, p1: 'a', p2: 'c')],
+        published: false,
+      ),
+    );
     await store.saveAll([t]);
     final doc = (await db.doc('tournaments/t1').get()).data()!;
     expect(doc['hostUid'], 'host');
@@ -40,7 +57,11 @@ void main() {
     final t = t2();
     t.rounds.add(Round(number: 2, stage: Stage.swiss, matches: [], published: false));
     await CloudStore(db, 'host').saveAll([t]);
-    await db.doc('tournaments/other').set({'hostUid': 'zed', 'memberUids': ['zed', 'host'], 'data': t2().toJson()});
+    await db.doc('tournaments/other').set({
+      'hostUid': 'zed',
+      'memberUids': ['zed', 'host'],
+      'data': t2().toJson(),
+    });
     final loaded = await CloudStore(db, 'host').load();
     expect(loaded.single.id, 't1');
     expect(loaded.single.rounds.length, 2);

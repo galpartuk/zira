@@ -117,67 +117,86 @@ class MyMatchCard extends StatelessWidget {
     final Widget status = switch (state) {
       _ when m.isBye => _Status(color: Z.win, icon: Icons.check_circle_rounded, title: S.t.byeAutoWin),
       _ when m.result != null => _Status(
-          color: Z.win,
-          icon: Icons.check_circle_rounded,
-          title: myResultText(m.result!, info.iAmP1),
-          subtitle: provenanceText(t, m, viewerUid: uid) ?? S.t.resultFinal,
-        ),
+        color: Z.win,
+        icon: Icons.check_circle_rounded,
+        title: myResultText(m.result!, info.iAmP1),
+        subtitle: provenanceText(t, m, viewerUid: uid) ?? S.t.resultFinal,
+      ),
       Pending(by: final c) when c.uid == uid => _Status(
-          color: Z.gold,
-          icon: Icons.hourglass_top_rounded,
-          title: S.t.waitingFor(opp),
-          subtitle: S.t.youReportedScore(myResultText(c.result, info.iAmP1)),
-          action: TextButton(onPressed: pickAndReport, child: Text(S.t.change)),
-        ),
+        color: Z.accent,
+        icon: Icons.hourglass_top_rounded,
+        title: S.t.waitingFor(opp),
+        subtitle: S.t.youReportedScore(myResultText(c.result, info.iAmP1)),
+        action: TextButton(onPressed: pickAndReport, child: Text(S.t.change)),
+      ),
       Pending(by: final c) => _Status(
-          color: Z.blue,
-          icon: Icons.notifications_active_rounded,
-          title: S.t.opponentReportedTitle(opp),
-          subtitle: myResultText(c.result, info.iAmP1),
-          buttons: [
-            OutlinedButton(onPressed: pickAndReport, child: Text(S.t.disputeResult)),
-            FilledButton(onPressed: () => _report(context, info, c.result), child: Text(S.t.confirmResult)),
-          ],
-        ),
+        color: Z.blue,
+        icon: Icons.notifications_active_rounded,
+        title: S.t.opponentReportedTitle(opp),
+        subtitle: myResultText(c.result, info.iAmP1),
+        buttons: [
+          OutlinedButton(onPressed: pickAndReport, child: Text(S.t.disputeResult)),
+          FilledButton(onPressed: () => _report(context, info, c.result), child: Text(S.t.confirmResult)),
+        ],
+      ),
       Disputed() => _Status(
-          color: Z.danger,
-          icon: Icons.gavel_rounded,
-          title: S.t.disputeSent,
-          subtitle: S.t.disputeBody,
-        ),
+        color: Z.danger,
+        icon: Icons.gavel_rounded,
+        title: S.t.disputeSent,
+        subtitle: S.t.disputeBody,
+      ),
       _ => SizedBox(
-          height: 52,
-          child: FilledButton.icon(
-            onPressed: pickAndReport,
-            icon: const Icon(Icons.edit_note_rounded),
-            label: Text(S.t.reportResult, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-          ),
+        height: 52,
+        child: FilledButton.icon(
+          onPressed: pickAndReport,
+          icon: const Icon(Icons.edit_note_rounded),
+          label: Text(S.t.reportResult, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
         ),
+      ),
     };
 
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Row(children: [
-            Text(S.t.myMatch.toUpperCase(),
-                style: const TextStyle(fontSize: 12, letterSpacing: 1.2, color: Z.gold, fontWeight: FontWeight.w800)),
-            const Spacer(),
-            Text('${S.t.roundLabel(info.round)} · ${m.isBye ? 'BYE' : S.t.table(m.table)}',
-                style: const TextStyle(fontSize: 13, color: Z.muted, fontWeight: FontWeight.w600)),
-          ]),
-          const SizedBox(height: 14),
-          if (!m.isBye) ...[
-            Text(S.t.vs, style: const TextStyle(fontSize: 13, color: Z.muted)),
-            Text(opp,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, height: 1.2)),
-            const SizedBox(height: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                if (!m.isBye) ...[
+                  Text(
+                    '${m.table}',
+                    style: TextStyle(
+                      fontFamily: Z.digits,
+                      fontSize: 44,
+                      height: 1,
+                      fontWeight: FontWeight.w700,
+                      color: Z.muted,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(S.t.myMatch, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                      Text(
+                        '${S.t.roundLabel(info.round)} · ${m.isBye ? 'BYE' : S.t.table(m.table)}',
+                        style: TextStyle(fontSize: 13, color: Z.muted),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            if (!m.isBye) ...[DuelBanner(me: info.me.name, opponent: opp), const SizedBox(height: 14)],
+            status,
           ],
-          status,
-        ]),
+        ),
       ),
     );
   }
@@ -210,31 +229,44 @@ class _Status extends StatelessWidget {
         border: Border.all(color: color.withValues(alpha: .55)),
         borderRadius: BorderRadius.circular(14),
       ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Row(children: [
-          Icon(icon, color: color, size: 26),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(title, style: TextStyle(fontSize: 16.5, fontWeight: FontWeight.w800, color: color)),
-              if (subtitle != null) ...[
-                const SizedBox(height: 2),
-                Text(subtitle!, style: const TextStyle(fontSize: 14, color: Z.text)),
-              ],
-            ]),
-          ),
-          ?action,
-        ]),
-        if (buttons.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          Row(children: [
-            for (var i = 0; i < buttons.length; i++) ...[
-              if (i > 0) const SizedBox(width: 10),
-              Expanded(child: SizedBox(height: 46, child: buttons[i])),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: color, size: 26),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(fontSize: 16.5, fontWeight: FontWeight.w700, color: color),
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(subtitle!, style: TextStyle(fontSize: 14, color: Z.text)),
+                    ],
+                  ],
+                ),
+              ),
+              ?action,
             ],
-          ]),
+          ),
+          if (buttons.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                for (var i = 0; i < buttons.length; i++) ...[
+                  if (i > 0) const SizedBox(width: 10),
+                  Expanded(child: SizedBox(height: 46, child: buttons[i])),
+                ],
+              ],
+            ),
+          ],
         ],
-      ]),
+      ),
     );
   }
 }
@@ -246,16 +278,20 @@ class _Message extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-        margin: EdgeInsets.zero,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 22),
-          child: Row(children: [
-            Icon(icon, color: Z.muted),
-            const SizedBox(width: 12),
-            Expanded(child: Text(text, style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w600))),
-          ]),
-        ),
-      );
+    margin: EdgeInsets.zero,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 22),
+      child: Row(
+        children: [
+          Icon(icon, color: Z.muted),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(text, style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 /// Pops up a dialog the moment the opponent reports a result for my match,
@@ -340,24 +376,33 @@ class _ClaimPromptState extends State<ClaimPrompt> {
       builder: (ctx) {
         _dialogCtx = ctx;
         return AlertDialog(
-        icon: const Icon(Icons.notifications_active_rounded, color: Z.blue, size: 34),
-        title: Text(S.t.opponentReportedTitle(opp), textAlign: TextAlign.center),
-        content: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text('${S.t.roundLabel(info.round)} · ${S.t.table(info.match.table)}',
-              style: const TextStyle(color: Z.muted)),
-          const SizedBox(height: 12),
-          Text(myResultText(c.result, info.iAmP1),
-              textAlign: TextAlign.center, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
-          const SizedBox(height: 8),
-          Text(S.t.confirmQuestion, textAlign: TextAlign.center, style: const TextStyle(color: Z.muted)),
-        ]),
-        actionsAlignment: MainAxisAlignment.spaceBetween,
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, 'later'), child: Text(S.t.later)),
-          OutlinedButton(onPressed: () => Navigator.pop(ctx, 'dispute'), child: Text(S.t.disputeResult)),
-          FilledButton(onPressed: () => Navigator.pop(ctx, 'confirm'), child: Text(S.t.confirmResult)),
-        ],
-      );
+          icon: Icon(Icons.notifications_active_rounded, color: Z.blue, size: 34),
+          title: Text(S.t.opponentReportedTitle(opp), textAlign: TextAlign.center),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('${S.t.roundLabel(info.round)} · ${S.t.table(info.match.table)}', style: TextStyle(color: Z.muted)),
+              const SizedBox(height: 12),
+              Text(
+                myResultText(c.result, info.iAmP1),
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                S.t.confirmQuestion,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Z.muted),
+              ),
+            ],
+          ),
+          actionsAlignment: MainAxisAlignment.spaceBetween,
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, 'later'), child: Text(S.t.later)),
+            OutlinedButton(onPressed: () => Navigator.pop(ctx, 'dispute'), child: Text(S.t.disputeResult)),
+            FilledButton(onPressed: () => Navigator.pop(ctx, 'confirm'), child: Text(S.t.confirmResult)),
+          ],
+        );
       },
     );
     _open = false;
@@ -376,4 +421,61 @@ class _ClaimPromptState extends State<ClaimPrompt> {
 
   @override
   Widget build(BuildContext context) => widget.child;
+}
+
+/// The two players of a match, side by side in their colours: me in blue,
+/// the opponent in coral (the same sides as the memory gauge).
+class DuelBanner extends StatelessWidget {
+  final String me;
+  final String opponent;
+  const DuelBanner({super.key, required this.me, required this.opponent});
+
+  @override
+  Widget build(BuildContext context) {
+    Widget side(String label, String name, Color color, {required bool end}) => Expanded(
+      child: Container(
+        color: Color.alphaBlend(color.withValues(alpha: .2), Z.surface),
+        padding: const EdgeInsets.fromLTRB(14, 14, 14, 16),
+        child: Column(
+          crossAxisAlignment: end ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: TextStyle(fontSize: 12, color: color, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              name,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: end ? TextAlign.end : TextAlign.start,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, height: 1.2),
+            ),
+          ],
+        ),
+      ),
+    );
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [side(S.t.you, me, Z.blue, end: false), side(S.t.opponent, opponent, Z.coral, end: true)],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+            decoration: BoxDecoration(color: Z.surface, borderRadius: BorderRadius.circular(99)),
+            child: Text(
+              S.t.vs,
+              style: TextStyle(fontSize: 11.5, color: Z.muted, fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

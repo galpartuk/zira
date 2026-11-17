@@ -56,216 +56,266 @@ class _PrizesTabState extends State<PrizesTab> {
     final official = t != null && t.finished;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+      padding: EdgeInsets.fromLTRB(16, 12, 16, 32),
       children: [
         // ---- pool
         Card(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [
-                Expanded(child: Text(S.t.prizePool, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800))),
-                SegmentedButton<String>(
-                  showSelectedIcon: false,
-                  style: const ButtonStyle(visualDensity: VisualDensity.compact),
-                  segments: [
-                    ButtonSegment(value: PrizeConfig.ils, label: Text(S.t.money)),
-                    ButtonSegment(value: PrizeConfig.packs, label: Text(S.t.packsOption)),
+            padding: EdgeInsets.fromLTRB(16, 14, 16, 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(S.t.prizePool, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                    ),
+                    SegmentedButton<String>(
+                      showSelectedIcon: false,
+                      style: ButtonStyle(visualDensity: VisualDensity.compact),
+                      segments: [
+                        ButtonSegment(value: PrizeConfig.ils, label: Text(S.t.money)),
+                        ButtonSegment(value: PrizeConfig.packs, label: Text(S.t.packsOption)),
+                      ],
+                      selected: {c.isMoney ? PrizeConfig.ils : PrizeConfig.packs},
+                      onSelectionChanged: (s) {
+                        c.unit = s.first;
+                        c.step = 1;
+                        if (c.isMoney && c.entryFee <= 1) c.entryFee = 30;
+                        if (!c.isMoney && c.entryFee > 5) c.entryFee = 1;
+                        _changed();
+                      },
+                    ),
                   ],
-                  selected: {c.isMoney ? PrizeConfig.ils : PrizeConfig.packs},
-                  onSelectionChanged: (s) {
-                    c.unit = s.first;
-                    c.step = 1;
-                    if (c.isMoney && c.entryFee <= 1) c.entryFee = 30;
-                    if (!c.isMoney && c.entryFee > 5) c.entryFee = 1;
-                    _changed();
-                  },
                 ),
-              ]),
-              const SizedBox(height: 12),
-              Row(children: [
-                Expanded(
-                  child: _NumField(
-                    key: ValueKey('fee-${c.unit}'),
-                    label: c.isMoney ? S.t.entryFee : S.t.packsPerPlayer,
-                    value: c.entryFee,
-                    onChanged: (v) {
-                      c.entryFee = v;
-                      _changed();
-                    },
+                SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _NumField(
+                        key: ValueKey('fee-${c.unit}'),
+                        label: c.isMoney ? S.t.entryFee : S.t.packsPerPlayer,
+                        value: c.entryFee,
+                        onChanged: (v) {
+                          c.entryFee = v;
+                          _changed();
+                        },
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: _NumField(
+                        label: S.t.addedToPool,
+                        value: c.extra,
+                        onChanged: (v) {
+                          c.extra = v;
+                          _changed();
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 4),
+                if (t == null)
+                  SettingRow(
+                    title: S.t.playerCount,
+                    child: Stepper2(
+                      value: _manualPlayers,
+                      min: 2,
+                      max: 512,
+                      onChanged: (v) => setState(() => _manualPlayers = v),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _NumField(
-                    label: S.t.addedToPool,
-                    value: c.extra,
-                    onChanged: (v) {
-                      c.extra = v;
-                      _changed();
-                    },
-                  ),
-                ),
-              ]),
-              const SizedBox(height: 4),
-              if (t == null)
                 SettingRow(
-                  title: S.t.playerCount,
-                  child: Stepper2(value: _manualPlayers, min: 2, max: 512, onChanged: (v) => setState(() => _manualPlayers = v)),
-                ),
-              SettingRow(
-                title: S.t.organiserCut,
-                subtitle: res.houseAmount > 0 ? S.t.organiserKeeps(money(res.houseAmount)) : null,
-                child: Stepper2(
-                  value: c.houseCut.round(),
-                  max: 100,
-                  format: (v) => '$v%',
-                  onChanged: (v) {
-                    c.houseCut = v.toDouble();
-                    _changed();
-                  },
-                ),
-              ),
-              if (c.isMoney)
-                SettingRow(
-                  title: S.t.rounding,
-                  child: DropdownButton<double>(
-                    value: c.step,
-                    underline: const SizedBox(),
-                    items: [1.0, 5.0, 10.0, 50.0]
-                        .map((v) => DropdownMenuItem(value: v, child: Text(S.t.roundTo('₪${v.toStringAsFixed(0)}'))))
-                        .toList(),
+                  title: S.t.organiserCut,
+                  subtitle: res.houseAmount > 0 ? S.t.organiserKeeps(money(res.houseAmount)) : null,
+                  child: Stepper2(
+                    value: c.houseCut.round(),
+                    max: 100,
+                    format: (v) => '$v%',
                     onChanged: (v) {
-                      c.step = v!;
+                      c.houseCut = v.toDouble();
                       _changed();
                     },
                   ),
                 ),
-              if (t != null && t.topCut > 0)
-                SettingRow(
-                  title: S.t.splitTies,
-                  subtitle: S.t.splitTiesExplain,
-                  child: Switch(
-                    value: c.splitTies,
-                    onChanged: (v) {
-                      c.splitTies = v;
-                      _changed();
-                    },
+                if (c.isMoney)
+                  SettingRow(
+                    title: S.t.rounding,
+                    child: DropdownButton<double>(
+                      value: c.step,
+                      underline: SizedBox(),
+                      items: [1.0, 5.0, 10.0, 50.0]
+                          .map((v) => DropdownMenuItem(value: v, child: Text(S.t.roundTo('₪${v.toStringAsFixed(0)}'))))
+                          .toList(),
+                      onChanged: (v) {
+                        c.step = v!;
+                        _changed();
+                      },
+                    ),
                   ),
-                ),
-              const Divider(height: 22),
-              Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                Expanded(
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                if (t != null && t.topCut > 0)
+                  SettingRow(
+                    title: S.t.splitTies,
+                    subtitle: S.t.splitTiesExplain,
+                    child: Switch(
+                      value: c.splitTies,
+                      onChanged: (v) {
+                        c.splitTies = v;
+                        _changed();
+                      },
+                    ),
+                  ),
+                Divider(height: 22),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${S.t.poolFormula(players, money(c.entryFee))}${c.extra > 0 ? ' + ${money(c.extra)}' : ''}${c.houseCut > 0 ? ' − ${c.houseCut.toStringAsFixed(0)}%' : ''}',
+                            style: TextStyle(color: Z.muted, fontSize: 13),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            money(res.net),
+                            style: TextStyle(
+                              fontSize: 34,
+                              fontWeight: FontWeight.w700,
+                              color: Z.accent,
+                              fontFeatures: Z.tabular,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                     Text(
-                        '${S.t.poolFormula(players, money(c.entryFee))}${c.extra > 0 ? ' + ${money(c.extra)}' : ''}${c.houseCut > 0 ? ' − ${c.houseCut.toStringAsFixed(0)}%' : ''}',
-                        style: const TextStyle(color: Z.muted, fontSize: 13)),
-                    const SizedBox(height: 2),
-                    Text(money(res.net),
-                        style: const TextStyle(
-                            fontSize: 34, fontWeight: FontWeight.w800, color: Z.gold, fontFeatures: Z.tabular)),
-                  ]),
+                      S.t.toHandOut,
+                      style: TextStyle(color: Z.muted, fontWeight: FontWeight.w600),
+                    ),
+                  ],
                 ),
-                Text(S.t.toHandOut, style: const TextStyle(color: Z.muted, fontWeight: FontWeight.w700)),
-              ]),
-            ]),
+              ],
+            ),
           ),
         ),
 
         // ---- presets
-        SectionTitle(S.t.split,
-            trailing: Text(
-              S.t.total('${res.percentSum.toStringAsFixed(res.percentSum == res.percentSum.roundToDouble() ? 0 : 1)}%'),
-              style: TextStyle(
-                  fontWeight: FontWeight.w800,
-                  color: (res.percentSum - 100).abs() < .05 ? Z.win : Z.danger,
-                  fontFeatures: Z.tabular),
-            )),
+        SectionTitle(
+          S.t.split,
+          trailing: Text(
+            S.t.total('${res.percentSum.toStringAsFixed(res.percentSum == res.percentSum.roundToDouble() ? 0 : 1)}%'),
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              color: (res.percentSum - 100).abs() < .05 ? Z.win : Z.danger,
+              fontFeatures: Z.tabular,
+            ),
+          ),
+        ),
         SizedBox(
           height: 40,
-          child: ListView(scrollDirection: Axis.horizontal, children: [
-            for (final p in prizePresets) _preset(_presetName(p), p),
-            _preset(S.t.presetEven(c.percents.length), flatPercents(c.percents.length)),
-            _preset(S.t.presetStepped(c.percents.length), steppedPercents(c.percents.length)),
-          ]),
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              for (final p in prizePresets) _preset(_presetName(p), p),
+              _preset(S.t.presetEven(c.percents.length), flatPercents(c.percents.length)),
+              _preset(S.t.presetStepped(c.percents.length), steppedPercents(c.percents.length)),
+            ],
+          ),
         ),
         if ((res.percentSum - 100).abs() >= .05)
           Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Row(children: [
-              Expanded(
-                child: Text(
-                  res.percentSum > 100 ? S.t.over100 : S.t.leftUnsplit((100 - res.percentSum).toStringAsFixed(1)),
-                  style: const TextStyle(color: Z.danger, fontSize: 13),
+            padding: EdgeInsets.only(top: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    res.percentSum > 100 ? S.t.over100 : S.t.leftUnsplit((100 - res.percentSum).toStringAsFixed(1)),
+                    style: TextStyle(color: Z.danger, fontSize: 13),
+                  ),
                 ),
-              ),
-              TextButton(
-                onPressed: () {
-                  c.percents = normalisePercents(c.percents);
-                  _changed();
-                },
-                child: Text(S.t.balance),
-              ),
-            ]),
+                TextButton(
+                  onPressed: () {
+                    c.percents = normalisePercents(c.percents);
+                    _changed();
+                  },
+                  child: Text(S.t.balance),
+                ),
+              ],
+            ),
           ),
-        const SizedBox(height: 10),
+        SizedBox(height: 10),
 
         // ---- table
         Card(
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            child: Column(children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 6, 14, 6),
-                child: Row(children: [
-                  SizedBox(width: 44, child: Text(S.t.colPlace, style: _head)),
-                  Expanded(child: Text(S.t.colPlayer, style: _head)),
-                  SizedBox(width: 98, child: Text(S.t.colPercent, textAlign: TextAlign.center, style: _head)),
-                  SizedBox(width: 74, child: Text(S.t.colAmount, textAlign: TextAlign.end, style: _head)),
-                ]),
-              ),
-              for (final l in res.lines) _line(l, t),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
-                child: Row(children: [
-                  TextButton.icon(
-                    onPressed: () {
-                      c.percents = [...c.percents, 0];
-                      _changed();
-                    },
-                    icon: const Icon(Icons.add, size: 18),
-                    label: Text(S.t.place),
+            padding: EdgeInsets.symmetric(vertical: 6),
+            child: Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.fromLTRB(14, 6, 14, 6),
+                  child: Row(
+                    children: [
+                      SizedBox(width: 44, child: Text(S.t.colPlace, style: _head)),
+                      Expanded(child: Text(S.t.colPlayer, style: _head)),
+                      SizedBox(
+                        width: 98,
+                        child: Text(S.t.colPercent, textAlign: TextAlign.center, style: _head),
+                      ),
+                      SizedBox(
+                        width: 74,
+                        child: Text(S.t.colAmount, textAlign: TextAlign.end, style: _head),
+                      ),
+                    ],
                   ),
-                  if (c.percents.length > 1)
-                    TextButton.icon(
-                      onPressed: () {
-                        c.percents = c.percents.sublist(0, c.percents.length - 1);
-                        _changed();
-                      },
-                      icon: const Icon(Icons.remove, size: 18),
-                      label: Text(S.t.place),
-                    ),
-                  const Spacer(),
-                  if (res.leftover > 0)
-                    Text(S.t.notHandedOut(money(res.leftover)), style: const TextStyle(color: Z.muted, fontSize: 12.5)),
-                ]),
-              ),
-            ]),
+                ),
+                for (final l in res.lines) _line(l, t),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(8, 4, 8, 4),
+                  child: Row(
+                    children: [
+                      TextButton.icon(
+                        onPressed: () {
+                          c.percents = [...c.percents, 0];
+                          _changed();
+                        },
+                        icon: Icon(Icons.add, size: 18),
+                        label: Text(S.t.place),
+                      ),
+                      if (c.percents.length > 1)
+                        TextButton.icon(
+                          onPressed: () {
+                            c.percents = c.percents.sublist(0, c.percents.length - 1);
+                            _changed();
+                          },
+                          icon: Icon(Icons.remove, size: 18),
+                          label: Text(S.t.place),
+                        ),
+                      Spacer(),
+                      if (res.leftover > 0)
+                        Text(S.t.notHandedOut(money(res.leftover)), style: TextStyle(color: Z.muted, fontSize: 12.5)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: 10),
         Text(
           t == null
               ? S.t.standaloneNote
               : official
-                  ? S.t.finalNote
-                  : S.t.liveNote,
-          style: const TextStyle(color: Z.muted, fontSize: 12.5),
+              ? S.t.finalNote
+              : S.t.liveNote,
+          style: TextStyle(color: Z.muted, fontSize: 12.5),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         OutlinedButton.icon(
           onPressed: () => copyText(context, _text(res, t), S.t.prizesWhat),
-          icon: const Icon(Icons.copy_rounded),
+          icon: Icon(Icons.copy_rounded),
           label: Text(S.t.copyPrizes),
         ),
       ],
@@ -274,7 +324,7 @@ class _PrizesTabState extends State<PrizesTab> {
 
   Widget _preset(String name, List<double> pcts) {
     return Padding(
-      padding: const EdgeInsetsDirectional.only(end: 8),
+      padding: EdgeInsetsDirectional.only(end: 8),
       child: ActionChip(
         label: Text(name),
         onPressed: () {
@@ -290,48 +340,60 @@ class _PrizesTabState extends State<PrizesTab> {
     final configured = idx < c.percents.length;
     final shared = configured && (l.percent - c.percents[idx]).abs() > 1e-6;
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 4, 14, 4),
-      child: Row(children: [
-        SizedBox(
-          width: 44,
-          child: Text(l.label,
+      padding: EdgeInsets.fromLTRB(14, 4, 14, 4),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 44,
+            child: Text(
+              l.label,
               style: TextStyle(
-                  fontWeight: FontWeight.w800, color: l.place <= 3 ? Z.gold : Z.text, fontFeatures: Z.tabular)),
-        ),
-        Expanded(
-          child: Text(
-            l.playerId == null ? '—' : t!.nameOf(l.playerId),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontWeight: FontWeight.w600, color: l.playerId == null ? Z.muted : Z.text),
+                fontWeight: FontWeight.w700,
+                color: l.place <= 3 ? Z.accent : Z.text,
+                fontFeatures: Z.tabular,
+              ),
+            ),
           ),
-        ),
-        SizedBox(
-          width: 98,
-          child: configured
-              ? _PctField(
-                  key: ValueKey('pct$idx'),
-                  value: c.percents[idx],
-                  hint: shared ? '→ ${_fmtPct(l.percent)}' : null,
-                  onChanged: (v) {
-                    c.percents[idx] = v;
-                    _changed();
-                  },
-                )
-              : Text('→ ${_fmtPct(l.percent)}',
-                  textAlign: TextAlign.center, style: const TextStyle(color: Z.muted, fontSize: 13, fontFeatures: Z.tabular)),
-        ),
-        SizedBox(
-          width: 74,
-          child: Text(money(l.amount),
+          Expanded(
+            child: Text(
+              l.playerId == null ? '—' : t!.nameOf(l.playerId),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontWeight: FontWeight.w600, color: l.playerId == null ? Z.muted : Z.text),
+            ),
+          ),
+          SizedBox(
+            width: 98,
+            child: configured
+                ? _PctField(
+                    key: ValueKey('pct$idx'),
+                    value: c.percents[idx],
+                    hint: shared ? '→ ${_fmtPct(l.percent)}' : null,
+                    onChanged: (v) {
+                      c.percents[idx] = v;
+                      _changed();
+                    },
+                  )
+                : Text(
+                    '→ ${_fmtPct(l.percent)}',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Z.muted, fontSize: 13, fontFeatures: Z.tabular),
+                  ),
+          ),
+          SizedBox(
+            width: 74,
+            child: Text(
+              money(l.amount),
               textAlign: TextAlign.end,
-              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15.5, fontFeatures: Z.tabular)),
-        ),
-      ]),
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15.5, fontFeatures: Z.tabular),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  static const _head = TextStyle(fontSize: 12, color: Z.muted, fontWeight: FontWeight.w700);
+  static TextStyle get _head => TextStyle(fontSize: 12, color: Z.muted, fontWeight: FontWeight.w600);
 
   String _fmtPct(double v) => '${v == v.roundToDouble() ? v.toStringAsFixed(0) : v.toStringAsFixed(1)}%';
 
@@ -379,7 +441,7 @@ class _NumFieldState extends State<_NumField> {
       controller: _c,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))],
-      style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, fontFeatures: Z.tabular),
+      style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600, fontFeatures: Z.tabular),
       decoration: InputDecoration(labelText: widget.label, hintText: '0'),
       onChanged: (s) => widget.onChanged(double.tryParse(s) ?? 0),
     );
@@ -426,28 +488,34 @@ class _PctFieldState extends State<_PctField> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(mainAxisSize: MainAxisSize.min, children: [
-      SizedBox(
-        height: 38,
-        width: 72,
-        // LTR so the % sign sits after the number.
-        child: Directionality(
-          textDirection: TextDirection.ltr,
-          child: TextField(
-          controller: _c,
-          focusNode: _focus,
-          textAlign: TextAlign.center,
-          textDirection: TextDirection.ltr,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))],
-          style: const TextStyle(fontWeight: FontWeight.w700, fontFeatures: Z.tabular),
-          decoration: const InputDecoration(suffixText: '%', contentPadding: EdgeInsets.symmetric(horizontal: 8)),
-          onChanged: (s) => widget.onChanged(double.tryParse(s) ?? 0),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          height: 38,
+          width: 72,
+          // LTR so the % sign sits after the number.
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: TextField(
+              controller: _c,
+              focusNode: _focus,
+              textAlign: TextAlign.center,
+              textDirection: TextDirection.ltr,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))],
+              style: const TextStyle(fontWeight: FontWeight.w600, fontFeatures: Z.tabular),
+              decoration: const InputDecoration(suffixText: '%', contentPadding: EdgeInsets.symmetric(horizontal: 8)),
+              onChanged: (s) => widget.onChanged(double.tryParse(s) ?? 0),
+            ),
           ),
         ),
-      ),
-      if (widget.hint != null)
-        Text(widget.hint!, style: const TextStyle(fontSize: 11, color: Z.muted, fontFeatures: Z.tabular)),
-    ]);
+        if (widget.hint != null)
+          Text(
+            widget.hint!,
+            style: TextStyle(fontSize: 11, color: Z.muted, fontFeatures: Z.tabular),
+          ),
+      ],
+    );
   }
 }

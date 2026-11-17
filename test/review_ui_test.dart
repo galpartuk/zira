@@ -12,9 +12,9 @@ import 'package:zira/theme.dart';
 import 'engine_test.dart' show makeT, playOut;
 
 Widget host(AppState app, Widget child) => ChangeNotifierProvider.value(
-      value: app,
-      child: MaterialApp(theme: buildTheme(), home: child),
-    );
+  value: app,
+  child: MaterialApp(theme: buildTheme(), home: child),
+);
 
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));

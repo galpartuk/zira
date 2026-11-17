@@ -47,7 +47,7 @@ class _DiceScreenState extends State<DiceScreen> {
       _spin++;
     });
     var ticks = 0;
-    _anim = Timer.periodic(const Duration(milliseconds: 70), (t) {
+    _anim = Timer.periodic(Duration(milliseconds: 70), (t) {
       ticks++;
       setState(() {
         if (_firstMode) {
@@ -74,7 +74,8 @@ class _DiceScreenState extends State<DiceScreen> {
     });
   }
 
-  Widget _die(int v, double size, {Color color = Z.text}) {
+  Widget _die(int v, double size, {Color? color}) {
+    color ??= Z.text;
     return AnimatedRotation(
       turns: _rolling ? _spin * 1.0 + .5 : _spin * 1.0,
       duration: const Duration(milliseconds: 700),
@@ -89,132 +90,150 @@ class _DiceScreenState extends State<DiceScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(S.t.dice)),
-      body: Column(children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
-          child: SegmentedButton<bool>(
-            showSelectedIcon: false,
-            segments: [
-              ButtonSegment(value: true, label: Text(S.t.whoFirst)),
-              ButtonSegment(value: false, label: Text(S.t.freeRoll)),
-            ],
-            selected: {_firstMode},
-            onSelectionChanged: (s) => setState(() {
-              _firstMode = s.first;
-              _verdict = null;
-              _a = _b = 0;
-            }),
-          ),
-        ),
-        if (!_firstMode)
+      body: Column(
+        children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: Row(children: [
-              Text(S.t.howMany, style: const TextStyle(color: Z.muted)),
-              const SizedBox(width: 8),
-              for (final n in [1, 2, 3, 4])
-                Padding(
-                  padding: const EdgeInsetsDirectional.only(end: 6),
-                  child: ChoiceChip(
-                    label: Text('$n'),
-                    selected: _count == n,
-                    showCheckmark: false,
-                    selectedColor: Z.gold,
-                    labelStyle: TextStyle(color: _count == n ? Z.ink : Z.text, fontWeight: FontWeight.w700),
-                    onSelected: (_) => setState(() {
-                      _count = n;
-                      _values = List.generate(n, (_) => _sides);
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+            child: SegmentedButton<bool>(
+              showSelectedIcon: false,
+              segments: [
+                ButtonSegment(value: true, label: Text(S.t.whoFirst)),
+                ButtonSegment(value: false, label: Text(S.t.freeRoll)),
+              ],
+              selected: {_firstMode},
+              onSelectionChanged: (s) => setState(() {
+                _firstMode = s.first;
+                _verdict = null;
+                _a = _b = 0;
+              }),
+            ),
+          ),
+          if (!_firstMode)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: Row(
+                children: [
+                  Text(S.t.howMany, style: TextStyle(color: Z.muted)),
+                  const SizedBox(width: 8),
+                  for (final n in [1, 2, 3, 4])
+                    Padding(
+                      padding: const EdgeInsetsDirectional.only(end: 6),
+                      child: ChoiceChip(
+                        label: Text('$n'),
+                        selected: _count == n,
+                        showCheckmark: false,
+                        selectedColor: Z.accent,
+                        labelStyle: TextStyle(color: _count == n ? Z.ink : Z.text, fontWeight: FontWeight.w600),
+                        onSelected: (_) => setState(() {
+                          _count = n;
+                          _values = List.generate(n, (_) => _sides);
+                        }),
+                      ),
+                    ),
+                  const Spacer(),
+                  DropdownButton<int>(
+                    value: _sides,
+                    underline: const SizedBox(),
+                    items: [4, 6, 8, 10, 12, 20].map((s) => DropdownMenuItem(value: s, child: Text('d$s'))).toList(),
+                    onChanged: (s) => setState(() {
+                      _sides = s!;
+                      _values = List.generate(_count, (_) => _sides);
                     }),
                   ),
-                ),
-              const Spacer(),
-              DropdownButton<int>(
-                value: _sides,
-                underline: const SizedBox(),
-                items: [4, 6, 8, 10, 12, 20].map((s) => DropdownMenuItem(value: s, child: Text('d$s'))).toList(),
-                onChanged: (s) => setState(() {
-                  _sides = s!;
-                  _values = List.generate(_count, (_) => _sides);
-                }),
+                ],
               ),
-            ]),
+            ),
+          Expanded(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _roll,
+              child: Center(child: _firstMode ? _firstView() : _freeView()),
+            ),
           ),
-        Expanded(
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: _roll,
-            child: Center(child: _firstMode ? _firstView() : _freeView()),
-          ),
-        ),
-        SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-            child: SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: _rolling ? null : _roll,
-                icon: const Icon(Icons.casino),
-                label: Text(S.t.roll),
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: _rolling ? null : _roll,
+                  icon: const Icon(Icons.casino),
+                  label: Text(S.t.roll),
+                ),
               ),
             ),
           ),
-        ),
-      ]),
+        ],
+      ),
     );
   }
 
   Widget _freeView() {
     final size = _count == 1 ? 150.0 : (_count == 2 ? 120.0 : 100.0);
     final total = _values.fold<int>(0, (a, b) => a + b);
-    return Column(mainAxisSize: MainAxisSize.min, children: [
-      Wrap(
-        spacing: 22,
-        runSpacing: 22,
-        alignment: WrapAlignment.center,
-        children: [for (final v in _values) _die(v, size, color: _sides == 6 ? Z.text : Z.gold)],
-      ),
-      const SizedBox(height: 28),
-      if (_count > 1)
-        Text(S.t.total('$total'),
-            style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, fontFeatures: Z.tabular)),
-      const SizedBox(height: 6),
-      Text(S.t.tapToRoll, style: const TextStyle(color: Z.muted)),
-    ]);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Wrap(
+          spacing: 22,
+          runSpacing: 22,
+          alignment: WrapAlignment.center,
+          children: [for (final v in _values) _die(v, size, color: _sides == 6 ? Z.text : Z.accent)],
+        ),
+        const SizedBox(height: 28),
+        if (_count > 1)
+          Text(
+            S.t.total('$total'),
+            style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w700, fontFeatures: Z.tabular),
+          ),
+        const SizedBox(height: 6),
+        Text(S.t.tapToRoll, style: TextStyle(color: Z.muted)),
+      ],
+    );
   }
 
   Widget _firstView() {
-    Widget side(String who, int v, Color c, bool won) => Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(who, style: TextStyle(color: c, fontWeight: FontWeight.w800, fontSize: 18)),
-          const SizedBox(height: 14),
-          AnimatedScale(
-            scale: won ? 1.12 : (_verdict != null && !won && _a != _b ? .88 : 1),
-            duration: const Duration(milliseconds: 300),
-            child: Opacity(
-              opacity: v == 0 ? .35 : 1,
-              child: _die(v, 116, color: c),
-            ),
-          ),
-        ]);
-    final done = _verdict != null && _a != _b;
-    return Column(mainAxisSize: MainAxisSize.min, children: [
-      Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-        side(S.t.blue, _a, Z.blue, done && _a > _b),
-        side(S.t.orange, _b, Z.coral, done && _b > _a),
-      ]),
-      const SizedBox(height: 36),
-      AnimatedSwitcher(
-        duration: const Duration(milliseconds: 250),
-        child: Text(
-          _verdict ?? (_a == 0 ? S.t.firstRollHelp : '...'),
-          key: ValueKey(_verdict),
-          style: TextStyle(
-            fontSize: _verdict == null ? 15 : 26,
-            fontWeight: FontWeight.w800,
-            color: _verdict == null ? Z.muted : (_a == _b ? Z.gold : (_a > _b ? Z.blue : Z.coral)),
+    Widget side(String who, int v, Color c, bool won) => Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          who,
+          style: TextStyle(color: c, fontWeight: FontWeight.w700, fontSize: 18),
+        ),
+        const SizedBox(height: 14),
+        AnimatedScale(
+          scale: won ? 1.12 : (_verdict != null && !won && _a != _b ? .88 : 1),
+          duration: const Duration(milliseconds: 300),
+          child: Opacity(
+            opacity: v == 0 ? .35 : 1,
+            child: _die(v, 116, color: c),
           ),
         ),
-      ),
-    ]);
+      ],
+    );
+    final done = _verdict != null && _a != _b;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [side(S.t.blue, _a, Z.blue, done && _a > _b), side(S.t.orange, _b, Z.coral, done && _b > _a)],
+        ),
+        const SizedBox(height: 36),
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 250),
+          child: Text(
+            _verdict ?? (_a == 0 ? S.t.firstRollHelp : '...'),
+            key: ValueKey(_verdict),
+            style: TextStyle(
+              fontSize: _verdict == null ? 15 : 26,
+              fontWeight: FontWeight.w700,
+              color: _verdict == null ? Z.muted : (_a == _b ? Z.accent : (_a > _b ? Z.blue : Z.coral)),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

@@ -67,13 +67,13 @@ class _SignInScreenState extends State<SignInScreen> {
           Text(
             S.t.appName,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 6),
           Text(
             S.t.signInNeeded,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Z.muted),
+            style: TextStyle(color: Z.muted),
           ),
           const SizedBox(height: 24),
           FilledButton.icon(

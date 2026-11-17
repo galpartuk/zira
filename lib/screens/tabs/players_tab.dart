@@ -55,7 +55,8 @@ class _PlayersTabState extends State<PlayersTab> {
   @override
   Widget build(BuildContext context) {
     final standings = {for (final s in computeStandings(t)) s.player.id: s};
-    final players = [...t.players]..sort((a, b) {
+    final players = [...t.players]
+      ..sort((a, b) {
         if (a.dropped != b.dropped) return a.dropped ? 1 : -1;
         return t.started ? standings[a.id]!.rank.compareTo(standings[b.id]!.rank) : 0;
       });
@@ -72,15 +73,18 @@ class _PlayersTabState extends State<PlayersTab> {
             margin: const EdgeInsets.only(bottom: 12),
             child: Padding(
               padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(S.t.setupGuideTitle, style: const TextStyle(fontWeight: FontWeight.w800)),
-                const SizedBox(height: 6),
-                for (final line in [S.t.setupGuide1, S.t.setupGuide2, S.t.setupGuide3])
-                  Padding(
-                    padding: const EdgeInsets.only(top: 3),
-                    child: Text('•  $line', style: const TextStyle(color: Z.muted, fontSize: 13.5)),
-                  ),
-              ]),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(S.t.setupGuideTitle, style: const TextStyle(fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 6),
+                  for (final line in [S.t.setupGuide1, S.t.setupGuide2, S.t.setupGuide3])
+                    Padding(
+                      padding: const EdgeInsets.only(top: 3),
+                      child: Text('•  $line', style: TextStyle(color: Z.muted, fontSize: 13.5)),
+                    ),
+                ],
+              ),
             ),
           ),
         if (requests.isNotEmpty) ...[
@@ -107,19 +111,21 @@ class _PlayersTabState extends State<PlayersTab> {
             ),
           ),
         if (canAdd)
-          Row(children: [
-            Expanded(
-              child: TextField(
-                controller: _ctrl,
-                focusNode: _focus,
-                textInputAction: TextInputAction.done,
-                onSubmitted: (_) => _add(),
-                decoration: InputDecoration(hintText: S.t.playerName, prefixIcon: const Icon(Icons.person_add_alt_1)),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _ctrl,
+                  focusNode: _focus,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => _add(),
+                  decoration: InputDecoration(hintText: S.t.playerName, prefixIcon: const Icon(Icons.person_add_alt_1)),
+                ),
               ),
-            ),
-            const SizedBox(width: 10),
-            FilledButton(onPressed: _add, child: Text(S.t.add)),
-          ]),
+              const SizedBox(width: 10),
+              FilledButton(onPressed: _add, child: Text(S.t.add)),
+            ],
+          ),
         if (t.players.isEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 40),
@@ -141,32 +147,42 @@ class _PlayersTabState extends State<PlayersTab> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           leading: SizedBox(
             width: 28,
-            child: Text('$n',
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Z.muted, fontWeight: FontWeight.w700, fontFeatures: Z.tabular)),
-          ),
-          title: Text(p.name,
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-                color: p.dropped ? Z.muted : Z.text,
-                decoration: p.dropped ? TextDecoration.lineThrough : null,
-              )),
-          subtitle: t.started
-              ? Text('${S.t.pts(s.points)}  ·  ${s.record}', style: const TextStyle(color: Z.muted, fontFeatures: Z.tabular))
-              : null,
-          trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-            if (p.dropped) Pill(S.t.dropped, color: Z.danger),
-            if (hostSyncOf(context) != null && !p.dropped) Pill(p.uid != null ? S.t.online : S.t.guest),
-            PopupMenuButton<String>(
-              onSelected: (v) => _action(p, v),
-              itemBuilder: (_) => [
-                PopupMenuItem(value: 'rename', child: Text(S.t.rename)),
-                if (t.started && !t.finished)
-                  PopupMenuItem(value: 'drop', child: Text(p.dropped ? S.t.undrop : S.t.dropFromTournament)),
-                if (!t.started) PopupMenuItem(value: 'delete', child: Text(S.t.remove)),
-              ],
+            child: Text(
+              '$n',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Z.muted, fontWeight: FontWeight.w600, fontFeatures: Z.tabular),
             ),
-          ]),
+          ),
+          title: Text(
+            p.name,
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: p.dropped ? Z.muted : Z.text,
+              decoration: p.dropped ? TextDecoration.lineThrough : null,
+            ),
+          ),
+          subtitle: t.started
+              ? Text(
+                  '${S.t.pts(s.points)}  ·  ${s.record}',
+                  style: TextStyle(color: Z.muted, fontFeatures: Z.tabular),
+                )
+              : null,
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (p.dropped) Pill(S.t.dropped, color: Z.danger),
+              if (hostSyncOf(context) != null && !p.dropped) Pill(p.uid != null ? S.t.online : S.t.guest),
+              PopupMenuButton<String>(
+                onSelected: (v) => _action(p, v),
+                itemBuilder: (_) => [
+                  PopupMenuItem(value: 'rename', child: Text(S.t.rename)),
+                  if (t.started && !t.finished)
+                    PopupMenuItem(value: 'drop', child: Text(p.dropped ? S.t.undrop : S.t.dropFromTournament)),
+                  if (!t.started) PopupMenuItem(value: 'delete', child: Text(S.t.remove)),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

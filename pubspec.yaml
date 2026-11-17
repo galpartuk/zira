@@ -1,7 +1,7 @@
 name: zira
 description: "זירה — ניהול טורנירים: סוויס, ראונד רובין, טופ קאט, חלוקת פרסים וכלי משחק."
 publish_to: 'none'
-version: 1.5.15+32
+version: 1.6.0+33
 
 environment:
   sdk: ^3.9.0
@@ -32,6 +32,12 @@ flutter:
   assets:
     - assets/sounds/
   fonts:
-    - family: Heebo
+    - family: Rubik
       fonts:
-        - asset: assets/fonts/Heebo.ttf
+        - asset: assets/fonts/Rubik.ttf
+    - family: BarlowCondensed
+      fonts:
+        - asset: assets/fonts/BarlowCondensed-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/BarlowCondensed-Bold.ttf
+          weight: 700

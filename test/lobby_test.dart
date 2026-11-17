@@ -25,21 +25,37 @@ void main() {
   testWidgets('joined before the start: "You\'re in", and the count follows new joins', (tester) async {
     Lang.instance.code = 'en';
     final db = FakeFirebaseFirestore();
-    final t = Tournament(id: 't1', name: 'T', joinCode: 'ABC234', players: [
-      Player(id: 'a', name: 'Ann', uid: 'ann', tieRand: 0),
-      Player(id: 'b', name: 'Bob', uid: 'bob', tieRand: 1),
-    ]);
+    final t = Tournament(
+      id: 't1',
+      name: 'T',
+      joinCode: 'ABC234',
+      players: [
+        Player(id: 'a', name: 'Ann', uid: 'ann', tieRand: 0),
+        Player(id: 'b', name: 'Bob', uid: 'bob', tieRand: 1),
+      ],
+    );
     final store = CloudStore(db, 'host');
     await store.saveAll([t]);
     await db.doc('tournaments/t1/entries/ann').set({'displayName': 'Ann', 'status': 'joined'});
-    final auth = AuthService(MockFirebaseAuth(signedIn: true, mockUser: MockUser(uid: 'ann', displayName: 'Ann')), db);
-    await tester.pumpWidget(MultiProvider(
-      providers: [
-        ChangeNotifierProvider<AuthService?>.value(value: auth),
-        Provider<FirebaseFirestore?>.value(value: db),
-      ],
-      child: MaterialApp(theme: buildTheme(), home: const PlayerTournamentScreen(tid: 't1')),
-    ));
+    final auth = AuthService(
+      MockFirebaseAuth(
+        signedIn: true,
+        mockUser: MockUser(uid: 'ann', displayName: 'Ann'),
+      ),
+      db,
+    );
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider<AuthService?>.value(value: auth),
+          Provider<FirebaseFirestore?>.value(value: db),
+        ],
+        child: MaterialApp(
+          theme: buildTheme(),
+          home: const PlayerTournamentScreen(tid: 't1'),
+        ),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(find.text(S.t.youAreIn), findsOneWidget);
     expect(find.byKey(const ValueKey('open-memory')), findsOneWidget); // the gauge is one tap away

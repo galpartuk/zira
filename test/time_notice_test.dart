@@ -7,11 +7,22 @@ import 'package:zira/widgets/round_timer.dart';
 import 'package:zira/widgets/time_notice.dart';
 
 Tournament withClock(int msLeft) {
-  final t = Tournament(name: 'T', roundMinutes: 45, overtimeMinutes: 5, players: [
-    Player(id: 'a', name: 'Alice', uid: 'alice', tieRand: 1),
-    Player(id: 'b', name: 'Bob', uid: 'bob', tieRand: 2),
-  ]);
-  t.rounds.add(Round(number: 1, stage: Stage.swiss, matches: [Match(id: 'm1', table: 1, p1: 'a', p2: 'b')]));
+  final t = Tournament(
+    name: 'T',
+    roundMinutes: 45,
+    overtimeMinutes: 5,
+    players: [
+      Player(id: 'a', name: 'Alice', uid: 'alice', tieRand: 1),
+      Player(id: 'b', name: 'Bob', uid: 'bob', tieRand: 2),
+    ],
+  );
+  t.rounds.add(
+    Round(
+      number: 1,
+      stage: Stage.swiss,
+      matches: [Match(id: 'm1', table: 1, p1: 'a', p2: 'b')],
+    ),
+  );
   t.timerEndMs = DateTime.now().millisecondsSinceEpoch + msLeft;
   return t;
 }
@@ -39,9 +50,13 @@ void main() {
   });
 
   testWidgets('the strip shows the time-up text', (tester) async {
-    await tester.pumpWidget(MaterialApp(
-      home: Scaffold(body: TimeNotice(t: withClock(-10 * 60000), uid: 'alice', state: const NoClaims())),
-    ));
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: TimeNotice(t: withClock(-10 * 60000), uid: 'alice', state: const NoClaims()),
+        ),
+      ),
+    );
     expect(find.text('Time is up — report your result now'), findsOneWidget);
     await tester.pumpWidget(const SizedBox()); // stop the ticker
   });

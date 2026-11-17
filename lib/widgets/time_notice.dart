@@ -60,14 +60,18 @@ class _TimeNoticeState extends State<TimeNotice> {
       color: color,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        child: Row(children: [
-          Icon(over ? Icons.timer_off_rounded : Icons.more_time_rounded, color: Z.ink),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(over ? S.t.timeUpNotice : S.t.overtimeNotice,
-                style: const TextStyle(color: Z.ink, fontWeight: FontWeight.w800, fontSize: 15)),
-          ),
-        ]),
+        child: Row(
+          children: [
+            Icon(over ? Icons.timer_off_rounded : Icons.more_time_rounded, color: Z.ink),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                over ? S.t.timeUpNotice : S.t.overtimeNotice,
+                style: TextStyle(color: Z.ink, fontWeight: FontWeight.w700, fontSize: 15),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

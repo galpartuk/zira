@@ -7,21 +7,28 @@ import '../theme.dart';
 /// Small rounded status label.
 class Pill extends StatelessWidget {
   final String text;
-  final Color color;
+  final Color? color;
   final bool filled;
-  const Pill(this.text, {super.key, this.color = Z.muted, this.filled = false});
+  const Pill(this.text, {super.key, this.color, this.filled = false});
 
   @override
   Widget build(BuildContext context) {
+    final color = this.color ?? Z.muted;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
       decoration: BoxDecoration(
         color: filled ? color : color.withValues(alpha: .14),
         borderRadius: BorderRadius.circular(99),
       ),
-      child: Text(text,
-          style: TextStyle(
-              fontSize: 12, fontWeight: FontWeight.w700, color: filled ? Z.ink : color, fontFeatures: Z.tabular)),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: filled ? Z.ink : color,
+          fontFeatures: Z.tabular,
+        ),
+      ),
     );
   }
 }
@@ -36,10 +43,17 @@ class SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 18, 4, 8),
-      child: Row(children: [
-        Expanded(child: Text(text, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Z.muted))),
-        ?trailing,
-      ]),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Z.muted),
+            ),
+          ),
+          ?trailing,
+        ],
+      ),
     );
   }
 }
@@ -57,14 +71,25 @@ class EmptyState extends StatelessWidget {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Icon(icon, size: 56, color: Z.line),
-          const SizedBox(height: 14),
-          Text(title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800)),
-          const SizedBox(height: 6),
-          Text(body, textAlign: TextAlign.center, style: const TextStyle(color: Z.muted, height: 1.45)),
-          if (action != null) ...[const SizedBox(height: 18), action!],
-        ]),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 56, color: Z.line),
+            const SizedBox(height: 14),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              body,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Z.muted, height: 1.45),
+            ),
+            if (action != null) ...[const SizedBox(height: 18), action!],
+          ],
+        ),
       ),
     );
   }
@@ -82,21 +107,26 @@ class Stepper2 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget btn(IconData i, int d) => IconButton.filledTonal(
-          visualDensity: VisualDensity.compact,
-          style: IconButton.styleFrom(backgroundColor: Z.raised),
-          onPressed: (onChanged == null || value + d < min || value + d > max) ? null : () => onChanged!(value + d),
-          icon: Icon(i, size: 18),
-        );
-    return Row(mainAxisSize: MainAxisSize.min, children: [
-      btn(Icons.remove, -1),
-      SizedBox(
-        width: 44,
-        child: Text(format?.call(value) ?? '$value',
+      visualDensity: VisualDensity.compact,
+      style: IconButton.styleFrom(backgroundColor: Z.raised),
+      onPressed: (onChanged == null || value + d < min || value + d > max) ? null : () => onChanged!(value + d),
+      icon: Icon(i, size: 18),
+    );
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        btn(Icons.remove, -1),
+        SizedBox(
+          width: 44,
+          child: Text(
+            format?.call(value) ?? '$value',
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, fontFeatures: Z.tabular)),
-      ),
-      btn(Icons.add, 1),
-    ]);
+            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, fontFeatures: Z.tabular),
+          ),
+        ),
+        btn(Icons.add, 1),
+      ],
+    );
   }
 }
 
@@ -111,20 +141,25 @@ class SettingRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(children: [
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-            if (subtitle != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 2),
-                child: Text(subtitle!, style: const TextStyle(fontSize: 12.5, color: Z.muted, height: 1.35)),
-              ),
-          ]),
-        ),
-        const SizedBox(width: 12),
-        child,
-      ]),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                if (subtitle != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(subtitle!, style: TextStyle(fontSize: 12.5, color: Z.muted, height: 1.35)),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          child,
+        ],
+      ),
     );
   }
 }
@@ -144,7 +179,7 @@ Future<bool> confirm(BuildContext context, String title, String body, {String? o
   final r = await showDialog<bool>(
     context: context,
     builder: (c) => AlertDialog(
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
       content: Text(body, style: const TextStyle(height: 1.45)),
       actions: [
         TextButton(onPressed: () => Navigator.pop(c, false), child: Text(S.t.cancel)),
@@ -164,7 +199,7 @@ Future<String?> promptText(BuildContext context, String title, {String initial =
   return showDialog<String>(
     context: context,
     builder: (c) => AlertDialog(
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
       content: TextField(
         controller: ctrl,
         autofocus: true,
@@ -190,8 +225,24 @@ class LangButton extends StatelessWidget {
       child: TextButton(
         key: const ValueKey('lang-toggle'),
         onPressed: Lang.instance.toggle,
-        child: Text(S.t.langButton, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+        child: Text(S.t.langButton, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
       ),
+    );
+  }
+}
+
+/// Sun / moon button: switches between the dark and the light look.
+class LookButton extends StatelessWidget {
+  const LookButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final light = Looks.instance.light;
+    return IconButton(
+      key: const ValueKey('look-toggle'),
+      tooltip: light ? S.t.darkLook : S.t.lightLook,
+      icon: Icon(light ? Icons.dark_mode_outlined : Icons.light_mode_outlined),
+      onPressed: Looks.instance.toggle,
     );
   }
 }

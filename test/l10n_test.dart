@@ -29,7 +29,7 @@ Future<AppState> boot(WidgetTester tester, {Size size = const Size(400, 860)}) a
   addTearDown(tester.view.resetPhysicalSize);
   final app = AppState();
   await app.load();
-  await tester.pumpWidget(ChangeNotifierProvider.value(value: app, child: const ZiraApp()));
+  await tester.pumpWidget(ChangeNotifierProvider.value(value: app, child: ZiraApp()));
   await tester.pumpAndSettle();
   return app;
 }
@@ -49,15 +49,15 @@ Tournament midTopCut() {
   }
   final semis = nextTopRound(t)!;
   t.rounds.add(semis);
-  semis.matches.first.result = const MatchResult(Outcome.p1, 2, 1);
+  semis.matches.first.result = MatchResult(Outcome.p1, 2, 1);
   return t;
 }
 
 /// Real glyph widths (the default test font draws every glyph as a wide
 /// square, which would report overflows a phone never shows).
 Future<void> loadHeebo() async {
-  final bytes = File('assets/fonts/Heebo.ttf').readAsBytesSync();
-  final loader = FontLoader('Heebo')..addFont(Future.value(ByteData.view(bytes.buffer)));
+  final bytes = File('assets/fonts/Rubik.ttf').readAsBytesSync();
+  final loader = FontLoader('Rubik')..addFont(Future.value(ByteData.view(bytes.buffer)));
   await loader.load();
 }
 
@@ -86,7 +86,7 @@ void main() {
     // Toggle from the tools tab: the tab must stay selected after the rebuild.
     await tester.tap(find.text('Game tools'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('lang-toggle')).last);
+    await tester.tap(find.byKey(ValueKey('lang-toggle')).last);
     await tester.pumpAndSettle();
     expect(find.text('כלי משחק'), findsWidgets);
     expect(find.text('מד זיכרון'), findsOneWidget, reason: 'still on the tools tab');
@@ -100,7 +100,7 @@ void main() {
     expect(Lang.instance.code, 'he');
 
     // And back to English.
-    await tester.tap(find.byKey(const ValueKey('lang-toggle')).last);
+    await tester.tap(find.byKey(ValueKey('lang-toggle')).last);
     await tester.pumpAndSettle();
     expect(find.text('Memory gauge'), findsOneWidget);
     expect(prefs.getString('zira.lang'), 'en');
@@ -109,18 +109,23 @@ void main() {
   for (final lang in ['en', 'he']) {
     testWidgets('[$lang] tournament tabs render without overflow on a narrow phone', (tester) async {
       Lang.instance.code = lang;
-      final app = await boot(tester, size: const Size(360, 740));
+      final app = await boot(tester, size: Size(360, 740));
       final t = midTopCut();
       app.tournaments.add(t);
-      await tester.pumpWidget(ChangeNotifierProvider.value(
-        value: app,
-        child: MaterialApp(
-          theme: buildTheme(),
-          locale: Locale(lang),
-          localizationsDelegates: const [DefaultMaterialLocalizations.delegate, DefaultWidgetsLocalizations.delegate],
-          home: Directionality(textDirection: Lang.instance.direction, child: TournamentScreen(id: t.id)),
+      await tester.pumpWidget(
+        ChangeNotifierProvider.value(
+          value: app,
+          child: MaterialApp(
+            theme: buildTheme(),
+            locale: Locale(lang),
+            localizationsDelegates: [DefaultMaterialLocalizations.delegate, DefaultWidgetsLocalizations.delegate],
+            home: Directionality(
+              textDirection: Lang.instance.direction,
+              child: TournamentScreen(id: t.id),
+            ),
+          ),
         ),
-      ));
+      );
       await tester.pumpAndSettle();
       final tabs = find.byType(Tab);
       expect(tabs, findsNWidgets(5));
@@ -143,14 +148,19 @@ void main() {
       app.tournaments.add(t);
       app.start(t);
       final m = t.rounds.single.matches.single;
-      m.result = const MatchResult(Outcome.p1, 2, 1);
-      await tester.pumpWidget(ChangeNotifierProvider.value(
-        value: app,
-        child: MaterialApp(
-          theme: buildTheme(),
-          home: Directionality(textDirection: Lang.instance.direction, child: TournamentScreen(id: t.id)),
+      m.result = MatchResult(Outcome.p1, 2, 1);
+      await tester.pumpWidget(
+        ChangeNotifierProvider.value(
+          value: app,
+          child: MaterialApp(
+            theme: buildTheme(),
+            home: Directionality(
+              textDirection: Lang.instance.direction,
+              child: TournamentScreen(id: t.id),
+            ),
+          ),
         ),
-      ));
+      );
       await tester.pumpAndSettle();
       final p1 = tester.getCenter(find.text(t.nameOf(m.p1))).dx;
       final p2 = tester.getCenter(find.text(t.nameOf(m.p2))).dx;
@@ -163,17 +173,19 @@ void main() {
 
     testWidgets('[$lang] game tools render without overflow', (tester) async {
       Lang.instance.code = lang;
-      await boot(tester, size: const Size(360, 740));
+      await boot(tester, size: Size(360, 740));
       Future<void> show(Widget w) async {
-        await tester.pumpWidget(MaterialApp(
-          theme: buildTheme(),
-          home: Directionality(textDirection: Lang.instance.direction, child: w),
-        ));
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: buildTheme(),
+            home: Directionality(textDirection: Lang.instance.direction, child: w),
+          ),
+        );
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull, reason: '${w.runtimeType}');
       }
 
-      await show(const DiceScreen());
+      await show(DiceScreen());
       await tester.tap(find.byIcon(Icons.casino));
       await tester.pumpAndSettle();
       expect(find.text(lang == 'en' ? 'Who goes first?' : 'מי מתחיל?'), findsOneWidget);
@@ -185,13 +197,28 @@ void main() {
       await show(const RulesScreen());
       await show(const MemoryScreen());
       expect(find.text(lang == 'en' ? 'Blue player' : 'שחקן כחול'), findsOneWidget);
-      await show(Scaffold(
-        body: ResultSheet(
-            p1: 'Bartholomew Maximilian the Long', p2: 'Ann', bestOf: 3, elimination: true, current: null),
-      ));
-      await show(const Scaffold(
-        body: ResultSheet(p1: 'Ann', p2: 'Ben', bestOf: 3, elimination: false, current: MatchResult(Outcome.doubleLoss)),
-      ));
+      await show(
+        Scaffold(
+          body: ResultSheet(
+            p1: 'Bartholomew Maximilian the Long',
+            p2: 'Ann',
+            bestOf: 3,
+            elimination: true,
+            current: null,
+          ),
+        ),
+      );
+      await show(
+        const Scaffold(
+          body: ResultSheet(
+            p1: 'Ann',
+            p2: 'Ben',
+            bestOf: 3,
+            elimination: false,
+            current: MatchResult(Outcome.doubleLoss),
+          ),
+        ),
+      );
       await tester.pumpWidget(const SizedBox()); // dispose before the memory screen's timers matter
     });
   }

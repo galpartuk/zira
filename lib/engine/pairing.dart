@@ -16,8 +16,11 @@ Set<String> playedPairs(Tournament t) {
   return s;
 }
 
-Set<String> playersWithBye(Tournament t) =>
-    {for (final r in t.swissRoundsList) for (final m in r.matches) if (m.isBye) m.p1};
+Set<String> playersWithBye(Tournament t) => {
+  for (final r in t.swissRoundsList)
+    for (final m in r.matches)
+      if (m.isBye) m.p1,
+};
 
 /// Builds the next Swiss round.
 ///
@@ -157,7 +160,9 @@ List<int> bracketOrder(int size) {
   var order = [1, 2];
   while (order.length < size) {
     final n = order.length * 2;
-    order = [for (final s in order) ...[s, n + 1 - s]];
+    order = [
+      for (final s in order) ...[s, n + 1 - s],
+    ];
   }
   return order;
 }
@@ -276,13 +281,11 @@ List<Placement> finalPlacements(Tournament t) {
       final out = {
         for (final r in tops)
           for (final m in r.matches)
-            if (!m.thirdPlace && m.loser != null) m.loser!
+            if (!m.thirdPlace && m.loser != null) m.loser!,
       };
-      final alive = tops.first.matches
-          .expand((m) => [m.p1, if (m.p2 != null) m.p2!])
-          .where((id) => !out.contains(id))
-          .toList()
-        ..sort((a, b) => seed[a]!.compareTo(seed[b]!));
+      final alive =
+          tops.first.matches.expand((m) => [m.p1, if (m.p2 != null) m.p2!]).where((id) => !out.contains(id)).toList()
+            ..sort((a, b) => seed[a]!.compareTo(seed[b]!));
       for (final id in alive) {
         addGroup([id]);
       }

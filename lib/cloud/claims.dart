@@ -5,9 +5,10 @@ import '../engine/online.dart';
 Future<void> writeClaim(FirebaseFirestore db, String tid, Claim c) =>
     db.doc('tournaments/$tid/claims/${c.matchId}_${c.uid}').set(c.toJson());
 
-Future<void> writeEntry(FirebaseFirestore db, String tid, Entry e) => db
-    .doc('tournaments/$tid/entries/${e.uid}')
-    .set({...e.toJson(), 'at': FieldValue.serverTimestamp()}, SetOptions(merge: true));
+Future<void> writeEntry(FirebaseFirestore db, String tid, Entry e) => db.doc('tournaments/$tid/entries/${e.uid}').set({
+  ...e.toJson(),
+  'at': FieldValue.serverTimestamp(),
+}, SetOptions(merge: true));
 
 /// Changes only the status of an existing entry. The rules refuse any change
 /// of the stored name, so never send the (possibly renamed) tournament name.

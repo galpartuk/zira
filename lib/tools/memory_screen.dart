@@ -151,12 +151,12 @@ class _MemoryScreenState extends State<MemoryScreen> {
               onTap: () => Navigator.pop(c, 'roll'),
             ),
             ListTile(
-              leading: const Icon(Icons.south, color: Z.blue),
+              leading: Icon(Icons.south, color: Z.blue),
               title: Text(S.t.newGameFirst(_bottomName)),
               onTap: () => Navigator.pop(c, 'bottom'),
             ),
             ListTile(
-              leading: const Icon(Icons.north, color: Z.coral),
+              leading: Icon(Icons.north, color: Z.coral),
               title: Text(S.t.newGameFirst(_topName)),
               onTap: () => Navigator.pop(c, 'top'),
             ),
@@ -205,7 +205,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
     final first = await showDialog<Side>(
       context: context,
       builder: (c) => AlertDialog(
-        title: Text(S.t.gameWonTitle(_name(s)), style: const TextStyle(fontWeight: FontWeight.w800)),
+        title: Text(S.t.gameWonTitle(_name(s)), style: const TextStyle(fontWeight: FontWeight.w700)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -227,7 +227,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
                     _name(side),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                   ),
                 ),
               ),
@@ -300,7 +300,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
                       ),
                       child: Text(
                         _banner!,
-                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Z.ink),
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: Z.ink),
                       ),
                     ),
                   ),
@@ -338,12 +338,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
             const Spacer(),
             Text(
               S.t.turnNumber(_m.turnNumber),
-              style: const TextStyle(
-                fontSize: 12.5,
-                color: Z.muted,
-                fontWeight: FontWeight.w700,
-                fontFeatures: Z.tabular,
-              ),
+              style: TextStyle(fontSize: 12.5, color: Z.muted, fontWeight: FontWeight.w600, fontFeatures: Z.tabular),
             ),
           ],
         ),
@@ -393,7 +388,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
       style: TextStyle(
         fontSize: (d * .44).clamp(10, 34),
         height: 1,
-        fontWeight: FontWeight.w800,
+        fontWeight: FontWeight.w700,
         color: active ? Z.ink : color.withValues(alpha: side == null ? .95 : .9),
         fontFeatures: Z.tabular,
       ),
@@ -463,7 +458,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
                         textDirection: icon == null && !primary ? TextDirection.ltr : null,
                         style: TextStyle(
                           fontSize: 15.5,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w700,
                           color: primary ? Z.ink : color,
                           fontFeatures: Z.tabular,
                         ),
@@ -509,7 +504,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
           child: Center(
             child: Text(
               S.t.payHowMuch,
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: color),
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: color),
             ),
           ),
         ),
@@ -565,7 +560,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
                   _name(s),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: color),
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: color),
                 ),
                 Text(
                   mine ? S.t.yourTurn : S.t.waiting,
@@ -596,7 +591,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
                     const SizedBox(width: 3),
                     Text(
                       S.t.winShort,
-                      style: TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 12.5),
+                      style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 12.5),
                     ),
                   ],
                 ),
@@ -631,7 +626,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
               style: TextStyle(
                 fontSize: 34,
                 height: 1,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w700,
                 color: mem >= 0 ? Z.text : Z.muted,
                 fontFeatures: Z.tabular,
               ),

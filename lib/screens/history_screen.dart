@@ -47,7 +47,13 @@ class _HistoryBody extends StatelessWidget {
   final HistoryRepo repo;
   final HistoryEntry? entry;
   final List<String> suggestions;
-  const _HistoryBody({required this.t, required this.uid, required this.repo, required this.entry, required this.suggestions});
+  const _HistoryBody({
+    required this.t,
+    required this.uid,
+    required this.repo,
+    required this.entry,
+    required this.suggestions,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -69,19 +75,26 @@ class _HistoryBody extends StatelessWidget {
           ),
         ],
       ),
-      body: ListView(padding: const EdgeInsets.fromLTRB(16, 12, 16, 32), children: [
-        Text(S.t.whichDeck, style: const TextStyle(fontSize: 13, color: Z.muted, fontWeight: FontWeight.w700)),
-        const SizedBox(height: 6),
-        DeckField(
-          initial: entry?.myDeck,
-          suggestions: suggestions,
-          hint: S.t.myDeckHint,
-          onSave: (v) => repo.setMyDeck(t.id, v),
-        ),
-        const SizedBox(height: 22),
-        SectionTitle(S.t.myRounds),
-        for (final (r, m) in rounds) _RoundRow(t: t, uid: uid, round: r, match: m, repo: repo, entry: entry, suggestions: suggestions),
-      ]),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+        children: [
+          Text(
+            S.t.whichDeck,
+            style: TextStyle(fontSize: 13, color: Z.muted, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 6),
+          DeckField(
+            initial: entry?.myDeck,
+            suggestions: suggestions,
+            hint: S.t.myDeckHint,
+            onSave: (v) => repo.setMyDeck(t.id, v),
+          ),
+          const SizedBox(height: 22),
+          SectionTitle(S.t.myRounds),
+          for (final (r, m) in rounds)
+            _RoundRow(t: t, uid: uid, round: r, match: m, repo: repo, entry: entry, suggestions: suggestions),
+        ],
+      ),
     );
   }
 }
@@ -109,7 +122,7 @@ class _RoundRow extends StatelessWidget {
     final me = t.players.firstWhere((p) => p.uid == uid);
     final info = MyMatchInfo(me, round, match);
     final o = outcomeFor(match, me.id);
-    final color = o == null ? Z.muted : (o > 0 ? Z.win : (o < 0 ? Z.danger : Z.gold));
+    final color = o == null ? Z.muted : (o > 0 ? Z.win : (o < 0 ? Z.danger : Z.accent));
     final result = match.isBye
         ? S.t.byeAutoWin
         : (match.result == null ? '—' : myResultText(match.result!, info.iAmP1));
@@ -117,27 +130,42 @@ class _RoundRow extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Row(children: [
-            Text(S.t.roundLabel(round), style: const TextStyle(color: Z.muted, fontWeight: FontWeight.w700)),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(match.isBye ? '' : '${S.t.vs} ${t.nameOf(info.opponentId)}',
-                  maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Text(
+                  S.t.roundLabel(round),
+                  style: TextStyle(color: Z.muted, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    match.isBye ? '' : '${S.t.vs} ${t.nameOf(info.opponentId)}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+                Text(
+                  result,
+                  style: TextStyle(color: color, fontWeight: FontWeight.w700),
+                ),
+              ],
             ),
-            Text(result, style: TextStyle(color: color, fontWeight: FontWeight.w800)),
-          ]),
-          if (!match.isBye) ...[
-            const SizedBox(height: 10),
-            DeckField(
-              dense: true,
-              initial: entry?.oppDecks[match.id],
-              suggestions: suggestions,
-              hint: S.t.oppDeckHint,
-              onSave: (v) => repo.setOppDeck(t.id, match.id, v),
-            ),
+            if (!match.isBye) ...[
+              const SizedBox(height: 10),
+              DeckField(
+                dense: true,
+                initial: entry?.oppDecks[match.id],
+                suggestions: suggestions,
+                hint: S.t.oppDeckHint,
+                onSave: (v) => repo.setOppDeck(t.id, match.id, v),
+              ),
+            ],
           ],
-        ]),
+        ),
       ),
     );
   }

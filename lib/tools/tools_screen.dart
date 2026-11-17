@@ -22,27 +22,24 @@ class ToolsScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(S.t.gameTools),
         actions: [
-          const LangButton(),
-          IconButton(
-            tooltip: S.t.about,
-            icon: const Icon(Icons.info_outline_rounded),
-            onPressed: () => open(const AboutScreen()),
-          ),
+          LangButton(),
+          LookButton(),
+          IconButton(tooltip: S.t.about, icon: Icon(Icons.info_outline_rounded), onPressed: () => open(AboutScreen())),
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+        padding: EdgeInsets.fromLTRB(16, 4, 16, 24),
         children: [
           // The memory gauge is the one used every game: give it the full row.
           _ToolTile(
             title: S.t.memoryGauge,
             body: S.t.memoryGaugeBody,
-            icon: const GaugeIcon(),
+            icon: GaugeIcon(),
             color: Z.blue,
             tall: true,
-            onTap: () => open(const MemoryScreen()),
+            onTap: () => open(MemoryScreen()),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           // Equal-height pair; grows when a longer language needs more lines.
           IntrinsicHeight(
             child: Row(
@@ -52,25 +49,25 @@ class ToolsScreen extends StatelessWidget {
                   child: _ToolTile(
                     title: S.t.dice,
                     body: S.t.diceBody,
-                    icon: const DieIcon(),
-                    color: Z.gold,
-                    onTap: () => open(const DiceScreen()),
+                    icon: DieIcon(),
+                    color: Z.accent,
+                    onTap: () => open(DiceScreen()),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: _ToolTile(
                     title: S.t.coin,
                     body: S.t.coinBody,
-                    icon: const CoinIcon(),
-                    color: Z.gold,
-                    onTap: () => open(const CoinScreen()),
+                    icon: CoinIcon(),
+                    color: Z.accent,
+                    onTap: () => open(CoinScreen()),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           // Equal-height pair; grows when a longer language needs more lines.
           IntrinsicHeight(
             child: Row(
@@ -80,22 +77,22 @@ class ToolsScreen extends StatelessWidget {
                   child: _ToolTile(
                     title: S.t.rps,
                     body: S.t.rpsBody,
-                    icon: const Text('✌️', style: TextStyle(fontSize: 34)),
+                    icon: Text('✌️', style: TextStyle(fontSize: 34)),
                     color: Z.coral,
-                    onTap: () => open(const RpsScreen()),
+                    onTap: () => open(RpsScreen()),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: _ToolTile(
                     title: S.t.prizeCalculator,
                     body: S.t.prizeCalculatorBody,
-                    icon: const Icon(Icons.payments_outlined, size: 38, color: Z.win),
+                    icon: Icon(Icons.payments_outlined, size: 38, color: Z.win),
                     color: Z.win,
                     onTap: () => open(
                       Scaffold(
                         appBar: AppBar(title: Text(S.t.prizeCalculator)),
-                        body: const PrizesTab(),
+                        body: PrizesTab(),
                       ),
                     ),
                   ),
@@ -107,7 +104,7 @@ class ToolsScreen extends StatelessWidget {
           _ToolTile(
             title: S.t.digimonRules,
             body: S.t.digimonRulesBody,
-            icon: const Icon(Icons.menu_book_rounded, size: 40, color: Z.blue),
+            icon: Icon(Icons.menu_book_rounded, size: 40, color: Z.blue),
             color: Z.blue,
             tall: true,
             onTap: () => open(const RulesScreen()),
@@ -180,9 +177,9 @@ class _ToolTile extends StatelessWidget {
     crossAxisAlignment: CrossAxisAlignment.start,
     mainAxisSize: MainAxisSize.min,
     children: [
-      Text(title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+      Text(title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
       const SizedBox(height: 3),
-      Text(body, style: const TextStyle(fontSize: 12.5, color: Z.muted, height: 1.35)),
+      Text(body, style: TextStyle(fontSize: 12.5, color: Z.muted, height: 1.35)),
     ],
   );
 }

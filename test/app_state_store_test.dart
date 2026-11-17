@@ -13,13 +13,15 @@ class MemStore implements TournamentStore {
     saves++;
     saved = [...ts];
   }
+
   @override
   Future<void> delete(Tournament t) async => deleted.add(t.id);
 }
 
-Tournament four() => Tournament(name: 'T', players: [
-      for (var i = 0; i < 4; i++) Player(id: 'p$i', name: 'P$i', tieRand: i),
-    ]);
+Tournament four() => Tournament(
+  name: 'T',
+  players: [for (var i = 0; i < 4; i++) Player(id: 'p$i', name: 'P$i', tieRand: i)],
+);
 
 void main() {
   test('local mode publishes rounds immediately (old behaviour)', () async {

@@ -123,7 +123,5 @@ List<String> deckSuggestions(Iterable<String?> names) {
     m[n!.trim()] = (m[n.trim()] ?? 0) + 1;
   }
   final keys = count.keys.toList()..sort((a, b) => count[b]!.compareTo(count[a]!));
-  return [
-    for (final k in keys) (spelling[k]!.entries.toList()..sort((a, b) => b.value.compareTo(a.value))).first.key,
-  ];
+  return [for (final k in keys) (spelling[k]!.entries.toList()..sort((a, b) => b.value.compareTo(a.value))).first.key];
 }

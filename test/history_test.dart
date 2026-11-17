@@ -8,13 +8,21 @@ import 'package:zira/engine/stats.dart';
 import 'package:zira/widgets/deck_field.dart';
 
 Tournament finished(String id, String hostUid) {
-  final t = Tournament(id: id, name: id, players: [
-    Player(id: 'a', name: 'Me', uid: 'me', tieRand: 1),
-    Player(id: 'b', name: 'Bob', uid: 'bob', tieRand: 2),
-  ]);
-  t.rounds.add(Round(number: 1, stage: Stage.swiss, matches: [
-    Match(id: '$id-m1', table: 1, p1: 'a', p2: 'b', result: const MatchResult(Outcome.p1, 2, 0)),
-  ]));
+  final t = Tournament(
+    id: id,
+    name: id,
+    players: [
+      Player(id: 'a', name: 'Me', uid: 'me', tieRand: 1),
+      Player(id: 'b', name: 'Bob', uid: 'bob', tieRand: 2),
+    ],
+  );
+  t.rounds.add(
+    Round(
+      number: 1,
+      stage: Stage.swiss,
+      matches: [Match(id: '$id-m1', table: 1, p1: 'a', p2: 'b', result: const MatchResult(Outcome.p1, 2, 0))],
+    ),
+  );
   t.finished = true;
   return t;
 }
@@ -38,11 +46,18 @@ void main() {
 
   testWidgets('deck field suggests names already used and saves the pick', (tester) async {
     String? saved;
-    await tester.pumpWidget(MaterialApp(
-      home: Scaffold(
-        body: DeckField(initial: '', suggestions: const ['Red Hybrid', 'Blue Flare'], hint: 'deck', onSave: (v) => saved = v),
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: DeckField(
+            initial: '',
+            suggestions: const ['Red Hybrid', 'Blue Flare'],
+            hint: 'deck',
+            onSave: (v) => saved = v,
+          ),
+        ),
       ),
-    ));
+    );
     await tester.enterText(find.byType(TextField), 'red');
     await tester.pumpAndSettle();
     expect(find.text('Red Hybrid'), findsOneWidget);

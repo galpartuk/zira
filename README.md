@@ -10,8 +10,8 @@ A tournament manager for local trading-card events. The organiser runs the event
 <p>
 <img src="docs/screenshots/home.png" width="200" alt="Home screen: join by code, tournaments I play in and host">
 <img src="docs/screenshots/host.png" width="200" alt="Host view of a live round with an unconfirmed result">
-<img src="docs/screenshots/player.png" width="200" alt="Player waiting room">
-<img src="docs/screenshots/about.png" width="200" alt="About page">
+<img src="docs/screenshots/player.png" width="200" alt="Player view: my match, me against my opponent">
+<img src="docs/screenshots/light.png" width="200" alt="The same host view in the light theme">
 </p>
 <p>
 <img src="docs/screenshots/memory.png" width="820" alt="Two-sided Digimon memory gauge">
@@ -27,7 +27,7 @@ A tournament manager for local trading-card events. The organiser runs the event
 - **Prize split** in money or booster packs; pairings and standings copied to WhatsApp in one tap.
 - **Personal history and stats:** decks played, results per opponent deck.
 - **Table tools:** a two-sided Digimon memory gauge, dice, coin, rock-paper-scissors.
-- **English and Hebrew**, with full right-to-left layout.
+- **English and Hebrew**, with full right-to-left layout; dark and light themes.
 
 Used at real local events.
 

@@ -35,11 +35,20 @@ void main() {
 }
 
 Tournament online2({String? u1 = 'u1', String? u2 = 'u2'}) {
-  final t = Tournament(name: 'T', players: [
-    Player(id: 'a', name: 'A', uid: u1, tieRand: 1),
-    Player(id: 'b', name: 'B', uid: u2, tieRand: 2),
-  ]);
-  t.rounds.add(Round(number: 1, stage: Stage.swiss, matches: [Match(id: 'm1', table: 1, p1: 'a', p2: 'b')]));
+  final t = Tournament(
+    name: 'T',
+    players: [
+      Player(id: 'a', name: 'A', uid: u1, tieRand: 1),
+      Player(id: 'b', name: 'B', uid: u2, tieRand: 2),
+    ],
+  );
+  t.rounds.add(
+    Round(
+      number: 1,
+      stage: Stage.swiss,
+      matches: [Match(id: 'm1', table: 1, p1: 'a', p2: 'b')],
+    ),
+  );
   return t;
 }
 
@@ -48,11 +57,15 @@ Claim claim(String uid, Outcome o, [int g1 = 2, int g2 = 1]) =>
 
 void onlineGroups() {
   group('manual pairing', () {
-    Round r() => Round(number: 1, stage: Stage.swiss, matches: [
-          Match(id: 'm1', table: 1, p1: 'a', p2: 'b'),
-          Match(id: 'm2', table: 2, p1: 'c', p2: 'd'),
-          Match(id: 'bye', table: 0, p1: 'e'),
-        ]);
+    Round r() => Round(
+      number: 1,
+      stage: Stage.swiss,
+      matches: [
+        Match(id: 'm1', table: 1, p1: 'a', p2: 'b'),
+        Match(id: 'm2', table: 2, p1: 'c', p2: 'd'),
+        Match(id: 'bye', table: 0, p1: 'e'),
+      ],
+    );
     String pairs(Round x) => x.matches.map((m) => '${m.p1}-${m.p2}').join(',');
     test('across tables', () {
       final x = r();
@@ -113,7 +126,10 @@ void onlineGroups() {
 
   group('applyEntries', () {
     test('joined adds a player once, with a unique name', () {
-      final t = Tournament(name: 'T', players: [Player(id: 'x', name: 'Gal', tieRand: 1)]);
+      final t = Tournament(
+        name: 'T',
+        players: [Player(id: 'x', name: 'Gal', tieRand: 1)],
+      );
       final e = Entry(uid: 'u1', displayName: 'Gal', status: EntryStatus.joined);
       expect(applyEntries(t, [e]), isTrue);
       expect(applyEntries(t, [e]), isFalse);
@@ -125,7 +141,10 @@ void onlineGroups() {
       expect(t.players, isEmpty);
     });
     test('dropped before start removes, after start marks dropped', () {
-      final t = Tournament(name: 'T', players: [Player(id: 'a', name: 'A', uid: 'u1', tieRand: 1)]);
+      final t = Tournament(
+        name: 'T',
+        players: [Player(id: 'a', name: 'A', uid: 'u1', tieRand: 1)],
+      );
       applyEntries(t, [Entry(uid: 'u1', displayName: 'A', status: EntryStatus.dropped)]);
       expect(t.players, isEmpty);
       final s = online2();
@@ -142,7 +161,9 @@ void onlineGroups() {
     test('matchUidsFor uses the last published round and skips guests and byes', () {
       final t = online2(u2: null);
       t.rounds[0].matches.add(Match(id: 'bye', table: 2, p1: 'b'));
-      expect(matchUidsFor(t), {'m1': ['u1']});
+      expect(matchUidsFor(t), {
+        'm1': ['u1'],
+      });
       t.rounds[0].published = false;
       expect(matchUidsFor(t), isEmpty);
     });

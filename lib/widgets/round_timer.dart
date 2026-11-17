@@ -23,7 +23,9 @@ class ClockState {
 
 ClockState clockOf(Tournament t) {
   final running = t.timerEndMs != null;
-  final rem = running ? t.timerEndMs! - DateTime.now().millisecondsSinceEpoch : (t.timerPausedMs ?? t.roundMinutes * 60000);
+  final rem = running
+      ? t.timerEndMs! - DateTime.now().millisecondsSinceEpoch
+      : (t.timerPausedMs ?? t.roundMinutes * 60000);
   final ot = t.overtimeMinutes * 60000;
   if (rem > 0) return ClockState(ClockPhase.main, rem, running);
   if (ot > 0 && rem > -ot) return ClockState(ClockPhase.overtime, ot + rem, running);
@@ -63,13 +65,15 @@ class RoundAlarm {
     try {
       await _player.stop();
       // Alarm stream: heard even when media volume is down.
-      await _player.setAudioContext(AudioContext(
-        android: const AudioContextAndroid(
-          contentType: AndroidContentType.sonification,
-          usageType: AndroidUsageType.alarm,
-          audioFocus: AndroidAudioFocus.gainTransientMayDuck,
+      await _player.setAudioContext(
+        AudioContext(
+          android: const AudioContextAndroid(
+            contentType: AndroidContentType.sonification,
+            usageType: AndroidUsageType.alarm,
+            audioFocus: AndroidAudioFocus.gainTransientMayDuck,
+          ),
         ),
-      ));
+      );
       await _player.play(AssetSource('sounds/alarm.wav'), volume: 1);
     } catch (_) {}
     for (var i = 0; i < (long ? 6 : 3); i++) {
@@ -140,8 +144,13 @@ class _RoundTimerState extends State<RoundTimer> {
     super.dispose();
   }
 
-  void _openBig() =>
-      Navigator.push(context, MaterialPageRoute(fullscreenDialog: true, builder: (_) => _BigTimer(t: widget.t, readOnly: widget.readOnly)));
+  void _openBig() => Navigator.push(
+    context,
+    MaterialPageRoute(
+      fullscreenDialog: true,
+      builder: (_) => _BigTimer(t: widget.t, readOnly: widget.readOnly),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -150,10 +159,10 @@ class _RoundTimerState extends State<RoundTimer> {
     final c = clockOf(t);
     final (label, color, bg) = switch (c.phase) {
       ClockPhase.main => (
-          c.running ? S.t.timeLeft : S.t.roundClock(t.roundMinutes, t.overtimeMinutes),
-          c.running && c.shownMs < 5 * 60000 ? Z.gold : Z.text,
-          Z.surface
-        ),
+        c.running ? S.t.timeLeft : S.t.roundClock(t.roundMinutes, t.overtimeMinutes),
+        c.running && c.shownMs < 5 * 60000 ? Z.amber : Z.text,
+        Z.surface,
+      ),
       ClockPhase.overtime => (S.t.overtimeLabel, Z.coral, const Color(0xFF3A2620)),
       ClockPhase.over => (S.t.timeUp, Z.danger, const Color(0xFF3A1A1A)),
     };
@@ -162,31 +171,60 @@ class _RoundTimerState extends State<RoundTimer> {
       color: bg,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
-        child: Row(children: [
-          Expanded(
-            child: InkWell(
-              borderRadius: BorderRadius.circular(8),
-              onTap: _openBig,
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(label, style: TextStyle(fontSize: 12.5, color: c.phase == ClockPhase.main ? Z.muted : color, fontWeight: FontWeight.w700)),
-                Text(c.phase == ClockPhase.over ? '0:00' : fmtClock(c.shownMs),
-                    style: TextStyle(fontSize: 38, height: 1.1, fontWeight: FontWeight.w800, color: color, fontFeatures: Z.tabular)),
-              ]),
+        child: Row(
+          children: [
+            Expanded(
+              child: InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: _openBig,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        color: c.phase == ClockPhase.main ? Z.muted : color,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      c.phase == ClockPhase.over ? '0:00' : fmtClock(c.shownMs),
+                      style: TextStyle(
+                        fontFamily: Z.digits,
+                        fontSize: 52,
+                        height: 1.05,
+                        fontWeight: FontWeight.w700,
+                        color: color,
+                        fontFeatures: Z.tabular,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ),
-          IconButton(tooltip: S.t.fullScreen, onPressed: _openBig, icon: const Icon(Icons.fullscreen)),
-          if (app != null) ...[
-            IconButton(tooltip: S.t.addMinute, onPressed: () => app.addTimerMinutes(t, 1), icon: const Icon(Icons.more_time)),
-            IconButton(tooltip: S.t.reset, onPressed: () => app.resetTimer(t), icon: const Icon(Icons.replay)),
-            const SizedBox(width: 4),
-            IconButton.filled(
-              iconSize: 30,
-              style: IconButton.styleFrom(backgroundColor: Z.gold, foregroundColor: Z.ink, fixedSize: const Size(56, 56)),
-              onPressed: () => c.running ? app.pauseTimer(t) : app.startTimer(t),
-              icon: Icon(c.running ? Icons.pause_rounded : Icons.play_arrow_rounded),
-            ),
+            IconButton(tooltip: S.t.fullScreen, onPressed: _openBig, icon: const Icon(Icons.fullscreen)),
+            if (app != null) ...[
+              IconButton(
+                tooltip: S.t.addMinute,
+                onPressed: () => app.addTimerMinutes(t, 1),
+                icon: const Icon(Icons.more_time),
+              ),
+              IconButton(tooltip: S.t.reset, onPressed: () => app.resetTimer(t), icon: const Icon(Icons.replay)),
+              const SizedBox(width: 4),
+              IconButton.filled(
+                iconSize: 30,
+                style: IconButton.styleFrom(
+                  backgroundColor: Z.accent,
+                  foregroundColor: Z.ink,
+                  fixedSize: const Size(56, 56),
+                ),
+                onPressed: () => c.running ? app.pauseTimer(t) : app.startTimer(t),
+                icon: Icon(c.running ? Icons.pause_rounded : Icons.play_arrow_rounded),
+              ),
+            ],
           ],
-        ]),
+        ),
       ),
     );
   }
@@ -230,7 +268,11 @@ class _BigTimerState extends State<_BigTimer> {
     final c = clockOf(t);
     final r = t.currentRound;
     final (bg, color, caption) = switch (c.phase) {
-      ClockPhase.main => (Z.ink, Z.text, widget.readOnly ? S.t.roundClockHost : (c.running ? S.t.tapToPause : S.t.tapToStart)),
+      ClockPhase.main => (
+        Z.ink,
+        Z.text,
+        widget.readOnly ? S.t.roundClockHost : (c.running ? S.t.tapToPause : S.t.tapToStart),
+      ),
       ClockPhase.overtime => (const Color(0xFF3A2620), Z.coral, S.t.overtimeCaption(t.overtimeMinutes)),
       ClockPhase.over => (const Color(0xFF3A1414), Z.danger, S.t.timeUpCaption),
     };
@@ -241,19 +283,30 @@ class _BigTimerState extends State<_BigTimer> {
         behavior: HitTestBehavior.opaque,
         onTap: app == null ? null : () => c.running ? app.pauseTimer(t) : app.startTimer(t),
         child: Center(
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            if (r != null)
-              Text(r.stage == Stage.swiss ? S.t.round(r.number) : S.t.topCut,
-                  style: const TextStyle(fontSize: 26, color: Z.muted, fontWeight: FontWeight.w700)),
-            FittedBox(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Text(c.phase == ClockPhase.over ? '0:00' : fmtClock(c.shownMs),
-                    style: TextStyle(fontSize: 180, fontWeight: FontWeight.w800, color: color, fontFeatures: Z.tabular)),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (r != null)
+                Text(
+                  r.stage == Stage.swiss ? S.t.round(r.number) : S.t.topCut,
+                  style: TextStyle(fontSize: 26, color: Z.muted, fontWeight: FontWeight.w600),
+                ),
+              FittedBox(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Text(
+                    c.phase == ClockPhase.over ? '0:00' : fmtClock(c.shownMs),
+                    style: TextStyle(fontSize: 180, fontWeight: FontWeight.w700, color: color, fontFeatures: Z.tabular),
+                  ),
+                ),
               ),
-            ),
-            Text(caption, textAlign: TextAlign.center, style: TextStyle(fontSize: 18, color: c.phase == ClockPhase.main ? Z.muted : color)),
-          ]),
+              Text(
+                caption,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 18, color: c.phase == ClockPhase.main ? Z.muted : color),
+              ),
+            ],
+          ),
         ),
       ),
     );

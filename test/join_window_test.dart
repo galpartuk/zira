@@ -11,9 +11,13 @@ import 'package:zira/state/host_sync.dart';
 import 'package:zira/state/player_session.dart';
 import 'package:zira/widgets/my_match_card.dart';
 
-Tournament swiss(int rounds) => Tournament(id: 't1', name: 'T', joinCode: 'ABC234', swissRounds: rounds, players: [
-      for (var i = 0; i < 4; i++) Player(id: 'p$i', name: 'P$i', uid: 'u$i', tieRand: i),
-    ]);
+Tournament swiss(int rounds) => Tournament(
+  id: 't1',
+  name: 'T',
+  joinCode: 'ABC234',
+  swissRounds: rounds,
+  players: [for (var i = 0; i < 4; i++) Player(id: 'p$i', name: 'P$i', uid: 'u$i', tieRand: i)],
+);
 
 void main() {
   setUp(() => Lang.instance.code = 'en');
@@ -70,12 +74,20 @@ void main() {
 
   testWidgets('a player who could not be added sees that registration closed', (tester) async {
     final t = swiss(1);
-    t.rounds.add(Round(number: 1, stage: Stage.swiss, matches: [Match(id: 'm1', table: 1, p1: 'p0', p2: 'p1')]));
-    await tester.pumpWidget(MaterialApp(
-      home: Scaffold(
-        body: MyMatchCard(t: t, uid: 'late-eve', state: const NoClaims(), onReport: (_) async {}),
+    t.rounds.add(
+      Round(
+        number: 1,
+        stage: Stage.swiss,
+        matches: [Match(id: 'm1', table: 1, p1: 'p0', p2: 'p1')],
       ),
-    ));
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: MyMatchCard(t: t, uid: 'late-eve', state: const NoClaims(), onReport: (_) async {}),
+        ),
+      ),
+    );
     expect(find.textContaining('Registration is closed'), findsOneWidget);
   });
 
@@ -102,10 +114,15 @@ void main() {
     expect(t.currentRound!.published, isFalse); // draft until "Send to players"
     // A registered player against a guest: their report counts at once.
     app.publish(t);
-    final vsGuest = t.currentRound!.matches.firstWhere((m) =>
-        !m.isBye && ((t.player(m.p1)!.uid == null) != (t.player(m.p2)!.uid == null)));
+    final vsGuest = t.currentRound!.matches.firstWhere(
+      (m) => !m.isBye && ((t.player(m.p1)!.uid == null) != (t.player(m.p2)!.uid == null)),
+    );
     final reporter = t.player(vsGuest.p1)!.uid ?? t.player(vsGuest.p2)!.uid!;
-    await writeClaim(db, 't1', Claim(matchId: vsGuest.id, uid: reporter, result: const MatchResult(Outcome.p1, 2, 0), atMs: 1));
+    await writeClaim(
+      db,
+      't1',
+      Claim(matchId: vsGuest.id, uid: reporter, result: const MatchResult(Outcome.p1, 2, 0), atMs: 1),
+    );
     await pumpEventQueue();
     expect(vsGuest.result, isNotNull);
     sync.dispose();

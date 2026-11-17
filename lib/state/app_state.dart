@@ -46,8 +46,8 @@ class PrefsStore implements TournamentStore {
 /// All tournaments; saved through the current [TournamentStore] after every change.
 class AppState extends ChangeNotifier {
   AppState({TournamentStore? store, bool draftRounds = false})
-      : _store = store ?? PrefsStore(),
-        _draftRounds = draftRounds;
+    : _store = store ?? PrefsStore(),
+      _draftRounds = draftRounds;
 
   TournamentStore _store;
   bool _draftRounds;
@@ -100,7 +100,9 @@ class AppState extends ChangeNotifier {
   void _syncDraft(Tournament t) {
     final d = draftRound(t);
     if (d == null || d.stage != Stage.swiss || t.format != TFormat.swiss) return;
-    final inDraft = {for (final m in d.matches) ...[m.p1, if (m.p2 != null) m.p2!]};
+    final inDraft = {
+      for (final m in d.matches) ...[m.p1, if (m.p2 != null) m.p2!],
+    };
     final active = {for (final p in t.activePlayers) p.id};
     if (inDraft.length == active.length && inDraft.containsAll(active)) return;
     t.rounds.removeLast();

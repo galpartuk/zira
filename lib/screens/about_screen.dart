@@ -66,7 +66,7 @@ class AboutScreen extends StatelessWidget {
                 key: const ValueKey('about-source'),
               ),
               const SizedBox(height: 24),
-              Text(S.t.fanMadeNotice, style: const TextStyle(color: Z.muted, fontSize: 12.5, height: 1.5)),
+              Text(S.t.fanMadeNotice, style: TextStyle(color: Z.muted, fontSize: 12.5, height: 1.5)),
             ],
           ),
         ),
@@ -82,10 +82,10 @@ class AboutScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(S.t.appName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+            Text(S.t.appName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
             Text(
               '${S.t.aboutTagline} · ${S.t.versionLabel(appVersion)}',
-              style: const TextStyle(color: Z.muted, fontSize: 13.5),
+              style: TextStyle(color: Z.muted, fontSize: 13.5),
             ),
           ],
         ),
@@ -103,9 +103,9 @@ class AboutScreen extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'DESIGNED & BUILT BY',
-          style: TextStyle(color: Z.muted, fontSize: 11.5, fontWeight: FontWeight.w700, letterSpacing: 1.4),
+          style: TextStyle(color: Z.muted, fontSize: 11.5, fontWeight: FontWeight.w600, letterSpacing: 1.4),
         ),
         const SizedBox(height: 12),
         Row(
@@ -116,19 +116,19 @@ class AboutScreen extends StatelessWidget {
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: Z.gold, width: 2),
+                border: Border.all(color: Z.accent, width: 2),
               ),
-              child: const Text(
+              child: Text(
                 'GP',
-                style: TextStyle(color: Z.gold, fontSize: 20, fontWeight: FontWeight.w800),
+                style: TextStyle(color: Z.accent, fontSize: 20, fontWeight: FontWeight.w700),
               ),
             ),
             const SizedBox(width: 14),
-            const Expanded(
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Gal Partuk', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, height: 1.15)),
+                  Text('Gal Partuk', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, height: 1.15)),
                   Text('Full Stack Developer', style: TextStyle(color: Z.muted, fontSize: 14.5)),
                 ],
               ),
@@ -149,12 +149,12 @@ class AboutScreen extends StatelessWidget {
               Container(
                 width: 7,
                 height: 7,
-                decoration: const BoxDecoration(color: Z.win, shape: BoxShape.circle),
+                decoration: BoxDecoration(color: Z.win, shape: BoxShape.circle),
               ),
               const SizedBox(width: 7),
-              const Text(
+              Text(
                 'Open to work',
-                style: TextStyle(color: Z.win, fontSize: 12.5, fontWeight: FontWeight.w700),
+                style: TextStyle(color: Z.win, fontSize: 12.5, fontWeight: FontWeight.w600),
               ),
             ],
           ),
@@ -208,26 +208,26 @@ class AboutScreen extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
         child: Row(
           children: [
-            Icon(icon, color: Z.gold, size: 21),
+            Icon(icon, color: Z.accent, size: 21),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5)),
+                  Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14.5)),
                   Directionality(
                     textDirection: TextDirection.ltr,
                     child: Text(
                       value,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(color: Z.muted, fontSize: 12.5),
+                      style: TextStyle(color: Z.muted, fontSize: 12.5),
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.open_in_new_rounded, color: Z.muted, size: 17),
+            Icon(Icons.open_in_new_rounded, color: Z.muted, size: 17),
           ],
         ),
       ),

@@ -21,21 +21,31 @@ Future<(FakeFirebaseFirestore, AppState, HostSync, Tournament)> pumpHost(WidgetT
   final db = FakeFirebaseFirestore();
   final app = AppState(store: CloudStore(db, 'host'), draftRounds: true);
   await app.load();
-  final t = Tournament(id: 't1', name: 'Friday', joinCode: 'ABC234', players: [
-    Player(id: 'a', name: 'Alice', uid: 'alice', tieRand: 1),
-    Player(id: 'b', name: 'Bob', uid: 'bob', tieRand: 2),
-    Player(id: 'c', name: 'Carmel', uid: 'carmel', tieRand: 3),
-    Player(id: 'd', name: 'Dana', uid: 'dana', tieRand: 4),
-  ]);
+  final t = Tournament(
+    id: 't1',
+    name: 'Friday',
+    joinCode: 'ABC234',
+    players: [
+      Player(id: 'a', name: 'Alice', uid: 'alice', tieRand: 1),
+      Player(id: 'b', name: 'Bob', uid: 'bob', tieRand: 2),
+      Player(id: 'c', name: 'Carmel', uid: 'carmel', tieRand: 3),
+      Player(id: 'd', name: 'Dana', uid: 'dana', tieRand: 4),
+    ],
+  );
   app.add(t);
   final sync = HostSync(db, app, 'host');
-  await tester.pumpWidget(MultiProvider(
-    providers: [
-      ChangeNotifierProvider.value(value: app),
-      ChangeNotifierProvider<HostSync?>.value(value: sync),
-    ],
-    child: MaterialApp(theme: buildTheme(), home: const TournamentScreen(id: 't1')),
-  ));
+  await tester.pumpWidget(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: app),
+        ChangeNotifierProvider<HostSync?>.value(value: sync),
+      ],
+      child: MaterialApp(
+        theme: buildTheme(),
+        home: const TournamentScreen(id: 't1'),
+      ),
+    ),
+  );
   await tester.pumpAndSettle();
   return (db, app, sync, t);
 }
@@ -104,7 +114,11 @@ void main() {
     app.publish(t);
     await tester.pumpAndSettle();
     for (final m in t.currentRound!.matches) {
-      await writeClaim(db, 't1', Claim(matchId: m.id, uid: t.player(m.p1)!.uid!, result: const MatchResult(Outcome.p1, 2, 0), atMs: 1));
+      await writeClaim(
+        db,
+        't1',
+        Claim(matchId: m.id, uid: t.player(m.p1)!.uid!, result: const MatchResult(Outcome.p1, 2, 0), atMs: 1),
+      );
     }
     await tester.pumpAndSettle();
     expect(find.text('Continue · accept 2 reports'), findsOneWidget);
@@ -136,7 +150,10 @@ void main() {
 
   test('back one round drops the current round even with results', () async {
     final app = AppState();
-    final t = Tournament(name: 'T', players: [for (var i = 0; i < 4; i++) Player(id: 'p$i', name: 'P$i', tieRand: i)]);
+    final t = Tournament(
+      name: 'T',
+      players: [for (var i = 0; i < 4; i++) Player(id: 'p$i', name: 'P$i', tieRand: i)],
+    );
     app.add(t);
     app.start(t);
     for (final m in t.currentRound!.matches) {

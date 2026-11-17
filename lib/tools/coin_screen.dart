@@ -17,8 +17,7 @@ class CoinScreen extends StatefulWidget {
 }
 
 class _CoinScreenState extends State<CoinScreen> with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 1400));
+  late final AnimationController _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1400));
   double _from = 0, _to = 0; // in half-turns
   bool _heads = true;
   bool _shown = false;
@@ -59,77 +58,93 @@ class _CoinScreenState extends State<CoinScreen> with SingleTickerProviderStateM
     final heads = _history.where((h) => h).length;
     return Scaffold(
       appBar: AppBar(title: Text(S.t.coin)),
-      body: Column(children: [
-        Expanded(
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: _flip,
-            child: Center(
-              child: AnimatedBuilder(
-                animation: _ctrl,
-                builder: (context, _) {
-                  final t = Curves.easeOutCubic.transform(_ctrl.value);
-                  final halfTurns = _from + (_to - _from) * t;
-                  final angle = halfTurns * pi;
-                  final lift = sin(t * pi) * 120;
-                  final showHeads = (halfTurns + .5).floor().isEven;
-                  return Transform.translate(
-                    offset: Offset(0, -lift),
-                    child: Transform(
-                      alignment: Alignment.center,
-                      transform: Matrix4.identity()
-                        ..setEntry(3, 2, .0015)
-                        ..rotateX(angle),
-                      // The back face is seen through a half turn: flip it
-                      // so "tails" reads correctly.
-                      child: showHeads
-                          ? const _CoinFace(heads: true)
-                          : Transform(
-                              alignment: Alignment.center,
-                              transform: Matrix4.rotationX(pi),
-                              child: const _CoinFace(heads: false),
-                            ),
+      body: Column(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _flip,
+              child: Center(
+                child: AnimatedBuilder(
+                  animation: _ctrl,
+                  builder: (context, _) {
+                    final t = Curves.easeOutCubic.transform(_ctrl.value);
+                    final halfTurns = _from + (_to - _from) * t;
+                    final angle = halfTurns * pi;
+                    final lift = sin(t * pi) * 120;
+                    final showHeads = (halfTurns + .5).floor().isEven;
+                    return Transform.translate(
+                      offset: Offset(0, -lift),
+                      child: Transform(
+                        alignment: Alignment.center,
+                        transform: Matrix4.identity()
+                          ..setEntry(3, 2, .0015)
+                          ..rotateX(angle),
+                        // The back face is seen through a half turn: flip it
+                        // so "tails" reads correctly.
+                        child: showHeads
+                            ? const _CoinFace(heads: true)
+                            : Transform(
+                                alignment: Alignment.center,
+                                transform: Matrix4.rotationX(pi),
+                                child: const _CoinFace(heads: false),
+                              ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+          AnimatedOpacity(
+            opacity: _shown ? 1 : 0,
+            duration: const Duration(milliseconds: 200),
+            child: Text(
+              _heads ? S.t.heads : S.t.tails,
+              style: TextStyle(fontSize: 40, fontWeight: FontWeight.w700, color: Z.accent),
+            ),
+          ),
+          const SizedBox(height: 14),
+          if (_history.isNotEmpty) ...[
+            Text(
+              S.t.coinTally(heads, _history.length - heads, _history.length),
+              style: TextStyle(color: Z.muted, fontFeatures: Z.tabular),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 5,
+              runSpacing: 5,
+              alignment: WrapAlignment.center,
+              children: [
+                for (final h in _history)
+                  Container(
+                    width: 22,
+                    height: 22,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: h ? Z.accent.withValues(alpha: .85) : const Color(0xFFB9C3CE),
                     ),
-                  );
-                },
+                    child: Text(
+                      h ? S.t.headsLetter : S.t.tailsLetter,
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Z.ink),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 18, 16, 12),
+              child: SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(onPressed: _flip, icon: const Icon(Icons.flip), label: Text(S.t.flip)),
               ),
             ),
           ),
-        ),
-        AnimatedOpacity(
-          opacity: _shown ? 1 : 0,
-          duration: const Duration(milliseconds: 200),
-          child: Text(_heads ? S.t.heads : S.t.tails,
-              style: const TextStyle(fontSize: 40, fontWeight: FontWeight.w800, color: Z.gold)),
-        ),
-        const SizedBox(height: 14),
-        if (_history.isNotEmpty) ...[
-          Text(S.t.coinTally(heads, _history.length - heads, _history.length),
-              style: const TextStyle(color: Z.muted, fontFeatures: Z.tabular)),
-          const SizedBox(height: 8),
-          Wrap(spacing: 5, runSpacing: 5, alignment: WrapAlignment.center, children: [
-            for (final h in _history)
-              Container(
-                width: 22,
-                height: 22,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                    shape: BoxShape.circle, color: h ? Z.gold.withValues(alpha: .85) : const Color(0xFFB9C3CE)),
-                child: Text(h ? S.t.headsLetter : S.t.tailsLetter, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Z.ink)),
-              ),
-          ]),
         ],
-        SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 18, 16, 12),
-            child: SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(onPressed: _flip, icon: const Icon(Icons.flip), label: Text(S.t.flip)),
-            ),
-          ),
-        ),
-      ]),
+      ),
     );
   }
 }
@@ -154,17 +169,35 @@ class _CoinFace extends StatelessWidget {
       ),
       padding: const EdgeInsets.all(12),
       child: Container(
-        decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: ink.withValues(alpha: .45), width: 3)),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: ink.withValues(alpha: .45), width: 3),
+        ),
         alignment: Alignment.center,
         child: heads
-            ? Column(mainAxisSize: MainAxisSize.min, children: [
-                Icon(Icons.park_rounded, size: 76, color: ink),
-                Text(S.t.heads, style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800, color: ink)),
-              ])
-            : Column(mainAxisSize: MainAxisSize.min, children: [
-                Text('1', style: TextStyle(fontSize: 84, height: 1, fontWeight: FontWeight.w800, color: ink)),
-                Text(S.t.tails, style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800, color: ink)),
-              ]),
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.park_rounded, size: 76, color: ink),
+                  Text(
+                    S.t.heads,
+                    style: TextStyle(fontSize: 30, fontWeight: FontWeight.w700, color: ink),
+                  ),
+                ],
+              )
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '1',
+                    style: TextStyle(fontSize: 84, height: 1, fontWeight: FontWeight.w700, color: ink),
+                  ),
+                  Text(
+                    S.t.tails,
+                    style: TextStyle(fontSize: 30, fontWeight: FontWeight.w700, color: ink),
+                  ),
+                ],
+              ),
       ),
     );
   }

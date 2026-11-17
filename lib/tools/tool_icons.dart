@@ -8,13 +8,13 @@ import '../theme.dart';
 class DieFace extends StatelessWidget {
   final int value;
   final double size;
-  final Color color;
-  final Color pip;
-  const DieFace({super.key, required this.value, this.size = 120, this.color = Z.text, this.pip = Z.ink});
+  final Color? color;
+  final Color? pip;
+  const DieFace({super.key, required this.value, this.size = 120, this.color, this.pip});
 
   @override
   Widget build(BuildContext context) =>
-      CustomPaint(size: Size.square(size), painter: _DiePainter(value, color, pip));
+      CustomPaint(size: Size.square(size), painter: _DiePainter(value, color ?? Z.text, pip ?? Z.ink));
 }
 
 class _DiePainter extends CustomPainter {
@@ -37,7 +37,7 @@ class _DiePainter extends CustomPainter {
     canvas.drawRRect(r, Paint()..color = color);
     final p = Paint()..color = pip;
     // Grid columns/rows at 25% / 50% / 75% of the face, symmetric about the centre.
-    for (final (x, y) in _layout[v] ?? const <(int, int)>[]) {
+    for (final (x, y) in _layout[v] ?? <(int, int)>[]) {
       canvas.drawCircle(Offset(s.width * (.5 + (x - 1) * .25), s.height * (.5 + (y - 1) * .25)), s.width * .085, p);
     }
   }
@@ -49,30 +49,34 @@ class _DiePainter extends CustomPainter {
 class DieIcon extends StatelessWidget {
   const DieIcon({super.key});
   @override
-  Widget build(BuildContext context) => Transform.rotate(angle: -.2, child: const DieFace(value: 5, size: 42, color: Z.gold));
+  Widget build(BuildContext context) =>
+      Transform.rotate(angle: -.2, child: DieFace(value: 5, size: 42, color: Z.accent));
 }
 
 class CoinIcon extends StatelessWidget {
   const CoinIcon({super.key});
   @override
   Widget build(BuildContext context) => Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: const LinearGradient(colors: [Color(0xFFFFE08A), Color(0xFFC8962E)]),
-          border: Border.all(color: const Color(0xFF8F6A1C), width: 2),
-        ),
-        alignment: Alignment.center,
-        child: const Text('₪', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20, color: Color(0xFF6B4D10))),
-      );
+    width: 44,
+    height: 44,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      gradient: LinearGradient(colors: [Color(0xFFFFE08A), Color(0xFFC8962E)]),
+      border: Border.all(color: Color(0xFF8F6A1C), width: 2),
+    ),
+    alignment: Alignment.center,
+    child: Text(
+      '₪',
+      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20, color: Color(0xFF6B4D10)),
+    ),
+  );
 }
 
 /// A miniature memory gauge.
 class GaugeIcon extends StatelessWidget {
   const GaugeIcon({super.key});
   @override
-  Widget build(BuildContext context) => CustomPaint(size: const Size(34, 84), painter: _GaugeIconPainter());
+  Widget build(BuildContext context) => CustomPaint(size: Size(34, 84), painter: _GaugeIconPainter());
 }
 
 class _GaugeIconPainter extends CustomPainter {
@@ -84,7 +88,9 @@ class _GaugeIconPainter extends CustomPainter {
       final c = i < n ~/ 2 ? Z.coral : (i == n ~/ 2 ? Z.text : Z.blue);
       final active = i == 6;
       final rect = RRect.fromRectAndRadius(
-          Rect.fromLTWH(active ? 0 : 6, i * h + 1, s.width - (active ? 0 : 12), h - 2), const Radius.circular(3));
+        Rect.fromLTWH(active ? 0 : 6, i * h + 1, s.width - (active ? 0 : 12), h - 2),
+        Radius.circular(3),
+      );
       canvas.drawRRect(rect, Paint()..color = c.withValues(alpha: active ? 1 : (i == n ~/ 2 ? .6 : .3)));
     }
   }
@@ -98,19 +104,20 @@ class PolyDie extends StatelessWidget {
   final int sides;
   final int value;
   final double size;
-  final Color color;
-  const PolyDie({super.key, required this.sides, required this.value, this.size = 120, this.color = Z.gold});
+  final Color? color;
+  const PolyDie({super.key, required this.sides, required this.value, this.size = 120, this.color});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox.square(
       dimension: size,
       child: CustomPaint(
-        painter: _PolyPainter(sides, color),
+        painter: _PolyPainter(sides, color ?? Z.accent),
         child: Center(
-          child: Text('$value',
-              style: TextStyle(
-                  fontSize: size * .34, fontWeight: FontWeight.w800, color: Z.ink, fontFeatures: Z.tabular)),
+          child: Text(
+            '$value',
+            style: TextStyle(fontSize: size * .34, fontWeight: FontWeight.w700, color: Z.ink, fontFeatures: Z.tabular),
+          ),
         ),
       ),
     );
@@ -124,7 +131,14 @@ class _PolyPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size s) {
-    final corners = switch (sides) { 4 => 3, 8 => 4, 10 => 5, 12 => 5, 20 => 6, _ => 6 };
+    final corners = switch (sides) {
+      4 => 3,
+      8 => 4,
+      10 => 5,
+      12 => 5,
+      20 => 6,
+      _ => 6,
+    };
     final c = s.center(Offset.zero);
     final r = s.width / 2;
     final path = Path();
@@ -136,12 +150,13 @@ class _PolyPainter extends CustomPainter {
     path.close();
     canvas.drawPath(path, Paint()..color = color);
     canvas.drawPath(
-        path,
-        Paint()
-          ..color = Colors.white.withValues(alpha: .25)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 3
-          ..strokeJoin = StrokeJoin.round);
+      path,
+      Paint()
+        ..color = Colors.white.withValues(alpha: .25)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3
+        ..strokeJoin = StrokeJoin.round,
+    );
   }
 
   @override

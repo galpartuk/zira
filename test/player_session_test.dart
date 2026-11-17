@@ -12,11 +12,25 @@ import 'package:zira/state/player_session.dart';
 
 Future<FakeFirebaseFirestore> hosted({String joinMode = 'open', bool started = true, String? bobUid = 'bob'}) async {
   final db = FakeFirebaseFirestore();
-  final t = Tournament(id: 't1', name: 'T', joinMode: joinMode, joinCode: 'ABC234', players: [
-    Player(id: 'a', name: 'Alice', uid: 'alice', tieRand: 1),
-    Player(id: 'b', name: 'Bob', uid: bobUid, tieRand: 2),
-  ]);
-  if (started) t.rounds.add(Round(number: 1, stage: Stage.swiss, matches: [Match(id: 'm1', table: 3, p1: 'a', p2: 'b')]));
+  final t = Tournament(
+    id: 't1',
+    name: 'T',
+    joinMode: joinMode,
+    joinCode: 'ABC234',
+    players: [
+      Player(id: 'a', name: 'Alice', uid: 'alice', tieRand: 1),
+      Player(id: 'b', name: 'Bob', uid: bobUid, tieRand: 2),
+    ],
+  );
+  if (started) {
+    t.rounds.add(
+      Round(
+        number: 1,
+        stage: Stage.swiss,
+        matches: [Match(id: 'm1', table: 3, p1: 'a', p2: 'b')],
+      ),
+    );
+  }
   await CloudStore(db, 'host').saveAll([t]);
   await db.doc('joinCodes/ABC234').set({'tid': 't1', 'hostUid': 'host'});
   return db;
@@ -32,11 +46,25 @@ void main() {
   });
 
   test('join: approval → requested; bad code; closedOnStart after start', () async {
-    expect((await joinWithCode(await hosted(joinMode: 'approval', started: false), uid: 'eve', name: 'E', code: 'ABC234')).$1,
-        JoinResult.requested);
+    expect(
+      (await joinWithCode(
+        await hosted(joinMode: 'approval', started: false),
+        uid: 'eve',
+        name: 'E',
+        code: 'ABC234',
+      )).$1,
+      JoinResult.requested,
+    );
     expect((await joinWithCode(await hosted(), uid: 'eve', name: 'E', code: 'ZZZZZZ')).$1, JoinResult.badCode);
-    expect((await joinWithCode(await hosted(joinMode: 'closedOnStart'), uid: 'eve', name: 'E', code: 'ABC234')).$1,
-        JoinResult.closed);
+    expect(
+      (await joinWithCode(
+        await hosted(joinMode: 'closedOnStart'),
+        uid: 'eve',
+        name: 'E',
+        code: 'ABC234',
+      )).$1,
+      JoinResult.closed,
+    );
   });
 
   test('session shows my match and reports a claim', () async {
@@ -54,8 +82,9 @@ void main() {
 
   test('confirm copies the opponent claim', () async {
     final db = await hosted();
-    await db.doc('tournaments/t1/claims/m1_alice').set(
-        const Claim(matchId: 'm1', uid: 'alice', result: MatchResult(Outcome.p1, 2, 0), atMs: 1).toJson());
+    await db
+        .doc('tournaments/t1/claims/m1_alice')
+        .set(const Claim(matchId: 'm1', uid: 'alice', result: MatchResult(Outcome.p1, 2, 0), atMs: 1).toJson());
     final s = PlayerSession(db, 't1', 'bob');
     await pumpEventQueue();
     expect(s.myState, isA<Pending>());
@@ -79,11 +108,15 @@ void main() {
   test('claims are only listened to once I am a member (the rules refuse it before)', () async {
     final db = await hosted();
     // Eve just joined: she is in no player list and not a member yet.
-    await db.doc('tournaments/t1').update({'memberUids': ['host', 'alice', 'bob']});
+    await db.doc('tournaments/t1').update({
+      'memberUids': ['host', 'alice', 'bob'],
+    });
     final s = PlayerSession(db, 't1', 'eve');
     await pumpEventQueue();
     expect(s.listeningToClaims, isFalse);
-    await db.doc('tournaments/t1').update({'memberUids': ['host', 'alice', 'bob', 'eve']});
+    await db.doc('tournaments/t1').update({
+      'memberUids': ['host', 'alice', 'bob', 'eve'],
+    });
     await pumpEventQueue();
     expect(s.listeningToClaims, isTrue);
     s.dispose();
@@ -101,23 +134,34 @@ void main() {
 
   testWidgets('MyMatchCard: confirming reports the opponent result', (tester) async {
     Lang.instance.code = 'en';
-    final t = Tournament(name: 'T', players: [
-      Player(id: 'a', name: 'Alice', uid: 'alice', tieRand: 1),
-      Player(id: 'b', name: 'Bob', uid: 'bob', tieRand: 2),
-    ]);
-    t.rounds.add(Round(number: 1, stage: Stage.swiss, matches: [Match(id: 'm1', table: 3, p1: 'a', p2: 'b')]));
+    final t = Tournament(
+      name: 'T',
+      players: [
+        Player(id: 'a', name: 'Alice', uid: 'alice', tieRand: 1),
+        Player(id: 'b', name: 'Bob', uid: 'bob', tieRand: 2),
+      ],
+    );
+    t.rounds.add(
+      Round(
+        number: 1,
+        stage: Stage.swiss,
+        matches: [Match(id: 'm1', table: 3, p1: 'a', p2: 'b')],
+      ),
+    );
     const theirs = MatchResult(Outcome.p1, 2, 1);
     MatchResult? sent;
-    await tester.pumpWidget(MaterialApp(
-      home: Scaffold(
-        body: MyMatchCard(
-          t: t,
-          uid: 'bob',
-          state: const Pending(Claim(matchId: 'm1', uid: 'alice', result: theirs, atMs: 1)),
-          onReport: (r) async => sent = r,
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: MyMatchCard(
+            t: t,
+            uid: 'bob',
+            state: const Pending(Claim(matchId: 'm1', uid: 'alice', result: theirs, atMs: 1)),
+            onReport: (r) async => sent = r,
+          ),
         ),
       ),
-    ));
+    );
     expect(find.text('Alice reported a result'), findsOneWidget);
     await tester.tap(find.text('Confirm'));
     expect(sent, same(theirs));
@@ -125,24 +169,33 @@ void main() {
 
   testWidgets('pop-up appears once when the opponent reports, and Confirm sends their result', (tester) async {
     Lang.instance.code = 'en';
-    final t = Tournament(name: 'T', players: [
-      Player(id: 'a', name: 'Alice', uid: 'alice', tieRand: 1),
-      Player(id: 'b', name: 'Bob', uid: 'bob', tieRand: 2),
-    ]);
-    t.rounds.add(Round(number: 1, stage: Stage.swiss, matches: [Match(id: 'm1', table: 3, p1: 'a', p2: 'b')]));
+    final t = Tournament(
+      name: 'T',
+      players: [
+        Player(id: 'a', name: 'Alice', uid: 'alice', tieRand: 1),
+        Player(id: 'b', name: 'Bob', uid: 'bob', tieRand: 2),
+      ],
+    );
+    t.rounds.add(
+      Round(
+        number: 1,
+        stage: Stage.swiss,
+        matches: [Match(id: 'm1', table: 3, p1: 'a', p2: 'b')],
+      ),
+    );
     const theirs = MatchResult(Outcome.p1, 2, 1);
     final sent = <MatchResult>[];
     Widget app(ClaimState st) => MaterialApp(
-          home: Scaffold(
-            body: ClaimPrompt(
-              t: t,
-              uid: 'bob',
-              state: st,
-              onReport: (r) async => sent.add(r),
-              child: const SizedBox.expand(),
-            ),
-          ),
-        );
+      home: Scaffold(
+        body: ClaimPrompt(
+          t: t,
+          uid: 'bob',
+          state: st,
+          onReport: (r) async => sent.add(r),
+          child: const SizedBox.expand(),
+        ),
+      ),
+    );
     await tester.pumpWidget(app(const NoClaims()));
     await tester.pumpAndSettle();
     expect(find.byType(AlertDialog), findsNothing);
@@ -164,7 +217,11 @@ void main() {
   testWidgets('players get the clock without start/pause/reset buttons', (tester) async {
     Lang.instance.code = 'en';
     final t = Tournament(name: 'T');
-    await tester.pumpWidget(MaterialApp(home: Scaffold(body: RoundTimer(t: t, readOnly: true))));
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(body: RoundTimer(t: t, readOnly: true)),
+      ),
+    );
     expect(find.byIcon(Icons.play_arrow_rounded), findsNothing);
     expect(find.byIcon(Icons.pause_rounded), findsNothing);
     expect(find.byIcon(Icons.replay), findsNothing);
@@ -174,18 +231,33 @@ void main() {
 
   testWidgets('the pop-up closes by itself when the host moves on', (tester) async {
     Lang.instance.code = 'en';
-    final t = Tournament(name: 'T', players: [
-      Player(id: 'a', name: 'Alice', uid: 'alice', tieRand: 1),
-      Player(id: 'b', name: 'Bob', uid: 'bob', tieRand: 2),
-    ]);
-    t.rounds.add(Round(number: 1, stage: Stage.swiss, matches: [Match(id: 'm1', table: 3, p1: 'a', p2: 'b')]));
+    final t = Tournament(
+      name: 'T',
+      players: [
+        Player(id: 'a', name: 'Alice', uid: 'alice', tieRand: 1),
+        Player(id: 'b', name: 'Bob', uid: 'bob', tieRand: 2),
+      ],
+    );
+    t.rounds.add(
+      Round(
+        number: 1,
+        stage: Stage.swiss,
+        matches: [Match(id: 'm1', table: 3, p1: 'a', p2: 'b')],
+      ),
+    );
     const theirs = MatchResult(Outcome.p1, 2, 1);
     final sent = <MatchResult>[];
     Widget app(ClaimState st) => MaterialApp(
-          home: Scaffold(
-            body: ClaimPrompt(t: t, uid: 'bob', state: st, onReport: (r) async => sent.add(r), child: const SizedBox.expand()),
-          ),
-        );
+      home: Scaffold(
+        body: ClaimPrompt(
+          t: t,
+          uid: 'bob',
+          state: st,
+          onReport: (r) async => sent.add(r),
+          child: const SizedBox.expand(),
+        ),
+      ),
+    );
     await tester.pumpWidget(app(const Pending(Claim(matchId: 'm1', uid: 'alice', result: theirs, atMs: 1))));
     await tester.pumpAndSettle();
     expect(find.byType(AlertDialog), findsOneWidget);
