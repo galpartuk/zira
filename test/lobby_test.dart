@@ -42,6 +42,7 @@ void main() {
     ));
     await tester.pumpAndSettle();
     expect(find.text(S.t.youAreIn), findsOneWidget);
+    expect(find.byKey(const ValueKey('open-memory')), findsOneWidget); // the gauge is one tap away
     expect(find.text(S.t.waitingHostStart), findsOneWidget);
     expect(find.text(S.t.playersIn(2)), findsOneWidget);
     expect(find.text('Bob'), findsOneWidget);

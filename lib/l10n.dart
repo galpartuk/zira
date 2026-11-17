@@ -313,8 +313,8 @@ class S {
 
   // ---------------------------------------------------------------- tools
   String get memoryGauge => _('Memory gauge', 'מד זיכרון');
-  String get memoryGaugeBody => _('Digimon memory gauge: passes the turn by itself when memory crosses to the opponent\'s side.',
-      'Memory gauge לדיג׳ימון: מעביר תור לבד כשהזיכרון עובר לצד של היריב.');
+  String get memoryGaugeBody => _('Digimon memory gauge for two players, with the phone lying between you.',
+      'Memory gauge לדיג׳ימון לשני שחקנים, כשהטלפון מונח ביניכם.');
   String get dice => _('Dice', 'קוביות');
   String get diceBody => _('Includes "who goes first"', 'כולל "מי מתחיל"');
   String get coin => _('Coin', 'מטבע');

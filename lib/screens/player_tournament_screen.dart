@@ -9,6 +9,7 @@ import '../l10n.dart';
 import '../state/player_session.dart';
 import '../state/session.dart';
 import '../theme.dart';
+import '../tools/memory_screen.dart';
 import '../widgets/common.dart';
 import '../widgets/lobby_card.dart';
 import '../widgets/my_match_card.dart';
@@ -67,6 +68,13 @@ class _PlayerView extends StatelessWidget {
               Text(S.t.roundLabel(r), style: const TextStyle(fontSize: 12.5, color: Z.muted)),
           ]),
           actions: [
+            if (!t.finished)
+              IconButton(
+                key: const ValueKey('open-memory'),
+                tooltip: S.t.memoryGauge,
+                icon: const Icon(Icons.linear_scale_rounded),
+                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MemoryScreen())),
+              ),
             if (t.finished && s.me != null)
               IconButton(
                 tooltip: S.t.myRecord,

@@ -8,6 +8,7 @@ import '../engine/online.dart';
 import '../state/app_state.dart';
 import '../state/session.dart';
 import '../theme.dart';
+import '../tools/memory_screen.dart';
 import '../widgets/common.dart';
 import '../cloud/claims.dart';
 import '../widgets/host_strip.dart';
@@ -81,11 +82,23 @@ class _TournamentScreenState extends State<TournamentScreen> with TickerProvider
           Row(children: [
             Pill(status, color: color),
             const SizedBox(width: 8),
-            Text(S.t.active(t.activePlayers.length), style: const TextStyle(fontSize: 12.5, color: Z.muted)),
+            Flexible(
+              child: Text(S.t.active(t.activePlayers.length),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 12.5, color: Z.muted)),
+            ),
           ]),
         ]),
         toolbarHeight: 68,
         actions: [
+          if (!t.finished)
+            IconButton(
+              key: const ValueKey('open-memory'),
+              tooltip: S.t.memoryGauge,
+              icon: const Icon(Icons.linear_scale_rounded),
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MemoryScreen())),
+            ),
           if (t.finished && sync != null && t.players.any((p) => p.uid == sync.uid))
             IconButton(
               tooltip: S.t.myRecord,
