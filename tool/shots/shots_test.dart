@@ -18,6 +18,7 @@ import 'package:zira/cloud/tournament_repo.dart';
 import 'package:zira/engine/models.dart';
 import 'package:zira/engine/online.dart';
 import 'package:zira/l10n.dart';
+import 'package:zira/screens/about_screen.dart';
 import 'package:zira/screens/history_screen.dart';
 import 'package:zira/screens/home_screen.dart';
 import 'package:zira/screens/player_tournament_screen.dart';
@@ -25,7 +26,10 @@ import 'package:zira/screens/stats_screen.dart';
 import 'package:zira/screens/tournament_screen.dart';
 import 'package:zira/state/app_state.dart';
 import 'package:zira/state/host_sync.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zira/theme.dart';
+import 'package:zira/tools/memory_screen.dart';
+import 'package:zira/widgets/lobby_card.dart';
 import 'package:zira/widgets/round_timer.dart';
 
 Future<void> loadFont(String family, String path) async {
@@ -34,9 +38,9 @@ Future<void> loadFont(String family, String path) async {
 }
 
 const me = 'gal';
-final names = ['Gal Partuk', 'Aviv Partuk', 'Noa Levi', 'Daniel Cohen', 'Maya Ben-David', 'Omer Katz'];
+final names = ['Alex Rivera', 'Sam Carter', 'Noa Levi', 'Daniel Cohen', 'Maya Ben-David', 'Omer Katz'];
 
-/// A Swiss event, round 2 published, Gal plays table 1 against Aviv.
+/// A Swiss event, round 2 published, Alex (the signed-in player) plays table 1 against Sam.
 Tournament live() {
   final t = Tournament(id: 'live', name: 'Friday Locals', joinCode: 'K7Q2XM', swissRounds: 4, players: [
     for (var i = 0; i < names.length; i++) Player(id: 'p$i', name: names[i], uid: i == 0 ? me : 'u$i', tieRand: i),
@@ -72,7 +76,7 @@ Future<Widget> app({
   HostSync? sync,
 }) async {
   final auth = AuthService(
-      MockFirebaseAuth(signedIn: true, mockUser: MockUser(uid: me, displayName: 'Gal Partuk', email: 'gal@example.com')),
+      MockFirebaseAuth(signedIn: true, mockUser: MockUser(uid: me, displayName: 'Alex Rivera', email: 'alex@example.com')),
       db);
   final st = appState ?? (AppState(store: CloudStore(db, me), draftRounds: true)..loaded = true);
   return MultiProvider(
@@ -106,6 +110,7 @@ void main() {
   setUpAll(() async {
     // ignore: invalid_use_of_visible_for_testing_member
     KeepAwake.apply = (_) {}; // no wakelock plugin in tests
+    lobbyAnimations = false; // endless animations never settle
     await loadFont('Heebo', 'assets/fonts/Heebo.ttf');
     const sdk = 'C:/tools/flutter';
     await loadFont('MaterialIcons', '$sdk/bin/cache/artifacts/material_fonts/materialicons-regular.otf');
@@ -182,6 +187,28 @@ void main() {
         await shot(tester, '${lang}_07_player_pairings');
       });
 
+      testWidgets('player: joined, before the first round', (tester) async {
+        final db = FakeFirebaseFirestore();
+        final t = live()..rounds.clear();
+        await CloudStore(db, 'host').saveAll([t]);
+        await db.doc('tournaments/live/entries/$me').set({'displayName': 'Alex Rivera', 'status': 'joined'});
+        await tester.pumpWidget(await app(tester: tester, db: db, home: const PlayerTournamentScreen(tid: 'live')));
+        await shot(tester, '${lang}_11_player_lobby');
+      });
+
+      testWidgets('memory gauge', (tester) async {
+        // ignore: invalid_use_of_visible_for_testing_member
+        SharedPreferences.setMockInitialValues({
+          'zira.memory.v1': '{"m":{"v":3,"t":0,"n":5},"bn":null,"tn":null,"bw":1,"tw":0}',
+        });
+        final db = FakeFirebaseFirestore();
+        await tester.pumpWidget(await app(tester: tester, db: db, home: const MemoryScreen()));
+        await shot(tester, '${lang}_12_memory');
+        await tester.tap(find.text(S.t.pay).last);
+        await shot(tester, '${lang}_13_memory_pay');
+        await tester.pumpWidget(const SizedBox());
+      });
+
       testWidgets('home (playing / hosting / history)', (tester) async {
         final db = FakeFirebaseFirestore();
         await CloudStore(db, 'host').saveAll([live(), done('old1', 'Sunday Cup', 'host'), done('old2', 'Store Championship', 'host')]);
@@ -192,6 +219,12 @@ void main() {
         ]));
         await tester.pumpWidget(await app(tester: tester, db: db, home: const HomeScreen(), appState: st));
         await shot(tester, '${lang}_08_home');
+      });
+
+      testWidgets('about', (tester) async {
+        final db = FakeFirebaseFirestore();
+        await tester.pumpWidget(await app(tester: tester, db: db, home: const AboutScreen()));
+        await shot(tester, '${lang}_14_about');
       });
 
       testWidgets('history + stats', (tester) async {

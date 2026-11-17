@@ -100,6 +100,8 @@ void main() {
 
   test('#6 a confirmed result the host cleared is not refilled by the old reports', () async {
     final (db, app, sync, t) = await host();
+    // Four players: whatever the random pairing, one match has two app players.
+    t.players.add(Player(id: 'd', name: 'Dan', uid: 'dan', tieRand: 3));
     app.start(t);
     app.publish(t);
     final m = t.currentRound!.matches.firstWhere((m) => !m.isBye && t.player(m.p1)!.uid != null && t.player(m.p2)?.uid != null);

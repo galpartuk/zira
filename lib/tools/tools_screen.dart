@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../l10n.dart';
+import '../screens/about_screen.dart';
 import '../screens/tabs/prizes_tab.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
@@ -18,7 +19,17 @@ class ToolsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     void open(Widget w) => Navigator.push(context, MaterialPageRoute(builder: (_) => w));
     return Scaffold(
-      appBar: AppBar(title: Text(S.t.gameTools), actions: const [LangButton()]),
+      appBar: AppBar(
+        title: Text(S.t.gameTools),
+        actions: [
+          const LangButton(),
+          IconButton(
+            tooltip: S.t.about,
+            icon: const Icon(Icons.info_outline_rounded),
+            onPressed: () => open(const AboutScreen()),
+          ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
         children: [

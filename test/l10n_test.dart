@@ -216,10 +216,46 @@ void main() {
     expect(find.text('Win'), findsNWidgets(2)); // one per player
     await tester.tap(find.text('Win').last);
     await tester.pumpAndSettle();
-    await tester.tap(find.text(S.t.yesNewGame));
+    // Who starts the next game is asked, not assumed: the winner may start too.
+    expect(find.text(S.t.gameWonBody), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('first-bottom')));
     await tester.pumpAndSettle();
     final saved = (await SharedPreferences.getInstance()).getString('zira.memory.v1')!;
-    expect(saved.contains('"bw":1') || saved.contains('"tw":1'), isTrue);
+    expect(saved, contains('"bw":1')); // .last = the bottom player's button
+    expect(saved, contains('"t":0')); // and the bottom player (the winner) goes first
+    await tester.pump(const Duration(seconds: 2)); // the "goes first" banner timer
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('memory gauge: Pay takes the cost off the player; the turn changes only on End turn', (tester) async {
+    Lang.instance.code = 'en';
+    SharedPreferences.setMockInitialValues({
+      'zira.memory.v1': '{"m":{"v":3,"t":0,"n":1},"bn":null,"tn":null,"bw":0,"tw":0}',
+    });
+    await tester.binding.setSurfaceSize(const Size(420, 900));
+    await tester.pumpWidget(MaterialApp(theme: buildTheme(), home: const MemoryScreen()));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Pay').last); // the bottom player
+    await tester.pumpAndSettle();
+    expect(find.text(S.t.payHowMuch), findsOneWidget);
+    // At 3 memory, 14 would pass the opponent's 10: not a legal payment, nothing happens.
+    await tester.tap(find.byKey(const ValueKey('pay-bottom-14')), warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(find.text(S.t.payHowMuch), findsOneWidget);
+    expect((await SharedPreferences.getInstance()).getString('zira.memory.v1')!, contains('"v":3'));
+    await tester.tap(find.byKey(const ValueKey('pay-bottom-7')));
+    await tester.pumpAndSettle();
+    expect(find.text(S.t.payHowMuch), findsNothing);
+    final saved = (await SharedPreferences.getInstance()).getString('zira.memory.v1')!;
+    expect(saved, contains('"v":-4')); // 3 − 7 = 4 on the opponent's side
+    expect(saved, contains('"t":0')); // still the bottom player's turn: nothing passes by itself
+    await tester.tap(find.text(S.t.endTurn));
+    await tester.pumpAndSettle();
+    final after = (await SharedPreferences.getInstance()).getString('zira.memory.v1')!;
+    expect(after, contains('"v":-4')); // ending the turn leaves the memory alone
+    expect(after, contains('"t":1'));
+    await tester.pump(const Duration(seconds: 2));
+    await tester.binding.setSurfaceSize(null);
     await tester.pumpWidget(const SizedBox());
   });
 }

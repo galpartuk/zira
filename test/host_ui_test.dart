@@ -60,7 +60,9 @@ void main() {
     final uid = t.player(m.p1)!.uid!;
     await writeClaim(db, 't1', Claim(matchId: m.id, uid: uid, result: const MatchResult(Outcome.p1, 2, 0), atMs: 1));
     await tester.pumpAndSettle();
-    expect(find.text('Waiting for confirmation'), findsOneWidget);
+    // The host sees what was reported and by whom, before the opponent confirms.
+    expect(find.text(S.t.pendingReport(t.nameOf(m.p1), t.nameOf(m.p2))), findsOneWidget);
+    expect(m.result, isNull);
     sync.dispose();
   });
 

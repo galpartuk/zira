@@ -374,13 +374,13 @@ class S {
   String goesFirst(String name) => _('$name goes first', '$name מתחיל');
   String get newGameRoll => _('New game — roll for who goes first', 'משחק חדש — הגרלה מי מתחיל');
   String newGameFirst(String name) => _('New game — $name goes first', 'משחק חדש — $name מתחיל');
-  String get passManually => _('Pass the turn by hand', 'העברת התור ידנית');
   String get resetWins => _('Reset wins', 'איפוס ניצחונות');
   String rolled(int a, int b, String name) => _('🎲 $a vs $b — $name goes first', '🎲 $a מול $b — $name מתחיל');
-  String gameWonTitle(String name) => _('Did $name win the game?', '$name ניצח במשחק?');
-  String get gameWonBody => _('A win is added and a new game starts. The loser goes first next game.',
-      'יתווסף ניצחון ויתחיל משחק חדש. המפסיד מתחיל במשחק הבא.');
-  String get yesNewGame => _('Yes, new game', 'כן, משחק חדש');
+  String gameWonTitle(String name) => _('$name won the game', '$name ניצח במשחק');
+  String get gameWonBody => _('A win is added and a new game starts. Who goes first?',
+      'יתווסף ניצחון ויתחיל משחק חדש. מי מתחיל?');
+  String get pay => _('Pay', 'לשלם');
+  String get payHowMuch => _('Pay how much?', 'כמה לשלם?');
   String get exit => _('Exit', 'יציאה');
   String get undo => _('Undo', 'ביטול פעולה');
   String get newGame => _('New game', 'משחק חדש');
@@ -392,6 +392,16 @@ class S {
   String get endTurn => _('End turn', 'סיום תור');
 
   // rules links
+  String get about => _('About', 'אודות');
+  String get aboutTagline => _('Tournament manager', 'ניהול טורנירים');
+  String versionLabel(String v) => _('Version $v', 'גרסה $v');
+  String get builtWith => _('Built with', 'נבנה עם');
+  String get sourceCode => _('Source code', 'קוד המקור');
+  String get fanMadeNotice => _(
+      'Duel Network is an independent, fan-made tool. It is not affiliated with or endorsed by Bandai. '
+          'Digimon Card Game is a trademark of its respective owner.',
+      'Duel Network הוא כלי עצמאי שנבנה על ידי מעריץ. הוא אינו קשור ל-Bandai ואינו מטעמה. '
+          'Digimon Card Game הוא סימן מסחרי של בעליו.');
   String get cantOpenLink => _('Couldn\'t open the link', 'לא הצלחנו לפתוח את הקישור');
   String get rulesFooter => _('The documents are in English, from Bandai\'s official site. The links always open the current version.',
       'המסמכים באנגלית, מהאתר הרשמי של Bandai. הקישורים פותחים תמיד את הגרסה העדכנית.');
@@ -476,6 +486,16 @@ class S {
   String get hosting => _('Hosting', 'מארח');
   String get playing => _('Playing', 'משחק');
   String get myMatch => _('My match', 'המשחק שלי');
+  String get youAreIn => _('You\'re in!', 'אתה בפנים!');
+  String get waitingHostStart => _('Waiting for the host to start', 'ממתינים שההוסט יתחיל');
+  String get requestSentTitle => _('Request sent', 'הבקשה נשלחה');
+  String get requestSentBody => _('Waiting for the host to approve', 'ממתינים לאישור ההוסט');
+  String get joiningTitle => _('Joining…', 'מצטרף…');
+  String playersIn(int n) => _(n == 1 ? '1 player in' : '$n players in', n == 1 ? 'שחקן אחד בפנים' : '$n שחקנים בפנים');
+  String get live => _('Live', 'חי');
+  String get unconfirmed => _('Unconfirmed', 'לא אושר');
+  String pendingReport(String by, String other) =>
+      _('Reported by $by · waiting for $other to confirm', 'דווח על ידי $by · ממתין לאישור של $other');
   String get waitingNextRound => _('Waiting for the next round', 'ממתינים לסבב הבא');
   String get reportResult => _('Report result', 'דווח תוצאה');
   String opponentReported(String name, String score) => _('$name reported $score', '$name דיווח $score');

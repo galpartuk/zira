@@ -285,7 +285,10 @@ class _RoundsTabState extends State<RoundsTab> {
 class _Score extends StatelessWidget {
   final MatchResult res;
   final int bo;
-  const _Score({required this.res, required this.bo});
+
+  /// A report the opponent has not confirmed yet: smaller, no winner colour.
+  final bool unconfirmed;
+  const _Score({required this.res, required this.bo, this.unconfirmed = false});
 
   @override
   Widget build(BuildContext context) {
@@ -300,7 +303,11 @@ class _Score extends StatelessWidget {
     final a = bo > 1 ? res.g1 : (res.outcome == Outcome.p1 ? 1 : 0);
     final b = bo > 1 ? res.g2 : (res.outcome == Outcome.p2 ? 1 : 0);
     TextStyle st(bool win) => TextStyle(
-        fontSize: 20, fontWeight: FontWeight.w800, color: win ? Z.gold : Z.muted, fontFeatures: Z.tabular);
+        fontSize: unconfirmed ? 17 : 20,
+        fontWeight: FontWeight.w800,
+        fontStyle: unconfirmed ? FontStyle.italic : null,
+        color: unconfirmed ? Z.text : (win ? Z.gold : Z.muted),
+        fontFeatures: Z.tabular);
     return Row(mainAxisAlignment: MainAxisAlignment.center, children: [
       Text('$a', style: st(res.outcome == Outcome.p1)),
       const Padding(
@@ -389,7 +396,21 @@ class _MatchCard extends StatelessWidget {
     }
 
     final label = m.isBye ? 'BYE' : (m.thirdPlace ? '3' : '${m.table}');
-    final source = provenanceText(t, m, viewerUid: null);
+    String who(Claim c) => t.players.where((p) => p.uid == c.uid).firstOrNull?.name ?? '?';
+    String says(Claim c) => S.t.claimedBy(who(c), S.t.scoreText(c.result, bestOf: bo));
+    final cl = claim;
+    final pendingRes = (res == null && cl is Pending) ? cl.by.result : null;
+    // Under the card: who put the result in, or what was reported so far.
+    final (String?, Color) note = switch (cl) {
+      _ when res != null => (provenanceText(t, m, viewerUid: null), Z.muted),
+      Pending(by: final c) => (
+          S.t.pendingReport(who(c), t.nameOf(t.player(m.p1)?.uid == c.uid ? m.p2 : m.p1)),
+          Z.gold
+        ),
+      Disputed(a: final a, b: final b) => ('${says(a)} · ${says(b)}', Z.danger),
+      _ => (null, Z.muted),
+    };
+    final source = note.$1;
     final card = Padding(
       padding: EdgeInsets.only(bottom: source == null ? 8 : 2),
       child: Material(
@@ -428,7 +449,27 @@ class _MatchCard extends StatelessWidget {
                     child: res != null
                         ? _Score(res: res, bo: bo)
                         : switch (claim) {
-                            Pending() => Pill(S.t.waitingConfirm, color: Z.gold),
+                            // Reported by one side only: the score, clearly marked as not final.
+                            Pending() => Column(mainAxisSize: MainAxisSize.min, children: [
+                                Opacity(opacity: .6, child: _Score(res: pendingRes!, bo: bo, unconfirmed: true)),
+                                const SizedBox(height: 3),
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: Z.gold.withValues(alpha: .7)),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                    const Icon(Icons.hourglass_top_rounded, size: 11, color: Z.gold),
+                                    const SizedBox(width: 2),
+                                    Text(S.t.unconfirmed,
+                                        style: const TextStyle(
+                                            fontSize: 10.5, height: 1.1, color: Z.gold, fontWeight: FontWeight.w800)),
+                                  ]),
+                                )),
+                              ]),
                             Disputed() => Pill(S.t.disputed, color: Z.danger),
                             _ => Text(S.t.vs, style: const TextStyle(color: Z.muted, fontWeight: FontWeight.w600)),
                           },
@@ -459,7 +500,7 @@ class _MatchCard extends StatelessWidget {
       card,
       Padding(
         padding: const EdgeInsetsDirectional.only(start: 62, bottom: 8),
-        child: Text(source, style: const TextStyle(fontSize: 12, color: Z.muted)),
+        child: Text(source, style: TextStyle(fontSize: 12, color: note.$2)),
       ),
     ]);
   }

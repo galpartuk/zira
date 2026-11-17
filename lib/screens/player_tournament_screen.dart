@@ -10,6 +10,7 @@ import '../state/player_session.dart';
 import '../state/session.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/lobby_card.dart';
 import '../widgets/my_match_card.dart';
 import '../widgets/round_timer.dart';
 import '../widgets/time_notice.dart';
@@ -124,13 +125,39 @@ class _MyMatchTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (s.myStatus == EntryStatus.requested) {
-      return EmptyState(icon: Icons.hourglass_top, title: S.t.requestSent, body: '');
-    }
     final r = t.currentRound;
+    final me = s.me;
+    // Nothing to do yet: show that the screen is alive and who is in so far.
+    Widget? lobby;
+    if (me == null && s.myStatus == EntryStatus.requested) {
+      lobby = LobbyCard(
+          t: t,
+          uid: s.uid,
+          icon: Icons.hourglass_top_rounded,
+          color: Z.gold,
+          title: S.t.requestSentTitle,
+          subtitle: S.t.requestSentBody);
+    } else if (me == null && !t.finished && t.acceptsNewPlayers && s.myStatus == EntryStatus.joined) {
+      lobby = LobbyCard(
+          t: t,
+          uid: s.uid,
+          icon: Icons.sync_rounded,
+          color: Z.blue,
+          title: S.t.joiningTitle,
+          subtitle: S.t.notInEventYet);
+    } else if (me != null && !me.dropped && !t.finished && MyMatchInfo.of(t, s.uid) == null) {
+      lobby = LobbyCard(
+          t: t,
+          uid: s.uid,
+          icon: Icons.check_rounded,
+          color: Z.win,
+          title: S.t.youAreIn,
+          subtitle: t.underway ? S.t.waitingNextRound : S.t.waitingHostStart,
+          showPlayers: !t.underway);
+    }
     return ListView(padding: const EdgeInsets.all(16), children: [
       if (r != null && !t.finished) ...[RoundTimer(t: t, readOnly: true), const SizedBox(height: 12)],
-      MyMatchCard(t: t, uid: s.uid, state: s.myState, onReport: s.report),
+      lobby ?? MyMatchCard(t: t, uid: s.uid, state: s.myState, onReport: s.report),
     ]);
   }
 }

@@ -10,6 +10,7 @@ import '../state/player_session.dart';
 import '../state/session.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import 'about_screen.dart';
 import 'account_sheet.dart';
 import 'create_tournament_screen.dart';
 import 'history_screen.dart';
@@ -56,6 +57,7 @@ class TournamentsScreen extends StatelessWidget {
             itemBuilder: (_) => [
               PopupMenuItem(value: 'export', child: Text(S.t.copyBackup)),
               PopupMenuItem(value: 'import', child: Text(S.t.restoreBackup)),
+              PopupMenuItem(value: 'about', child: Text(S.t.about)),
             ],
           ),
         ],
@@ -96,7 +98,9 @@ class TournamentsScreen extends StatelessWidget {
   }
 
   void _menu(BuildContext context, AppState app, String v) async {
-    if (v == 'export') {
+    if (v == 'about') {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen()));
+    } else if (v == 'export') {
       await copyText(context, app.exportAll(), S.t.backupWhat);
     } else if (v == 'import') {
       final data = await Clipboard.getData('text/plain');

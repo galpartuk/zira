@@ -44,6 +44,8 @@ Online since 1.4.0 (branch `feature/online-tournaments`, spec/plan in `docs/supe
   `S` formats it. Never put user-visible text in `lib/engine/`.
 - `PrizeConfig.unit` is a code (`packs` / `ILS`); `unitFromJson` maps old saves ("₪", "חבילות", "בוסטרים").
 - Widget tests that check overflow load the real Heebo font (`loadHeebo` in `test/l10n_test.dart`).
+- The player's waiting card (`lib/widgets/lobby_card.dart`) animates forever: tests that show it set
+  `lobbyAnimations = false`, or `pumpAndSettle` never returns.
 
 ## Rules implemented (researched from Bandai Digimon event rules)
 - Points: win 3, draw 1, loss 0. Swiss time-out with no winner is reported as a **0-0 draw** (1 each);
@@ -52,7 +54,8 @@ Online since 1.4.0 (branch `feature/online-tournaments`, spec/plan in `docs/supe
 - Bye → lowest-ranked player without a bye, counts as a win, not an opponent.
 - Swiss rounds by attendance table in `recommendedSwissRounds`. Top cut seeded 1v8, 4v5, 2v7, 3v6.
 - Top-cut time-out procedure text shown in the result sheet (extra turns, then security/deck/...).
-- Memory: crossing to the opponent's side passes the turn; at 0 it doesn't; pass = 3 on opponent side.
+- Memory gauge: the turn changes **only** on End turn (Gal, 2026-11-17: the app can't know whether crossing
+  really ended the turn). A cost that would pass the opponent's 10 can't be paid (`canPay`). No auto-pass and no "pass = 3" button: the player sets the marker and ends the turn.
 
 ## Build / release
 - This PC has ~7.3 GB RAM: `android/gradle.properties` heap is set to 1536m — keep it.
@@ -60,6 +63,9 @@ Online since 1.4.0 (branch `feature/online-tournaments`, spec/plan in `docs/supe
   `android/key.properties` (git-ignored).
 - **Always** `flutter build apk --release --split-per-abi` (first release was split: arm64 = 2001).
   Bump `version:` in pubspec for every APK. Copies go in `releases/` (git-ignored).
+- The About page shows `appVersion` from `lib/version.dart`: bump it together with pubspec (a test checks).
+  README screenshots live in `docs/screenshots/` (made from `tool/shots/out`, fictional player names only).
+  CI: `.github/workflows/ci.yml` runs analyze + tests on main.
 - Visual check: `flutter build web`, serve `build/web`, screenshot with Playwright (system Chrome,
   `channel="chrome"`), seed localStorage key `flutter.zira.tournaments.v1`.
 
